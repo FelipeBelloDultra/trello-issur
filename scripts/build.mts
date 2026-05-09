@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import * as esbuild from "esbuild";
 
 await esbuild.build({
-  entryPoints: ["src/index.ts"],
+  entryPoints: ["src/index.http.ts"],
   minify: true,
   bundle: true,
   packages: "external",
