@@ -1,0 +1,13 @@
+{
+    "extends": "@tsconfig/node24/tsconfig.json",
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "outDir": "./dist",
+        "types": ["@types/node"],
+        "paths": {
+            "@/*": ["./src/*"],
+            "@/test/*": ["./test/*"]
+        }
+    }
+}
