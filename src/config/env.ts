@@ -1,10 +1,21 @@
 import { z } from "zod";
 
-const EnvSchema = z.object({
-  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+export const env = z
+  .object({
+    NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
-  // HTTP server
-  PORT: z.coerce.number().default(3000),
-});
+    // HTTP server
+    PORT: z.coerce.number().default(3000),
 
-export const env = EnvSchema.parse(process.env);
+    // Database
+    DB_HOST: z.string().min(1).default("localhost"),
+    DB_PORT: z.coerce.number().default(5432),
+    DB_USER: z.string().min(1),
+    DB_PASSWORD: z.string().min(1),
+    DB_NAME: z.string().min(1),
+  })
+  .transform((data) => ({
+    ...data,
+    DATABASE_URL: `postgresql://${data.DB_USER}:${data.DB_PASSWORD}@${data.DB_HOST}:${data.DB_PORT}/${data.DB_NAME}`,
+  }))
+  .parse(process.env);
