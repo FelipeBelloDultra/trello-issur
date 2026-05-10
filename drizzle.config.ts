@@ -6,7 +6,7 @@ import { env } from "./src/config/env";
 
 export default defineConfig({
   schema: "./src/infra/db/schema",
-  out: "./drizzle",
+  out: "./src/infra/db/migrations",
   dialect: "postgresql",
   dbCredentials: { url: env.DATABASE_URL },
 });

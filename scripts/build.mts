@@ -3,7 +3,10 @@ import { resolve } from "node:path";
 import * as esbuild from "esbuild";
 
 await esbuild.build({
-  entryPoints: ["src/index.http.ts"],
+  entryPoints: {
+    "index.http": "src/index.http.ts",
+    seed: "src/infra/db/seeds/seed.ts",
+  },
   minify: true,
   bundle: true,
   packages: "external",
