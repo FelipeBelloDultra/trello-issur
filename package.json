@@ -5,6 +5,7 @@
     "main": "index.js",
     "scripts": {
         "test:ui": "vitest --ui -c vitest.config.ts",
+        "test": "vitest run -c vitest.config.ts",
         "test:watch": "vitest -c vitest.config.ts",
         "test:cov": "vitest run --coverage -c vitest.config.ts",
         "test:e2e:watch": "vitest -c vitest.e2e.config.ts",
