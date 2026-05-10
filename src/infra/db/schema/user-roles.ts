@@ -16,7 +16,7 @@ export const userRoles = pgTable(
     roleId: uuid("role_id")
       .notNull()
       .references(() => roles.id, { onDelete: "restrict" }),
-    // TODO: add FK to workspaces.id once workspace module is built
+    // TODO::: add FK to workspaces.id once workspace module is built
     workspaceId: uuid("workspace_id").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
