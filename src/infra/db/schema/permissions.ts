@@ -1,10 +1,11 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { v7 as uuidv7 } from "uuid";
+
+import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 
 export const permissions = pgTable("permissions", {
   id: uuid("id")
     .primaryKey()
-    .$defaultFn(() => uuidv7()),
+    .$defaultFn(() => UniqueEntityID.create().toValue()),
   key: text("key").notNull().unique(),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

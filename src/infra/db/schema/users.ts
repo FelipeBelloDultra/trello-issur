@@ -1,10 +1,11 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { v7 as uuidv7 } from "uuid";
+
+import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 
 export const users = pgTable("users", {
   id: uuid("id")
     .primaryKey()
-    .$defaultFn(() => uuidv7()),
+    .$defaultFn(() => UniqueEntityID.create().toValue()),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),

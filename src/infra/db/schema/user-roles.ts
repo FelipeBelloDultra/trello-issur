@@ -1,5 +1,6 @@
 import { index, pgTable, timestamp, unique, uuid } from "drizzle-orm/pg-core";
-import { v7 as uuidv7 } from "uuid";
+
+import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 
 import { roles } from "./roles";
 import { users } from "./users";
@@ -9,7 +10,7 @@ export const userRoles = pgTable(
   {
     id: uuid("id")
       .primaryKey()
-      .$defaultFn(() => uuidv7()),
+      .$defaultFn(() => UniqueEntityID.create().toValue()),
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
