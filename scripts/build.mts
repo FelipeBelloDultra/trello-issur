@@ -8,6 +8,7 @@ await esbuild.build({
     seed: "src/infra/db/seeds/seed.ts",
   },
   minify: true,
+  keepNames: true,
   bundle: true,
   packages: "external",
   platform: "node",
