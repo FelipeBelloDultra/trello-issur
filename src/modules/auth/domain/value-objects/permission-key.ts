@@ -1,3 +1,5 @@
+import { ValueObject } from "@/core/entity/value-object";
+
 const PERMISSION_REGISTRY = [
   // Workspace
   { key: "workspace:manage", description: "Manage workspace settings" },
@@ -18,10 +20,12 @@ const PERMISSION_REGISTRY = [
 
 export type RawPermissionKey = (typeof PERMISSION_REGISTRY)[number]["key"];
 
-export class PermissionKey {
+export class PermissionKey extends ValueObject<{ value: RawPermissionKey }> {
   public static readonly registry = PERMISSION_REGISTRY;
 
-  private constructor(private readonly value: RawPermissionKey) {}
+  private constructor(value: RawPermissionKey) {
+    super({ value });
+  }
 
   public static create(value: string): PermissionKey {
     const found = PERMISSION_REGISTRY.find((p) => p.key === value);
@@ -29,11 +33,7 @@ export class PermissionKey {
     return new PermissionKey(value as RawPermissionKey);
   }
 
-  public equals(other: PermissionKey): boolean {
-    return this.value === other.value;
-  }
-
   public toString(): string {
-    return this.value;
+    return this.props.value;
   }
 }

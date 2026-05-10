@@ -1,3 +1,5 @@
+import { ValueObject } from "@/core/entity/value-object";
+
 import { RawPermissionKey } from "./permission-key";
 
 const ROLE_REGISTRY = [
@@ -35,11 +37,13 @@ export const ROLE_PERMISSION_MAP: Record<RawUserRole, RawPermissionKey[]> = {
   viewer: [],
 };
 
-export class UserRole {
+export class UserRole extends ValueObject<{ value: RawUserRole }> {
   public static readonly registry = ROLE_REGISTRY;
   public static readonly permissionMap = ROLE_PERMISSION_MAP;
 
-  private constructor(private readonly value: RawUserRole) {}
+  private constructor(value: RawUserRole) {
+    super({ value });
+  }
 
   public static create(value: string): UserRole {
     const found = ROLE_REGISTRY.find((r) => r.name === value);
@@ -47,11 +51,7 @@ export class UserRole {
     return new UserRole(value as RawUserRole);
   }
 
-  public equals(other: UserRole): boolean {
-    return this.value === other.value;
-  }
-
   public toString(): string {
-    return this.value;
+    return this.props.value;
   }
 }
