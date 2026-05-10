@@ -14,6 +14,12 @@
         "dev:http": "tsx watch src/index.http.ts",
         "start:http": "node dist/index.http.js",
         "typecheck": "tsc --noEmit",
+        "db:generate": "drizzle-kit generate",
+        "db:migrate": "drizzle-kit migrate",
+        "db:push": "drizzle-kit push",
+        "db:seed": "tsx src/infra/db/seeds/seed.ts",
+        "start:seed": "node dist/seed.js",
+        "db:studio": "drizzle-kit studio",
         "prebuild": "rm -rf dist",
         "build": "node scripts/build.mts"
     },
@@ -49,10 +55,13 @@
     },
     "dependencies": {
         "@elysiajs/node": "1.4.5",
+        "@elysiajs/openapi": "1.4.15",
         "dotenv": "17.4.2",
         "drizzle-orm": "0.45.2",
         "elysia": "1.4.28",
+        "jose": "6.2.3",
         "postgres": "3.4.9",
+        "uuid": "14.0.0",
         "zod": "4.4.3"
     }
 }
