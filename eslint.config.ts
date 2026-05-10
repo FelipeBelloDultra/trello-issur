@@ -34,6 +34,7 @@ export default defineConfig([
         },
       ],
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "_" }],
+      "@typescript-eslint/explicit-member-accessibility": ["error", { accessibility: "explicit" }],
     },
   },
   {
