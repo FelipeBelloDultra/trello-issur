@@ -1,11 +1,16 @@
 import "dotenv/config";
+import { resolve } from "node:path";
 
-import viteTsConfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [viteTsConfigPaths()],
   test: {
+    alias: [
+      {
+        find: "@",
+        replacement: resolve(__dirname, "src"),
+      },
+    ],
     globals: true,
     coverage: {
       provider: "v8",
