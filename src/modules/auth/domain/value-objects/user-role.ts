@@ -1,4 +1,5 @@
 import { ValueObject } from "@/core/entity/value-object";
+import { InvalidUserRoleError } from "@/modules/auth/domain/errors/invalid-user-role.error";
 
 import { RawPermissionKey } from "./permission-key";
 
@@ -10,7 +11,7 @@ const ROLE_REGISTRY = [
 
 export type RawUserRole = (typeof ROLE_REGISTRY)[number]["name"];
 
-export const ROLE_PERMISSION_MAP: Record<RawUserRole, RawPermissionKey[]> = {
+const ROLE_PERMISSION_MAP: Record<RawUserRole, RawPermissionKey[]> = {
   admin: [
     "workspace:manage",
     "workspace:delete",
@@ -47,8 +48,13 @@ export class UserRole extends ValueObject<{ value: RawUserRole }> {
 
   public static create(value: string): UserRole {
     const found = ROLE_REGISTRY.find((r) => r.name === value);
-    if (!found) throw new Error(`Unknown role: "${value}"`);
-    return new UserRole(value as RawUserRole);
+    if (!found) throw new InvalidUserRoleError(value);
+
+    return new UserRole(found.name);
+  }
+
+  public hasPermission(key: RawPermissionKey): boolean {
+    return ROLE_PERMISSION_MAP[this.props.value].includes(key);
   }
 
   public toString(): string {

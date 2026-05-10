@@ -1,4 +1,5 @@
 import { ValueObject } from "@/core/entity/value-object";
+import { InvalidPermissionKeyError } from "@/modules/auth/domain/errors/invalid-permission-key.error";
 
 const PERMISSION_REGISTRY = [
   // Workspace
@@ -29,8 +30,9 @@ export class PermissionKey extends ValueObject<{ value: RawPermissionKey }> {
 
   public static create(value: string): PermissionKey {
     const found = PERMISSION_REGISTRY.find((p) => p.key === value);
-    if (!found) throw new Error(`Unknown permission key: "${value}"`);
-    return new PermissionKey(value as RawPermissionKey);
+    if (!found) throw new InvalidPermissionKeyError(value);
+
+    return new PermissionKey(found.key);
   }
 
   public toString(): string {
