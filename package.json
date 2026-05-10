@@ -7,7 +7,6 @@
         "test:ui": "vitest --ui -c vitest.config.ts",
         "test": "vitest run -c vitest.config.ts",
         "test:watch": "vitest -c vitest.config.ts",
-        "test:cov": "vitest run --coverage -c vitest.config.ts",
         "test:e2e:watch": "vitest -c vitest.e2e.config.ts",
         "test:e2e": "vitest run -c vitest.e2e.config.ts",
         "lint:check": "eslint .",
@@ -35,9 +34,9 @@
     },
     "devDependencies": {
         "@eslint/js": "10.0.1",
+        "@faker-js/faker": "10.4.0",
         "@tsconfig/node24": "24.0.4",
         "@types/node": "25.6.2",
-        "@vitest/coverage-v8": "4.1.5",
         "@vitest/ui": "4.1.5",
         "drizzle-kit": "0.31.10",
         "esbuild": "0.28.0",
@@ -57,6 +56,7 @@
     "dependencies": {
         "@elysiajs/node": "1.4.5",
         "@elysiajs/openapi": "1.4.15",
+        "argon2": "0.44.0",
         "dotenv": "17.4.2",
         "drizzle-orm": "0.45.2",
         "elysia": "1.4.28",
