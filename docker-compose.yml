@@ -18,6 +18,14 @@ services:
         networks:
             - trello-issur-net
 
+    jaeger:
+        image: jaegertracing/jaeger:2.18.0
+        ports:
+            - "16686:16686" # UI
+            - "4318:4318" # OTLP/HTTP receiver
+        networks:
+            - trello-issur-net
+
 volumes:
     postgres_data:
         driver: local
