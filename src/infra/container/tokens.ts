@@ -9,7 +9,7 @@ export const TOKENS = {
   RegisterUserController: Symbol("RegisterUserController"),
 
   // Auth
-  EncryptGateway: Symbol("EncryptGateway"),
+  CryptographGateway: Symbol("CryptographGateway"),
   TokenRepository: Symbol("TokenRepository"),
   LoginUseCase: Symbol("LoginUseCase"),
   RefreshTokenUseCase: Symbol("RefreshTokenUseCase"),

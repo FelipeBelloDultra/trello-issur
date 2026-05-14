@@ -3,7 +3,7 @@ import { Elysia } from "elysia";
 import { container } from "@/infra/container";
 import { TOKENS } from "@/infra/container/tokens";
 import { HttpErrors } from "@/infra/http/http-errors";
-import { EncryptGateway } from "@/modules/auth/application/gateways/encrypt.gateway";
+import { CryptographGateway } from "@/modules/auth/application/gateways/cryptograph.gateway";
 
 export const authPlugin = new Elysia({ name: "auth" }).derive(
   { as: "scoped" },
@@ -13,8 +13,8 @@ export const authPlugin = new Elysia({ name: "auth" }).derive(
 
     if (!token) return { auth: null };
 
-    const encryptGateway = container.get<EncryptGateway>(TOKENS.EncryptGateway);
-    const claims = await encryptGateway.verifyAccessToken(token);
+    const cryptographGateway = container.get<CryptographGateway>(TOKENS.CryptographGateway);
+    const claims = await cryptographGateway.verify(token);
 
     if (!claims) return { auth: null };
 

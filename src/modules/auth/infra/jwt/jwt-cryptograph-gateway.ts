@@ -5,12 +5,12 @@ import { env } from "@/config/env";
 import { TokenClaims } from "@/modules/auth/domain/value-objects/token-claims";
 import { TokenPair } from "@/modules/auth/domain/value-objects/token-pair";
 
-import { EncryptGateway } from "../../application/gateways/encrypt.gateway";
+import { CryptographGateway } from "../../application/gateways/cryptograph.gateway";
 
 const secret = new TextEncoder().encode(env.JWT_SECRET);
 
 @injectable()
-export class JwtEncryptGateway implements EncryptGateway {
+export class JwtCryptographGateway implements CryptographGateway {
   public async generatePair(claims: TokenClaims): Promise<TokenPair> {
     const now = Math.floor(Date.now() / 1000);
 
@@ -31,16 +31,7 @@ export class JwtEncryptGateway implements EncryptGateway {
     return TokenPair.create(accessToken, refreshToken);
   }
 
-  public async verifyAccessToken(token: string): Promise<TokenClaims | null> {
-    try {
-      const { payload } = await jwtVerify(token, secret);
-      return TokenClaims.create(String(payload.sub), String(payload["email"]));
-    } catch {
-      return null;
-    }
-  }
-
-  public async verifyRefreshToken(token: string): Promise<TokenClaims | null> {
+  public async verify(token: string): Promise<TokenClaims | null> {
     try {
       const { payload } = await jwtVerify(token, secret);
       return TokenClaims.create(String(payload.sub), String(payload["email"]));

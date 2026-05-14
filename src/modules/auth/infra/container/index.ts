@@ -8,11 +8,11 @@ import { RefreshTokenUseCase } from "../../application/use-cases/refresh-token.u
 import { LoginController } from "../http/controllers/login.controller";
 import { LogoutController } from "../http/controllers/logout.controller";
 import { RefreshTokenController } from "../http/controllers/refresh-token.controller";
-import { JwtEncryptGateway } from "../jwt/jwt-encrypt-gateway";
+import { JwtCryptographGateway } from "../jwt/jwt-cryptograph-gateway";
 import { ValkeyTokenRepository } from "../valkey/valkey-token-repository";
 
 export const setupAuthContainerModule = new ContainerModule(({ bind }) => {
-  bind(TOKENS.EncryptGateway).to(JwtEncryptGateway).inSingletonScope();
+  bind(TOKENS.CryptographGateway).to(JwtCryptographGateway).inSingletonScope();
   bind(TOKENS.TokenRepository).to(ValkeyTokenRepository).inSingletonScope();
   bind(TOKENS.LoginUseCase).to(LoginUseCase).inSingletonScope();
   bind(TOKENS.RefreshTokenUseCase).to(RefreshTokenUseCase).inSingletonScope();

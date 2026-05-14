@@ -10,7 +10,7 @@ import { UserRepository } from "@/modules/user/application/repositories/user-rep
 
 import { LoginInput } from "../dtos/login.dto";
 import { InvalidCredentialsError } from "../errors/invalid-credentials.error";
-import { EncryptGateway } from "../gateways/encrypt.gateway";
+import { CryptographGateway } from "../gateways/cryptograph.gateway";
 import { TokenRepository } from "../repositories/token-repository";
 
 type OnError = InvalidCredentialsError;
@@ -22,8 +22,8 @@ export class LoginUseCase {
   public constructor(
     @inject(TOKENS.UserRepository)
     private readonly userRepository: UserRepository,
-    @inject(TOKENS.EncryptGateway)
-    private readonly encryptGateway: EncryptGateway,
+    @inject(TOKENS.CryptographGateway)
+    private readonly cryptographGateway: CryptographGateway,
     @inject(TOKENS.TokenRepository)
     private readonly tokenRepository: TokenRepository,
   ) {}
@@ -38,7 +38,7 @@ export class LoginUseCase {
     if (!valid) return left(new InvalidCredentialsError());
 
     const claims = TokenClaims.create(user.id.toValue(), user.email);
-    const pair = await this.encryptGateway.generatePair(claims);
+    const pair = await this.cryptographGateway.generatePair(claims);
 
     const ttl = parseDurationToSeconds(env.JWT_REFRESH_EXPIRES);
     await this.tokenRepository.save(user.id.toValue(), pair.refreshToken, ttl);
