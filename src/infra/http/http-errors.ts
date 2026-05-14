@@ -15,6 +15,15 @@ export class HttpErrors {
     };
   }
 
+  public static unauthorized(detail: string): HttpErrorBody {
+    return {
+      type: "/errors/unauthorized",
+      title: "Unauthorized",
+      status: 401,
+      detail,
+    };
+  }
+
   public static unprocessableEntity(detail: string): HttpErrorBody {
     return {
       type: "/errors/unprocessable-entity",
