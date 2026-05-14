@@ -6,11 +6,12 @@ import { container } from "@/infra/container";
 import { TOKENS } from "@/infra/container/tokens";
 import { RegisterUserController } from "@/modules/user/infra/http/controllers/register-user.controller";
 
+import { healthPlugin } from "./plugins/health.plugin";
 import { loggerPlugin } from "./plugins/logger.plugin";
 
 export const createApp = () =>
   new Elysia({ adapter: node() })
     .use(loggerPlugin)
+    .use(healthPlugin)
     .use(openapi())
-    .get("/health", () => ({ status: "ok" }))
     .use(container.get<RegisterUserController>(TOKENS.RegisterUserController).setup());
