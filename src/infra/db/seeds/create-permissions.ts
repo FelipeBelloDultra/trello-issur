@@ -1,9 +1,9 @@
-import { db } from "@/infra/db/client";
+import { databaseClient } from "@/infra/db/client";
 import { permissions } from "@/infra/db/schema";
 import { PermissionKey } from "@/modules/auth/domain/value-objects/permission-key";
 
 export async function createPermissions(): Promise<void> {
-  await db
+  await databaseClient.db
     .insert(permissions)
     .values([...PermissionKey.registry])
     .onConflictDoNothing({ target: permissions.key });

@@ -1,10 +1,12 @@
 import { inArray } from "drizzle-orm";
 
-import { db } from "@/infra/db/client";
+import { databaseClient } from "@/infra/db/client";
 import { permissions, rolePermissions, roles } from "@/infra/db/schema";
 import { UserRole } from "@/modules/auth/domain/value-objects/user-role";
 
 export async function createRoles(): Promise<void> {
+  const db = databaseClient.db;
+
   await db
     .insert(roles)
     .values([...UserRole.registry])

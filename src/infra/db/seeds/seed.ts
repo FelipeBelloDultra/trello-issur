@@ -1,5 +1,7 @@
 import "dotenv/config";
 
+import { databaseClient } from "@/infra/db/client";
+
 import { createPermissions } from "./create-permissions";
 import { createRoles } from "./create-roles";
 
@@ -21,7 +23,14 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  await run();
+  databaseClient.connect();
+
+  try {
+    await run();
+  } finally {
+    await databaseClient.disconnect();
+  }
+
   process.exit(0);
 }
 
