@@ -33,6 +33,15 @@ export class HttpErrors {
     };
   }
 
+  public static tooManyRequests(): HttpErrorBody {
+    return {
+      type: "/errors/too-many-requests",
+      title: "Too Many Requests",
+      status: 429,
+      detail: "Rate limit exceeded. Please try again later.",
+    };
+  }
+
   public static internalServerError(): HttpErrorBody {
     return {
       type: "/errors/internal-server-error",
