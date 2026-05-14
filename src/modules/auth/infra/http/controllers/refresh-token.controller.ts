@@ -3,6 +3,7 @@ import { inject, injectable } from "inversify";
 
 import { TOKENS } from "@/infra/container/tokens";
 import { HttpErrors } from "@/infra/http/http-errors";
+import { createRateLimitPlugin } from "@/infra/http/plugins/rate-limit.plugin";
 import { RefreshTokenDto } from "@/modules/auth/application/dtos/refresh-token.dto";
 import { InvalidTokenError } from "@/modules/auth/application/errors/invalid-token.error";
 import { RefreshTokenUseCase } from "@/modules/auth/application/use-cases/refresh-token.use-case";
@@ -18,7 +19,7 @@ export class RefreshTokenController {
   ) {}
 
   public setup() {
-    return new Elysia().post(
+    return new Elysia().use(createRateLimitPlugin({ max: 20, windowMs: 60_000 })).post(
       RefreshTokenController.route,
       async ({ body, set }) => {
         const result = await this.refreshTokenUseCase.execute(body);

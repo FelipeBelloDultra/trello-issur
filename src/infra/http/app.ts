@@ -9,13 +9,17 @@ import { LogoutController } from "@/modules/auth/infra/http/controllers/logout.c
 import { RefreshTokenController } from "@/modules/auth/infra/http/controllers/refresh-token.controller";
 import { RegisterUserController } from "@/modules/user/infra/http/controllers/register-user.controller";
 
+import { corsPlugin } from "./plugins/cors.plugin";
 import { healthPlugin } from "./plugins/health.plugin";
 import { loggerPlugin } from "./plugins/logger.plugin";
 import { metricsPlugin } from "./plugins/metrics.plugin";
+import { securityHeadersPlugin } from "./plugins/security-headers.plugin";
 import { tracingPlugin } from "./plugins/tracing.plugin";
 
 export const createApp = () =>
   new Elysia({ adapter: node() })
+    .use(corsPlugin)
+    .use(securityHeadersPlugin)
     .use(tracingPlugin)
     .use(loggerPlugin)
     .use(metricsPlugin)

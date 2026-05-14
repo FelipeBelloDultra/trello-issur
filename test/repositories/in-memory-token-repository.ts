@@ -3,15 +3,17 @@ import { TokenRepository } from "@/modules/auth/application/repositories/token-r
 export class InMemoryTokenRepository implements TokenRepository {
   public items: Map<string, string> = new Map();
 
-  public async save(userId: string, refreshToken: string, _ttlSeconds: number): Promise<void> {
+  public save(userId: string, refreshToken: string, _ttlSeconds: number): Promise<void> {
     this.items.set(userId, refreshToken);
+    return Promise.resolve();
   }
 
-  public async find(userId: string): Promise<string | null> {
-    return this.items.get(userId) ?? null;
+  public find(userId: string): Promise<string | null> {
+    return Promise.resolve(this.items.get(userId) ?? null);
   }
 
-  public async delete(userId: string): Promise<void> {
+  public delete(userId: string): Promise<void> {
     this.items.delete(userId);
+    return Promise.resolve();
   }
 }

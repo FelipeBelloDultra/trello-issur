@@ -3,6 +3,7 @@ import { inject, injectable } from "inversify";
 
 import { TOKENS } from "@/infra/container/tokens";
 import { HttpErrors } from "@/infra/http/http-errors";
+import { createRateLimitPlugin } from "@/infra/http/plugins/rate-limit.plugin";
 import { LoginDto } from "@/modules/auth/application/dtos/login.dto";
 import { InvalidCredentialsError } from "@/modules/auth/application/errors/invalid-credentials.error";
 import { LoginUseCase } from "@/modules/auth/application/use-cases/login.use-case";
@@ -18,7 +19,7 @@ export class LoginController {
   ) {}
 
   public setup() {
-    return new Elysia().post(
+    return new Elysia().use(createRateLimitPlugin({ max: 10, windowMs: 60_000 })).post(
       LoginController.route,
       async ({ body, set }) => {
         const result = await this.loginUseCase.execute(body);
