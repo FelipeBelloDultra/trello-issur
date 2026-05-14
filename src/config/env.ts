@@ -16,6 +16,14 @@ export const env = z
     // HTTP server
     PORT: z.coerce.number().default(3000),
 
+    // Auth
+    JWT_SECRET: z.string().min(32),
+    JWT_ACCESS_EXPIRES: z.string().default("15m"),
+    JWT_REFRESH_EXPIRES: z.string().default("7d"),
+
+    // Valkey
+    VALKEY_URL: z.string().url().default("redis://localhost:6379"),
+
     // Database
     DB_HOST: z.string().min(1).default("localhost"),
     DB_PORT: z.coerce.number().default(5432),

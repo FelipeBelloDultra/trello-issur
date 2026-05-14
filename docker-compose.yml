@@ -18,6 +18,13 @@ services:
         networks:
             - trello-issur-net
 
+    valkey:
+        image: valkey/valkey:8-alpine
+        ports:
+            - "6379:6379"
+        networks:
+            - trello-issur-net
+
     jaeger:
         image: jaegertracing/jaeger:2.18.0
         ports:
