@@ -8,10 +8,12 @@ import { RegisterUserController } from "@/modules/user/infra/http/controllers/re
 
 import { healthPlugin } from "./plugins/health.plugin";
 import { loggerPlugin } from "./plugins/logger.plugin";
+import { metricsPlugin } from "./plugins/metrics.plugin";
 
 export const createApp = () =>
   new Elysia({ adapter: node() })
     .use(loggerPlugin)
+    .use(metricsPlugin)
     .use(healthPlugin)
     .use(openapi())
     .use(container.get<RegisterUserController>(TOKENS.RegisterUserController).setup());
