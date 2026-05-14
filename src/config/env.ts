@@ -10,6 +10,9 @@ export const env = z
     // Logging
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
 
+    // Tracing
+    OTEL_ENDPOINT: z.string().url().optional(),
+
     // HTTP server
     PORT: z.coerce.number().default(3000),
 
