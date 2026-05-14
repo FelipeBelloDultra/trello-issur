@@ -6,6 +6,7 @@ import { env } from "@/config/env";
 import { databaseClient } from "@/infra/db/client";
 import { logger } from "@/infra/logger";
 import { shutdownTracing } from "@/infra/tracing";
+import { valkeyClient } from "@/infra/valkey/client";
 
 import { createApp } from "./infra/http/app";
 
@@ -30,6 +31,7 @@ async function shutdown(app: AnyElysia): Promise<void> {
   }
 
   await databaseClient.disconnect();
+  await valkeyClient.disconnect();
   await shutdownTracing();
   logger.info("shutdown complete");
   process.exit(0);
@@ -38,6 +40,8 @@ async function shutdown(app: AnyElysia): Promise<void> {
 function bootstrap(): void {
   databaseClient.connect();
   logger.info("database connected");
+  valkeyClient.connect();
+  logger.info("valkey connected");
 
   const app = createApp();
   app.listen(env.PORT);
