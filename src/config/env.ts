@@ -16,6 +16,9 @@ export const env = z
     // HTTP server
     PORT: z.coerce.number().default(3000),
 
+    // CORS
+    CORS_ORIGIN: z.string().default("*"),
+
     // Auth
     JWT_SECRET: z.string().min(32),
     JWT_ACCESS_EXPIRES: z.string().default("15m"),
