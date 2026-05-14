@@ -1,8 +1,10 @@
 import { collectDefaultMetrics, Counter, Histogram, Registry } from "prom-client";
 
+import { env } from "@/config/env";
+
 export const registry = new Registry();
 
-collectDefaultMetrics({ register: registry });
+collectDefaultMetrics({ register: registry, labels: { instance: env.INSTANCE_ID } });
 
 export const httpRequestsTotal = new Counter({
   name: "http_requests_total",
