@@ -5,6 +5,7 @@ import { AnyElysia } from "elysia";
 import { env } from "@/config/env";
 import { databaseClient } from "@/infra/db/client";
 import { logger } from "@/infra/logger";
+import { shutdownTracing } from "@/infra/tracing";
 
 import { createApp } from "./infra/http/app";
 
@@ -29,6 +30,7 @@ async function shutdown(app: AnyElysia): Promise<void> {
   }
 
   await databaseClient.disconnect();
+  await shutdownTracing();
   logger.info("shutdown complete");
   process.exit(0);
 }

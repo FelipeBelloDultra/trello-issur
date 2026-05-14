@@ -9,9 +9,11 @@ import { RegisterUserController } from "@/modules/user/infra/http/controllers/re
 import { healthPlugin } from "./plugins/health.plugin";
 import { loggerPlugin } from "./plugins/logger.plugin";
 import { metricsPlugin } from "./plugins/metrics.plugin";
+import { tracingPlugin } from "./plugins/tracing.plugin";
 
 export const createApp = () =>
   new Elysia({ adapter: node() })
+    .use(tracingPlugin)
     .use(loggerPlugin)
     .use(metricsPlugin)
     .use(healthPlugin)
