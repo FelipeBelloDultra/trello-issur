@@ -1,8 +1,11 @@
+import os from "os";
+
 import { z } from "zod";
 
 export const env = z
   .object({
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+    INSTANCE_ID: z.string().default(os.hostname()),
 
     // Logging
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
@@ -16,6 +19,7 @@ export const env = z
     DB_USER: z.string().min(1),
     DB_PASSWORD: z.string().min(1),
     DB_NAME: z.string().min(1),
+    DB_POOL_MAX: z.coerce.number().min(1).default(10),
   })
   .transform((data) => ({
     ...data,
