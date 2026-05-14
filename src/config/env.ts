@@ -4,6 +4,9 @@ export const env = z
   .object({
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
+    // Logging
+    LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
+
     // HTTP server
     PORT: z.coerce.number().default(3000),
 
