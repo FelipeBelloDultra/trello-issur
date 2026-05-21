@@ -1,15 +1,11 @@
 import { Elysia } from "elysia";
 
 import { HttpErrors } from "@/infra/http/http-errors";
+import { valkeyClient } from "@/infra/valkey/client";
 
 interface RateLimitOptions {
   max: number;
   windowMs: number;
-}
-
-interface Window {
-  count: number;
-  resetAt: number;
 }
 
 function extractIp(request: Request): string {
@@ -17,30 +13,27 @@ function extractIp(request: Request): string {
 }
 
 export function createRateLimitPlugin({ max, windowMs }: RateLimitOptions) {
-  const store = new Map<string, Window>();
+  const windowSecs = Math.ceil(windowMs / 1000);
 
   return new Elysia({
     name: `rate-limit:${max}:${windowMs}`,
     seed: { max, windowMs },
-  }).onBeforeHandle({ as: "scoped" }, ({ request, set }) => {
+  }).onBeforeHandle({ as: "scoped" }, async ({ request, set }) => {
     const ip = extractIp(request);
     const path = new URL(request.url).pathname;
-    const key = `${ip}:${path}`;
-    const now = Date.now();
+    const key = `rate-limit:${ip}:${path}`;
+    const redis = valkeyClient.client;
 
-    const current = store.get(key);
-
-    if (!current || now >= current.resetAt) {
-      store.set(key, { count: 1, resetAt: now + windowMs });
-      return;
+    const count = await redis.incr(key);
+    if (count === 1) {
+      await redis.expire(key, windowSecs);
     }
 
-    if (current.count >= max) {
+    if (count > max) {
+      const ttl = await redis.ttl(key);
       set.status = 429;
-      set.headers["retry-after"] = String(Math.ceil((current.resetAt - now) / 1000));
+      set.headers["retry-after"] = String(Math.max(ttl, 0));
       return HttpErrors.tooManyRequests();
     }
-
-    current.count++;
   });
 }
