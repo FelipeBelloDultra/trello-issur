@@ -14,7 +14,7 @@ export const env = z
     OTEL_ENDPOINT: z.string().url().optional(),
 
     // HTTP server
-    PORT: z.coerce.number().default(3000),
+    HTTP_SERVER_PORT: z.coerce.number().default(3000),
 
     // CORS
     CORS_ORIGIN: z.string().default("*"),
@@ -34,6 +34,8 @@ export const env = z
     DB_PASSWORD: z.string().min(1),
     DB_NAME: z.string().min(1),
     DB_POOL_MAX: z.coerce.number().min(1).default(10),
+    DB_IDLE_TIMEOUT: z.coerce.number().min(0).default(30),
+    DB_CONNECT_TIMEOUT: z.coerce.number().min(1).default(10),
   })
   .transform((data) => ({
     ...data,
