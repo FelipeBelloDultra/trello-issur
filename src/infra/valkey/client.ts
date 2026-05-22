@@ -19,5 +19,3 @@ export class ValkeyClient {
     return this._client;
   }
 }
-
-export const valkeyClient = new ValkeyClient();
