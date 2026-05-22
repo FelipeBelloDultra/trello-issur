@@ -1,14 +1,16 @@
-import { Request, Response } from "express";
-import { RequestHandler } from "express";
+import { Request, RequestHandler, Response } from "express";
 import { inject, injectable } from "tsyringe";
 
+import { CommandBus } from "@/core/commands/command-bus";
+import { Either } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { Controller, HttpMethod } from "@/infra/http/controller";
 import { HttpException } from "@/infra/http/http-exception";
 import { RateLimitMiddleware } from "@/infra/http/middlewares/rate-limit.middleware";
+import { RefreshTokenCommand } from "@/modules/auth/application/commands/refresh-token/command";
 import { RefreshTokenDto } from "@/modules/auth/application/dtos/refresh-token.dto";
 import { InvalidTokenError } from "@/modules/auth/application/errors/invalid-token.error";
-import { RefreshTokenUseCase } from "@/modules/auth/application/use-cases/refresh-token.use-case";
+import { TokenPair } from "@/modules/auth/domain/value-objects/token-pair";
 
 @injectable()
 export class RefreshTokenController implements Controller {
@@ -17,8 +19,8 @@ export class RefreshTokenController implements Controller {
   public readonly middlewares: RequestHandler[];
 
   public constructor(
-    @inject(InjectionTokens.UseCases.RefreshToken)
-    private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    @inject(InjectionTokens.Bus.Command)
+    private readonly commandBus: CommandBus,
     @inject(InjectionTokens.Middlewares.RateLimit)
     private readonly rateLimit: RateLimitMiddleware,
   ) {
@@ -27,7 +29,9 @@ export class RefreshTokenController implements Controller {
 
   public async handler(req: Request, res: Response): Promise<Response> {
     const input = RefreshTokenDto.parse(req.body);
-    const result = await this.refreshTokenUseCase.execute(input);
+    const result = await this.commandBus.dispatch<Either<InvalidTokenError, TokenPair>>(
+      new RefreshTokenCommand(input.refreshToken),
+    );
 
     if (result.isLeft()) {
       const error = result.value;

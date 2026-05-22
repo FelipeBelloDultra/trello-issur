@@ -1,19 +1,21 @@
 import { inject, injectable } from "tsyringe";
 
+import { CommandHandler } from "@/core/commands/command-handler";
 import { Either, left, right } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
 
-import { LogoutInput } from "../dtos/logout.dto";
-import { InvalidTokenError } from "../errors/invalid-token.error";
-import { CryptographGateway } from "../gateways/cryptograph.gateway";
-import { TokenRepository } from "../repositories/token-repository";
+import { InvalidTokenError } from "../../errors/invalid-token.error";
+import { CryptographGateway } from "../../gateways/cryptograph.gateway";
+import { TokenRepository } from "../../repositories/token-repository";
+
+import { LogoutCommand } from "./command";
 
 type OnError = InvalidTokenError;
 type OnSuccess = void;
 type Output = Promise<Either<OnError, OnSuccess>>;
 
 @injectable()
-export class LogoutUseCase {
+export class LogoutHandler implements CommandHandler<LogoutCommand, Either<OnError, OnSuccess>> {
   public constructor(
     @inject(InjectionTokens.Gateways.Cryptograph)
     private readonly cryptographGateway: CryptographGateway,
@@ -21,8 +23,8 @@ export class LogoutUseCase {
     private readonly tokenRepository: TokenRepository,
   ) {}
 
-  public async execute(input: LogoutInput): Output {
-    const claims = await this.cryptographGateway.verify(input.refreshToken);
+  public async execute(command: LogoutCommand): Output {
+    const claims = await this.cryptographGateway.verify(command.refreshToken);
 
     if (!claims) return left(new InvalidTokenError());
 

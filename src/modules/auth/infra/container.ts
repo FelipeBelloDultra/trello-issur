@@ -1,10 +1,14 @@
 import { container, Lifecycle } from "tsyringe";
 
+import { InMemoryCommandBus } from "@/infra/bus/in-memory-command-bus";
 import { InjectionTokens } from "@/infra/container/tokens";
+import { LoginCommand } from "@/modules/auth/application/commands/login/command";
+import { LoginHandler } from "@/modules/auth/application/commands/login/handler";
+import { LogoutCommand } from "@/modules/auth/application/commands/logout/command";
+import { LogoutHandler } from "@/modules/auth/application/commands/logout/handler";
+import { RefreshTokenCommand } from "@/modules/auth/application/commands/refresh-token/command";
+import { RefreshTokenHandler } from "@/modules/auth/application/commands/refresh-token/handler";
 import { TokenRepository } from "@/modules/auth/application/repositories/token-repository";
-import { LoginUseCase } from "@/modules/auth/application/use-cases/login.use-case";
-import { LogoutUseCase } from "@/modules/auth/application/use-cases/logout.use-case";
-import { RefreshTokenUseCase } from "@/modules/auth/application/use-cases/refresh-token.use-case";
 
 import { setupHTTPAuthContainer } from "./http/container";
 import { setupJwtContainer } from "./jwt/container";
@@ -18,20 +22,35 @@ export function setupAuthModule(): void {
     { useClass: ValkeyTokenRepository },
     { lifecycle: Lifecycle.Singleton },
   );
-  container.register<LoginUseCase>(
-    InjectionTokens.UseCases.Login,
-    { useClass: LoginUseCase },
+
+  container.register<LoginHandler>(
+    InjectionTokens.Handlers.Login,
+    { useClass: LoginHandler },
     { lifecycle: Lifecycle.Singleton },
   );
-  container.register<LogoutUseCase>(
-    InjectionTokens.UseCases.Logout,
-    { useClass: LogoutUseCase },
+  container.register<LogoutHandler>(
+    InjectionTokens.Handlers.Logout,
+    { useClass: LogoutHandler },
     { lifecycle: Lifecycle.Singleton },
   );
-  container.register<RefreshTokenUseCase>(
-    InjectionTokens.UseCases.RefreshToken,
-    { useClass: RefreshTokenUseCase },
+  container.register<RefreshTokenHandler>(
+    InjectionTokens.Handlers.RefreshToken,
+    { useClass: RefreshTokenHandler },
     { lifecycle: Lifecycle.Singleton },
+  );
+
+  const commandBus = container.resolve<InMemoryCommandBus>(InjectionTokens.Bus.Command);
+  commandBus.register(
+    LoginCommand,
+    container.resolve<LoginHandler>(InjectionTokens.Handlers.Login),
+  );
+  commandBus.register(
+    LogoutCommand,
+    container.resolve<LogoutHandler>(InjectionTokens.Handlers.Logout),
+  );
+  commandBus.register(
+    RefreshTokenCommand,
+    container.resolve<RefreshTokenHandler>(InjectionTokens.Handlers.RefreshToken),
   );
 
   setupHTTPAuthContainer();

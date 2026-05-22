@@ -17,18 +17,23 @@ export const InjectionTokens = {
     Cryptograph: Symbol("CryptographGateway"),
   },
 
+  Bus: {
+    Command: Symbol("CommandBus"),
+    Query: Symbol("QueryBus"),
+  },
+
+  Handlers: {
+    Login: Symbol("LoginHandler"),
+    Logout: Symbol("LogoutHandler"),
+    RefreshToken: Symbol("RefreshTokenHandler"),
+    RegisterUser: Symbol("RegisterUserHandler"),
+  },
+
   Controllers: {
     RegisterUser: Symbol("RegisterUserController"),
     Login: Symbol("LoginController"),
     RefreshToken: Symbol("RefreshTokenController"),
     Logout: Symbol("LogoutController"),
-  },
-
-  UseCases: {
-    Login: Symbol("LoginUseCase"),
-    RefreshToken: Symbol("RefreshTokenUseCase"),
-    Logout: Symbol("LogoutUseCase"),
-    RegisterUser: Symbol("RegisterUserUseCase"),
   },
 
   Middlewares: {
