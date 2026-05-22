@@ -19,10 +19,8 @@ export class DatabaseClient {
     this._db = null;
   }
 
-  public get db(): PostgresJsDatabase<typeof schema> {
+  public get query(): PostgresJsDatabase<typeof schema> {
     if (!this._db) throw new Error("DatabaseClient is not connected. Call connect() first.");
     return this._db;
   }
 }
-
-export const databaseClient = new DatabaseClient();
