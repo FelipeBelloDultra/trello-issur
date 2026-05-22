@@ -71,7 +71,7 @@ export class App {
     try {
       await this.startServices();
 
-      const server = this.expressInstance.listen(env.PORT);
+      const server = this.expressInstance.listen(env.HTTP_SERVER_PORT);
       const shutdown = () => {
         server.close(() => {
           this.stopServices().catch(() => process.exit(1));
