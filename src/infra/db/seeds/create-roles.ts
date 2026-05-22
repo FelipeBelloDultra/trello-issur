@@ -1,11 +1,11 @@
 import { inArray } from "drizzle-orm";
 
-import { databaseClient } from "@/infra/db/client";
+import { DatabaseClient } from "@/infra/db/client";
 import { permissions, rolePermissions, roles } from "@/infra/db/schema";
 import { UserRole } from "@/modules/auth/domain/value-objects/user-role";
 
-export async function createRoles(): Promise<void> {
-  const db = databaseClient.db;
+export async function createRoles(client: DatabaseClient): Promise<void> {
+  const db = client.query;
 
   await db
     .insert(roles)

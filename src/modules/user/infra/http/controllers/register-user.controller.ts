@@ -1,46 +1,46 @@
-import { Elysia } from "elysia";
-import { inject, injectable } from "inversify";
+import { Request, Response } from "express";
+import { RequestHandler } from "express";
+import { inject, injectable } from "tsyringe";
 
-import { TOKENS } from "@/infra/container/tokens";
-import { HttpErrors } from "@/infra/http/http-errors";
+import { InjectionTokens } from "@/infra/container/tokens";
+import { Controller, HttpMethod } from "@/infra/http/controller";
+import { HttpException } from "@/infra/http/http-exception";
 import { RegisterUserDto } from "@/modules/user/application/dtos/register-user.dto";
 import { EmailAlreadyTakenError } from "@/modules/user/application/errors/email-already-taken.error";
 import { RegisterUserUseCase } from "@/modules/user/application/use-cases/register-user.use-case";
 
-import { UserPresenter } from "../presenters/user.presenter";
+import { UserPresenter } from "../../presenters/user.presenter";
 
 @injectable()
-export class RegisterUserController {
-  private static readonly route = "/users" as const;
-  private static readonly body = RegisterUserDto;
+export class RegisterUserController implements Controller {
+  public readonly path = "/users";
+  public readonly method: HttpMethod = "post";
+  public readonly middlewares: RequestHandler[] = [];
 
   public constructor(
-    @inject(TOKENS.RegisterUserUseCase)
-    private readonly registerUser: RegisterUserUseCase,
+    @inject(InjectionTokens.UseCases.RegisterUser)
+    private readonly useCase: RegisterUserUseCase,
   ) {}
 
-  public setup() {
-    return new Elysia().post(
-      RegisterUserController.route,
-      async ({ body, set }) => {
-        const result = await this.registerUser.execute(body);
+  public async handler(req: Request, res: Response): Promise<Response> {
+    const dto = RegisterUserDto.create(req.body);
+    const result = await this.useCase.execute(dto);
 
-        if (result.isLeft()) {
-          const error = result.value;
+    if (result.isRight()) {
+      return res.status(201).json({
+        data: UserPresenter.toHTTP(result.value.user),
+      });
+    }
 
-          if (error instanceof EmailAlreadyTakenError) {
-            set.status = 409;
-            return HttpErrors.emailAlreadyTaken(error.message);
-          }
-
-          set.status = 500;
-          return HttpErrors.internalServerError();
-        }
-
-        set.status = 201;
-        return UserPresenter.registerUserToHttp(result.value.user);
-      },
-      { body: RegisterUserController.body },
-    );
+    switch (result.value.constructor) {
+      case EmailAlreadyTakenError:
+        throw new HttpException({
+          message: "Email already used",
+          statusCode: 409,
+          errors: [{ message: "Email already used" }],
+        });
+      default:
+        throw new Error();
+    }
   }
 }

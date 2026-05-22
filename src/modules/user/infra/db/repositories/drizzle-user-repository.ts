@@ -1,26 +1,23 @@
 import { eq } from "drizzle-orm";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { inject, injectable } from "inversify";
+import { inject, injectable } from "tsyringe";
 
-import { TOKENS } from "@/infra/container/tokens";
-import * as schema from "@/infra/db/schema";
+import { InjectionTokens } from "@/infra/container/tokens";
+import { DatabaseClient } from "@/infra/db/client";
 import { users } from "@/infra/db/schema/users";
 import { UserRepository } from "@/modules/user/application/repositories/user-repository";
 import { User } from "@/modules/user/domain/entities/user";
 
 import { UserMapper } from "../mappers/user.mapper";
 
-type Database = PostgresJsDatabase<typeof schema>;
-
 @injectable()
 export class DrizzleUserRepository implements UserRepository {
   public constructor(
-    @inject(TOKENS.Database)
-    private readonly db: Database,
+    @inject(InjectionTokens.Databases.Drizzle)
+    private readonly db: DatabaseClient,
   ) {}
 
   public async findByEmail(email: string): Promise<User | null> {
-    const [row] = await this.db.select().from(users).where(eq(users.email, email)).limit(1);
+    const [row] = await this.db.query.select().from(users).where(eq(users.email, email)).limit(1);
 
     if (!row) return null;
 
@@ -28,6 +25,6 @@ export class DrizzleUserRepository implements UserRepository {
   }
 
   public async create(user: User): Promise<void> {
-    await this.db.insert(users).values(UserMapper.toPersistence(user));
+    await this.db.query.insert(users).values(UserMapper.toPersistence(user));
   }
 }

@@ -1,7 +1,7 @@
-import { inject, injectable } from "inversify";
+import { inject, injectable } from "tsyringe";
 
 import { Either, left, right } from "@/core/either";
-import { TOKENS } from "@/infra/container/tokens";
+import { InjectionTokens } from "@/infra/container/tokens";
 import { User } from "@/modules/user/domain/entities/user";
 import { Password } from "@/modules/user/domain/value-objects/password";
 
@@ -16,7 +16,7 @@ type Output = Promise<Either<OnError, OnSuccess>>;
 @injectable()
 export class RegisterUserUseCase {
   public constructor(
-    @inject(TOKENS.UserRepository)
+    @inject(InjectionTokens.Repositories.User)
     private readonly userRepository: UserRepository,
   ) {}
 

@@ -1,0 +1,32 @@
+# installed inside Docker
+node_modules
+
+# compiled inside Docker
+dist
+
+# secrets — never in the image
+.env
+.env.local
+.env.*.local
+
+# version control
+.git
+.gitignore
+.gitattributes
+
+# editor / tooling
+.claude
+.vscode
+.idea
+*.swp
+*.swo
+
+# tests
+test
+coverage
+
+# docker files (avoid recursive context)
+Dockerfile
+.dockerignore
+docker-compose*.yml
+compose*.yml

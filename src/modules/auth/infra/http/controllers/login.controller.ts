@@ -1,46 +1,45 @@
-import { Elysia } from "elysia";
-import { inject, injectable } from "inversify";
+import { Request, Response } from "express";
+import { RequestHandler } from "express";
+import { inject, injectable } from "tsyringe";
 
-import { TOKENS } from "@/infra/container/tokens";
-import { HttpErrors } from "@/infra/http/http-errors";
-import { createRateLimitPlugin } from "@/infra/http/plugins/rate-limit.plugin";
+import { InjectionTokens } from "@/infra/container/tokens";
+import { Controller, HttpMethod } from "@/infra/http/controller";
+import { HttpException } from "@/infra/http/http-exception";
+import { RateLimitMiddleware } from "@/infra/http/middlewares/rate-limit.middleware";
 import { LoginDto } from "@/modules/auth/application/dtos/login.dto";
 import { InvalidCredentialsError } from "@/modules/auth/application/errors/invalid-credentials.error";
 import { LoginUseCase } from "@/modules/auth/application/use-cases/login.use-case";
 
 @injectable()
-export class LoginController {
-  private static readonly route = "/auth/login" as const;
-  private static readonly body = LoginDto;
+export class LoginController implements Controller {
+  public readonly path = "/auth/login";
+  public readonly method: HttpMethod = "post";
+  public readonly middlewares: RequestHandler[];
 
   public constructor(
-    @inject(TOKENS.LoginUseCase)
+    @inject(InjectionTokens.UseCases.Login)
     private readonly loginUseCase: LoginUseCase,
-  ) {}
+    @inject(InjectionTokens.Middlewares.RateLimit)
+    private readonly rateLimit: RateLimitMiddleware,
+  ) {
+    this.middlewares = [rateLimit.handle({ max: 10, windowMs: 60_000 })];
+  }
 
-  public setup() {
-    return new Elysia().use(createRateLimitPlugin({ max: 10, windowMs: 60_000 })).post(
-      LoginController.route,
-      async ({ body, set }) => {
-        const result = await this.loginUseCase.execute(body);
+  public async handler(req: Request, res: Response): Promise<Response> {
+    const input = LoginDto.parse(req.body);
+    const result = await this.loginUseCase.execute(input);
 
-        if (result.isLeft()) {
-          const error = result.value;
+    if (result.isLeft()) {
+      const error = result.value;
 
-          if (error instanceof InvalidCredentialsError) {
-            set.status = 401;
-            return HttpErrors.unauthorized(error.message);
-          }
+      if (error instanceof InvalidCredentialsError) {
+        throw new HttpException({ statusCode: 401, message: error.message });
+      }
 
-          set.status = 500;
-          return HttpErrors.internalServerError();
-        }
+      throw new Error("Unexpected login error");
+    }
 
-        set.status = 200;
-        const pair = result.value;
-        return { accessToken: pair.accessToken, refreshToken: pair.refreshToken };
-      },
-      { body: LoginController.body },
-    );
+    const pair = result.value;
+    return res.status(200).json({ accessToken: pair.accessToken, refreshToken: pair.refreshToken });
   }
 }

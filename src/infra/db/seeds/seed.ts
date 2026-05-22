@@ -1,11 +1,11 @@
 import "dotenv/config";
 
-import { databaseClient } from "@/infra/db/client";
+import { DatabaseClient } from "@/infra/db/client";
 
 import { createPermissions } from "./create-permissions";
 import { createRoles } from "./create-roles";
 
-type SeedFn = () => Promise<void>;
+type SeedFn = (client: DatabaseClient) => Promise<void>;
 
 const seeds: Record<string, SeedFn> = {
   "create-permissions": createPermissions,
@@ -23,12 +23,13 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  databaseClient.connect();
+  const client = new DatabaseClient();
+  client.connect();
 
   try {
-    await run();
+    await run(client);
   } finally {
-    await databaseClient.disconnect();
+    await client.disconnect();
   }
 
   process.exit(0);

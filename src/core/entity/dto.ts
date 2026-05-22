@@ -1,7 +1,7 @@
 export abstract class DTO<Props> {
-  protected props: Props;
+  protected readonly props: Props;
 
   protected constructor(props: Props) {
-    this.props = props;
+    this.props = Object.freeze(props);
   }
 }

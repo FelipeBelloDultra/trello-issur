@@ -1,7 +1,7 @@
-import { inject, injectable } from "inversify";
+import { inject, injectable } from "tsyringe";
 
 import { Either, left, right } from "@/core/either";
-import { TOKENS } from "@/infra/container/tokens";
+import { InjectionTokens } from "@/infra/container/tokens";
 
 import { LogoutInput } from "../dtos/logout.dto";
 import { InvalidTokenError } from "../errors/invalid-token.error";
@@ -15,9 +15,9 @@ type Output = Promise<Either<OnError, OnSuccess>>;
 @injectable()
 export class LogoutUseCase {
   public constructor(
-    @inject(TOKENS.CryptographGateway)
+    @inject(InjectionTokens.Gateways.Cryptograph)
     private readonly cryptographGateway: CryptographGateway,
-    @inject(TOKENS.TokenRepository)
+    @inject(InjectionTokens.Repositories.Token)
     private readonly tokenRepository: TokenRepository,
   ) {}
 

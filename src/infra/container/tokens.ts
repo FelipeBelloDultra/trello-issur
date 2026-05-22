@@ -1,20 +1,40 @@
-export const TOKENS = {
-  // Infrastructure
-  Database: Symbol("Database"),
-  ValkeyClient: Symbol("ValkeyClient"),
+export const InjectionTokens = {
+  Databases: {
+    Drizzle: Symbol("Database"),
+    Valkey: Symbol("ValkeyClient"),
+  },
 
-  // User
-  UserRepository: Symbol("UserRepository"),
-  RegisterUserUseCase: Symbol("RegisterUserUseCase"),
-  RegisterUserController: Symbol("RegisterUserController"),
+  Cache: {
+    Repository: Symbol("CacheRepository"),
+  },
 
-  // Auth
-  CryptographGateway: Symbol("CryptographGateway"),
-  TokenRepository: Symbol("TokenRepository"),
-  LoginUseCase: Symbol("LoginUseCase"),
-  RefreshTokenUseCase: Symbol("RefreshTokenUseCase"),
-  LogoutUseCase: Symbol("LogoutUseCase"),
-  LoginController: Symbol("LoginController"),
-  RefreshTokenController: Symbol("RefreshTokenController"),
-  LogoutController: Symbol("LogoutController"),
+  Repositories: {
+    User: Symbol("UserRepository"),
+    Token: Symbol("TokenRepository"),
+  },
+
+  Gateways: {
+    Cryptograph: Symbol("CryptographGateway"),
+  },
+
+  Controllers: {
+    RegisterUser: Symbol("RegisterUserController"),
+    Login: Symbol("LoginController"),
+    RefreshToken: Symbol("RefreshTokenController"),
+    Logout: Symbol("LogoutController"),
+  },
+
+  UseCases: {
+    Login: Symbol("LoginUseCase"),
+    RefreshToken: Symbol("RefreshTokenUseCase"),
+    Logout: Symbol("LogoutUseCase"),
+    RegisterUser: Symbol("RegisterUserUseCase"),
+  },
+
+  Middlewares: {
+    RateLimit: Symbol("RateLimitMiddleware"),
+    Logger: Symbol("LoggerMiddleware"),
+    Tracing: Symbol("TracingMiddleware"),
+    Metrics: Symbol("MetricsMiddleware"),
+  },
 } as const;
