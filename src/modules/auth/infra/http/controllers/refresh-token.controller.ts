@@ -1,46 +1,45 @@
-import { Elysia } from "elysia";
-import { inject, injectable } from "inversify";
+import { Request, Response } from "express";
+import { RequestHandler } from "express";
+import { inject, injectable } from "tsyringe";
 
-import { TOKENS } from "@/infra/container/tokens";
-import { HttpErrors } from "@/infra/http/http-errors";
-import { createRateLimitPlugin } from "@/infra/http/plugins/rate-limit.plugin";
+import { InjectionTokens } from "@/infra/container/tokens";
+import { Controller, HttpMethod } from "@/infra/http/controller";
+import { HttpException } from "@/infra/http/http-exception";
+import { RateLimitMiddleware } from "@/infra/http/middlewares/rate-limit.middleware";
 import { RefreshTokenDto } from "@/modules/auth/application/dtos/refresh-token.dto";
 import { InvalidTokenError } from "@/modules/auth/application/errors/invalid-token.error";
 import { RefreshTokenUseCase } from "@/modules/auth/application/use-cases/refresh-token.use-case";
 
 @injectable()
-export class RefreshTokenController {
-  private static readonly route = "/auth/refresh" as const;
-  private static readonly body = RefreshTokenDto;
+export class RefreshTokenController implements Controller {
+  public readonly path = "/auth/refresh";
+  public readonly method: HttpMethod = "post";
+  public readonly middlewares: RequestHandler[];
 
   public constructor(
-    @inject(TOKENS.RefreshTokenUseCase)
+    @inject(InjectionTokens.UseCases.RefreshToken)
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
-  ) {}
+    @inject(InjectionTokens.Middlewares.RateLimit)
+    private readonly rateLimit: RateLimitMiddleware,
+  ) {
+    this.middlewares = [rateLimit.handle({ max: 20, windowMs: 60_000 })];
+  }
 
-  public setup() {
-    return new Elysia().use(createRateLimitPlugin({ max: 20, windowMs: 60_000 })).post(
-      RefreshTokenController.route,
-      async ({ body, set }) => {
-        const result = await this.refreshTokenUseCase.execute(body);
+  public async handler(req: Request, res: Response): Promise<Response> {
+    const input = RefreshTokenDto.parse(req.body);
+    const result = await this.refreshTokenUseCase.execute(input);
 
-        if (result.isLeft()) {
-          const error = result.value;
+    if (result.isLeft()) {
+      const error = result.value;
 
-          if (error instanceof InvalidTokenError) {
-            set.status = 401;
-            return HttpErrors.unauthorized(error.message);
-          }
+      if (error instanceof InvalidTokenError) {
+        throw new HttpException({ statusCode: 401, message: error.message });
+      }
 
-          set.status = 500;
-          return HttpErrors.internalServerError();
-        }
+      throw new Error("Unexpected refresh-token error");
+    }
 
-        set.status = 200;
-        const pair = result.value;
-        return { accessToken: pair.accessToken, refreshToken: pair.refreshToken };
-      },
-      { body: RefreshTokenController.body },
-    );
+    const pair = result.value;
+    return res.status(200).json({ accessToken: pair.accessToken, refreshToken: pair.refreshToken });
   }
 }

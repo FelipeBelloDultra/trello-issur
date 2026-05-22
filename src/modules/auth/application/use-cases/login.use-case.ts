@@ -1,9 +1,9 @@
-import { inject, injectable } from "inversify";
+import { inject, injectable } from "tsyringe";
 
 import { env } from "@/config/env";
 import { Either, left, right } from "@/core/either";
 import { parseDurationToSeconds } from "@/core/utils/duration";
-import { TOKENS } from "@/infra/container/tokens";
+import { InjectionTokens } from "@/infra/container/tokens";
 import { TokenClaims } from "@/modules/auth/domain/value-objects/token-claims";
 import { TokenPair } from "@/modules/auth/domain/value-objects/token-pair";
 import { UserRepository } from "@/modules/user/application/repositories/user-repository";
@@ -20,11 +20,11 @@ type Output = Promise<Either<OnError, OnSuccess>>;
 @injectable()
 export class LoginUseCase {
   public constructor(
-    @inject(TOKENS.UserRepository)
+    @inject(InjectionTokens.Repositories.User)
     private readonly userRepository: UserRepository,
-    @inject(TOKENS.CryptographGateway)
+    @inject(InjectionTokens.Gateways.Cryptograph)
     private readonly cryptographGateway: CryptographGateway,
-    @inject(TOKENS.TokenRepository)
+    @inject(InjectionTokens.Repositories.Token)
     private readonly tokenRepository: TokenRepository,
   ) {}
 

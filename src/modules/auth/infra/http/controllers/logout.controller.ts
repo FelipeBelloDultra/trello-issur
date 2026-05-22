@@ -1,44 +1,39 @@
-import { Elysia } from "elysia";
-import { inject, injectable } from "inversify";
+import { Request, Response } from "express";
+import { RequestHandler } from "express";
+import { inject, injectable } from "tsyringe";
 
-import { TOKENS } from "@/infra/container/tokens";
-import { HttpErrors } from "@/infra/http/http-errors";
+import { InjectionTokens } from "@/infra/container/tokens";
+import { Controller, HttpMethod } from "@/infra/http/controller";
+import { HttpException } from "@/infra/http/http-exception";
 import { LogoutDto } from "@/modules/auth/application/dtos/logout.dto";
 import { InvalidTokenError } from "@/modules/auth/application/errors/invalid-token.error";
 import { LogoutUseCase } from "@/modules/auth/application/use-cases/logout.use-case";
 
 @injectable()
-export class LogoutController {
-  private static readonly route = "/auth/logout" as const;
-  private static readonly body = LogoutDto;
+export class LogoutController implements Controller {
+  public readonly path = "/auth/logout";
+  public readonly method: HttpMethod = "post";
+  public readonly middlewares: RequestHandler[] = [];
 
   public constructor(
-    @inject(TOKENS.LogoutUseCase)
+    @inject(InjectionTokens.UseCases.Logout)
     private readonly logoutUseCase: LogoutUseCase,
   ) {}
 
-  public setup() {
-    return new Elysia().post(
-      LogoutController.route,
-      async ({ body, set }) => {
-        const result = await this.logoutUseCase.execute(body);
+  public async handler(req: Request, res: Response): Promise<Response> {
+    const input = LogoutDto.parse(req.body);
+    const result = await this.logoutUseCase.execute(input);
 
-        if (result.isLeft()) {
-          const error = result.value;
+    if (result.isLeft()) {
+      const error = result.value;
 
-          if (error instanceof InvalidTokenError) {
-            set.status = 401;
-            return HttpErrors.unauthorized(error.message);
-          }
+      if (error instanceof InvalidTokenError) {
+        throw new HttpException({ statusCode: 401, message: error.message });
+      }
 
-          set.status = 500;
-          return HttpErrors.internalServerError();
-        }
+      throw new Error("Unexpected logout error");
+    }
 
-        set.status = 204;
-        return;
-      },
-      { body: LogoutController.body },
-    );
+    return res.status(204).send();
   }
 }

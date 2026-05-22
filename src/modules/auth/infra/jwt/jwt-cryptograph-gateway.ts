@@ -1,5 +1,5 @@
-import { injectable } from "inversify";
 import { jwtVerify, SignJWT } from "jose";
+import { injectable } from "tsyringe";
 
 import { env } from "@/config/env";
 import { TokenClaims } from "@/modules/auth/domain/value-objects/token-claims";
