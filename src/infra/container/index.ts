@@ -1,18 +1,16 @@
 import "reflect-metadata";
 
-import { Container } from "inversify";
+import { setupAuthModule } from "@/modules/auth/infra/container";
+import { setupUserModule } from "@/modules/user/infra/container";
 
-import { setupAuthContainerModule } from "@/modules/auth/infra/container";
-import { setupUserContainerModule } from "@/modules/user/infra/container";
-
+import { setupCacheContainer } from "../cache/container";
 import { setupDatabaseContainer } from "../db/container";
+import { setupMiddlewaresContainer } from "../http/middlewares/container";
 import { setupValkeyContainer } from "../valkey/container";
 
-export const container = new Container();
-
-container.load(
-  setupDatabaseContainer,
-  setupValkeyContainer,
-  setupUserContainerModule,
-  setupAuthContainerModule,
-);
+setupValkeyContainer();
+setupCacheContainer();
+setupDatabaseContainer();
+setupMiddlewaresContainer();
+setupUserModule();
+setupAuthModule();
