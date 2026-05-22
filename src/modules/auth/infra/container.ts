@@ -2,8 +2,8 @@ import { container, Lifecycle } from "tsyringe";
 
 import { InMemoryCommandBus } from "@/infra/bus/in-memory-command-bus";
 import { InjectionTokens } from "@/infra/container/tokens";
-import { LoginCommand } from "@/modules/auth/application/commands/login/command";
-import { LoginHandler } from "@/modules/auth/application/commands/login/handler";
+import { AuthenticateCommand } from "@/modules/auth/application/commands/authenticate/command";
+import { AuthenticateHandler } from "@/modules/auth/application/commands/authenticate/handler";
 import { LogoutCommand } from "@/modules/auth/application/commands/logout/command";
 import { LogoutHandler } from "@/modules/auth/application/commands/logout/handler";
 import { RefreshTokenCommand } from "@/modules/auth/application/commands/refresh-token/command";
@@ -23,9 +23,9 @@ export function setupAuthModule(): void {
     { lifecycle: Lifecycle.Singleton },
   );
 
-  container.register<LoginHandler>(
-    InjectionTokens.Handlers.Login,
-    { useClass: LoginHandler },
+  container.register<AuthenticateHandler>(
+    InjectionTokens.Handlers.Authenticate,
+    { useClass: AuthenticateHandler },
     { lifecycle: Lifecycle.Singleton },
   );
   container.register<LogoutHandler>(
@@ -41,8 +41,8 @@ export function setupAuthModule(): void {
 
   const commandBus = container.resolve<InMemoryCommandBus>(InjectionTokens.Bus.Command);
   commandBus.register(
-    LoginCommand,
-    container.resolve<LoginHandler>(InjectionTokens.Handlers.Login),
+    AuthenticateCommand,
+    container.resolve<AuthenticateHandler>(InjectionTokens.Handlers.Authenticate),
   );
   commandBus.register(
     LogoutCommand,

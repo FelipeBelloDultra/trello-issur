@@ -2,17 +2,17 @@ import { inArray } from "drizzle-orm";
 
 import { DatabaseClient } from "@/infra/db/client";
 import { permissions, rolePermissions, roles } from "@/infra/db/schema";
-import { UserRole } from "@/modules/auth/domain/value-objects/user-role";
+import { AccountRole } from "@/modules/auth/domain/value-objects/account-role";
 
 export async function createRoles(client: DatabaseClient): Promise<void> {
   const db = client.query;
 
   await db
     .insert(roles)
-    .values([...UserRole.registry])
+    .values([...AccountRole.registry])
     .onConflictDoNothing({ target: roles.name });
 
-  const allKeys = Object.values(UserRole.permissionMap).flat();
+  const allKeys = Object.values(AccountRole.permissionMap).flat();
   const permRows = await db
     .select({ id: permissions.id, key: permissions.key })
     .from(permissions)
@@ -22,7 +22,7 @@ export async function createRoles(client: DatabaseClient): Promise<void> {
   const roleRows = await db.select({ id: roles.id, name: roles.name }).from(roles);
   const roleByName = Object.fromEntries(roleRows.map((r) => [r.name, r.id]));
 
-  const assignments = Object.entries(UserRole.permissionMap).flatMap(([roleName, keys]) =>
+  const assignments = Object.entries(AccountRole.permissionMap).flatMap(([roleName, keys]) =>
     keys.map((key) => ({ roleId: roleByName[roleName], permissionId: permByKey[key] })),
   );
 

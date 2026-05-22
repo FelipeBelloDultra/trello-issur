@@ -8,7 +8,7 @@ import { registerController } from "@/infra/http/controller";
 export const authRouter = Router();
 
 [
-  InjectionTokens.Controllers.Login,
+  InjectionTokens.Controllers.Authenticate,
   InjectionTokens.Controllers.Logout,
   InjectionTokens.Controllers.RefreshToken,
 ]

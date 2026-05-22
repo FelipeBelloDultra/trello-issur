@@ -9,7 +9,7 @@ export const InjectionTokens = {
   },
 
   Repositories: {
-    User: Symbol("UserRepository"),
+    Account: Symbol("AccountRepository"),
     Token: Symbol("TokenRepository"),
   },
 
@@ -23,15 +23,15 @@ export const InjectionTokens = {
   },
 
   Handlers: {
-    Login: Symbol("LoginHandler"),
+    Authenticate: Symbol("AuthenticateHandler"),
     Logout: Symbol("LogoutHandler"),
     RefreshToken: Symbol("RefreshTokenHandler"),
-    RegisterUser: Symbol("RegisterUserHandler"),
+    CreateAccount: Symbol("CreateAccountHandler"),
   },
 
   Controllers: {
-    RegisterUser: Symbol("RegisterUserController"),
-    Login: Symbol("LoginController"),
+    CreateAccount: Symbol("CreateAccountController"),
+    Authenticate: Symbol("AuthenticateController"),
     RefreshToken: Symbol("RefreshTokenController"),
     Logout: Symbol("LogoutController"),
   },

@@ -1,5 +1,5 @@
 export interface TokenRepository {
-  save(userId: string, refreshToken: string, ttlSeconds: number): Promise<void>;
-  find(userId: string): Promise<string | null>;
-  delete(userId: string): Promise<void>;
+  save(accountId: string, refreshToken: string, ttlSeconds: number): Promise<void>;
+  find(accountId: string): Promise<string | null>;
+  delete(accountId: string): Promise<void>;
 }

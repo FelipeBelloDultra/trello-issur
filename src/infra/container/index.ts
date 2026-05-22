@@ -1,7 +1,7 @@
 import "reflect-metadata";
 
+import { setupAccountModule } from "@/modules/account/infra/container";
 import { setupAuthModule } from "@/modules/auth/infra/container";
-import { setupUserModule } from "@/modules/user/infra/container";
 
 import { setupBusContainer } from "../bus/container";
 import { setupCacheContainer } from "../cache/container";
@@ -14,5 +14,5 @@ setupCacheContainer();
 setupDatabaseContainer();
 setupMiddlewaresContainer();
 setupBusContainer();
-setupUserModule();
+setupAccountModule();
 setupAuthModule();

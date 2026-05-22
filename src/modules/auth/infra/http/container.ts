@@ -2,14 +2,14 @@ import { container, Lifecycle } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
 
-import { LoginController } from "./controllers/login.controller";
+import { AuthenticateController } from "./controllers/authenticate.controller";
 import { LogoutController } from "./controllers/logout.controller";
 import { RefreshTokenController } from "./controllers/refresh-token.controller";
 
 export function setupHTTPAuthContainer(): void {
   container.register(
-    InjectionTokens.Controllers.Login,
-    { useClass: LoginController },
+    InjectionTokens.Controllers.Authenticate,
+    { useClass: AuthenticateController },
     { lifecycle: Lifecycle.Singleton },
   );
   container.register(

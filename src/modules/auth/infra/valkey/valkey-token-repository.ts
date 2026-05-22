@@ -5,7 +5,7 @@ import { ValkeyClient } from "@/infra/valkey/client";
 
 import { TokenRepository } from "../../application/repositories/token-repository";
 
-const keyFor = (userId: string) => `refresh_token:${userId}`;
+const keyFor = (accountId: string) => `refresh_token:${accountId}`;
 
 @injectable()
 export class ValkeyTokenRepository implements TokenRepository {
@@ -14,15 +14,15 @@ export class ValkeyTokenRepository implements TokenRepository {
     private readonly valkey: ValkeyClient,
   ) {}
 
-  public async save(userId: string, refreshToken: string, ttlSeconds: number): Promise<void> {
-    await this.valkey.client.set(keyFor(userId), refreshToken, "EX", ttlSeconds);
+  public async save(accountId: string, refreshToken: string, ttlSeconds: number): Promise<void> {
+    await this.valkey.client.set(keyFor(accountId), refreshToken, "EX", ttlSeconds);
   }
 
-  public async find(userId: string): Promise<string | null> {
-    return this.valkey.client.get(keyFor(userId));
+  public async find(accountId: string): Promise<string | null> {
+    return this.valkey.client.get(keyFor(accountId));
   }
 
-  public async delete(userId: string): Promise<void> {
-    await this.valkey.client.del(keyFor(userId));
+  public async delete(accountId: string): Promise<void> {
+    await this.valkey.client.del(keyFor(accountId));
   }
 }

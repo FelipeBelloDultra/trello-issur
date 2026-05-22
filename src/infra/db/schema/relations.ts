@@ -1,18 +1,18 @@
 import { relations } from "drizzle-orm";
 
+import { accountRoles } from "./account-roles";
+import { accounts } from "./accounts";
 import { permissions } from "./permissions";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
-import { userRoles } from "./user-roles";
-import { users } from "./users";
 
-export const usersRelations = relations(users, ({ many }) => ({
-  userRoles: many(userRoles),
+export const accountsRelations = relations(accounts, ({ many }) => ({
+  accountRoles: many(accountRoles),
 }));
 
 export const rolesRelations = relations(roles, ({ many }) => ({
   rolePermissions: many(rolePermissions),
-  userRoles: many(userRoles),
+  accountRoles: many(accountRoles),
 }));
 
 export const permissionsRelations = relations(permissions, ({ many }) => ({
@@ -27,7 +27,7 @@ export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => 
   }),
 }));
 
-export const userRolesRelations = relations(userRoles, ({ one }) => ({
-  user: one(users, { fields: [userRoles.userId], references: [users.id] }),
-  role: one(roles, { fields: [userRoles.roleId], references: [roles.id] }),
+export const accountRolesRelations = relations(accountRoles, ({ one }) => ({
+  account: one(accounts, { fields: [accountRoles.accountId], references: [accounts.id] }),
+  role: one(roles, { fields: [accountRoles.roleId], references: [roles.id] }),
 }));
