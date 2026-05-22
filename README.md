@@ -1,0 +1,228 @@
+# trello-issur
+
+A team project management API built with Node.js and TypeScript, following **Domain-Driven Design**, **Clean Architecture**, and **Ports & Adapters** principles. It models Kanban boards, multi-tenant workspaces, role-based access control, and subscription plans.
+
+---
+
+## Architecture
+
+The codebase enforces a strict inward dependency rule across four layers:
+
+```
+Domain ← Application ← Infrastructure ← Entry points
+```
+
+- **Domain** — pure business logic; zero framework or I/O imports. Entities, value objects, domain errors, domain events.
+- **Application** — use cases, repository contracts (interfaces), gateway contracts, DTOs validated with Zod.
+- **Infrastructure** — implementations: Drizzle repositories, JWT gateway, Valkey token store, Express controllers.
+- **Entry points** — `src/index.{process}.ts` files that wire the DI container and boot the process.
+
+### Domain primitives
+
+| Abstraction | Description |
+|---|---|
+| `Entity<Props>` | Identity-based object; holds typed `props` and a `UniqueEntityID` (UUID v7) |
+| `ValueObject<Props>` | Equality by value via deep `JSON.stringify(props)` comparison |
+| `AggregateRoot<Props>` | Entity that owns a collection of domain events |
+| `UniqueEntityID` | UUID v7 wrapper — `create()` generates, `create(existing)` wraps |
+| `Either<L, R>` | Hand-rolled functional error type — use cases return `Either<UseCaseError, T>` |
+| `WatchedList<T>` | Tracks additions and removals on a collection for dirty-state diffing |
+
+All domain objects follow the **static factory pattern** — constructors are `private`, instantiation goes through `ClassName.create(...)`.
+
+### Error strategy
+
+- **Domain layer throws** typed errors (extend `DomainError`) for programmer-level invariant violations.
+- **Use case layer returns `Either`** — expected business failures (e.g. invalid credentials, email taken) are `left(error)`, successes are `right(value)`.
+- **HTTP layer maps** `Either` lefts to `HttpException`, which the global error handler serialises into structured JSON.
+
+---
+
+## Stack
+
+| Concern | Choice |
+|---|---|
+| Runtime | Node.js ≥ 24 |
+| Language | TypeScript 6 (strict mode) |
+| HTTP framework | Express 5 |
+| Dependency injection | tsyringe |
+| ORM | Drizzle ORM + drizzle-kit |
+| Database | PostgreSQL 16 |
+| Cache / token store | Valkey 8 (Redis-compatible) |
+| Auth | Custom — JWT (jose) + argon2 |
+| Validation | Zod 4 |
+| Logging | Pino |
+| Tracing | OpenTelemetry (OTLP/HTTP → Jaeger) |
+| Metrics | prom-client (Prometheus) |
+| Dev runner | tsx (hot reload) |
+| Build | esbuild |
+| Testing | Vitest |
+| Containers | Docker + Docker Compose |
+| Package manager | pnpm ≥ 10 |
+
+---
+
+## Project structure
+
+```
+src/
+├── config/                  # Env vars — Zod-validated at startup, single source of truth
+├── core/                    # Framework-agnostic primitives
+│   ├── entity/              # Entity, ValueObject, AggregateRoot, UniqueEntityID, WatchedList
+│   ├── errors/              # DomainError, UseCaseError base classes
+│   ├── events/              # DomainEvent, EventHandler, DomainEvents dispatcher
+│   └── either.ts            # Either<L, R> + left() / right() helpers
+├── infra/                   # Shared infrastructure
+│   ├── container/           # DI root — InjectionTokens + setup orchestration
+│   ├── db/                  # DatabaseClient, Drizzle schema, migrations, seeds
+│   ├── cache/               # CacheRepository abstraction + Valkey implementation
+│   ├── valkey/              # ValkeyClient lifecycle
+│   ├── http/                # Express App, Controller/Middleware interfaces, Routes, health, metrics
+│   │   └── middlewares/     # Injectable middlewares: logger, tracing, metrics, rate-limit
+│   ├── logger/              # Pino logger singleton
+│   ├── metrics/             # prom-client registry
+│   └── tracing/             # OpenTelemetry SDK bootstrap + shutdown
+└── modules/
+    ├── auth/
+    │   ├── domain/          # Value objects: TokenClaims, TokenPair, PermissionKey, UserRole
+    │   ├── application/     # Use cases: Login, Logout, RefreshToken — contracts: CryptographGateway, TokenRepository
+    │   └── infra/           # JWT gateway, Valkey token repository, Express controllers
+    └── user/
+        ├── domain/          # Entity: User — Value objects: Password (argon2 hash/compare)
+        ├── application/     # Use case: RegisterUser — contract: UserRepository
+        └── infra/           # Drizzle repository, mapper, Express controller, presenter
+```
+
+### Module layout convention
+
+Every module follows the same internal pattern:
+
+```
+modules/{module}/
+├── domain/
+│   ├── value-objects/   # Immutable, validated, compared by value
+│   ├── entities/        # Objects with identity
+│   └── errors/          # Typed domain errors with a `code` property
+├── application/
+│   ├── dtos/            # Zod schema + inferred type (transport-agnostic)
+│   ├── use-cases/       # One class per use case; execute(input) returns Either
+│   ├── repositories/    # Repository interfaces (contracts)
+│   └── gateways/        # External-service interfaces (contracts)
+└── infra/
+    ├── container.ts     # Module DI orchestrator
+    ├── db/              # Drizzle repository implementations + mappers
+    └── http/            # Controllers, presenters, router
+```
+
+---
+
+## HTTP layer
+
+### Controllers
+
+Each controller is a single-action injectable class that implements a `Controller` interface:
+
+```ts
+export interface Controller {
+  readonly path: string;
+  readonly method: HttpMethod;
+  readonly middlewares: RequestHandler[];
+  handler(req: Request, res: Response): Promise<Response>;
+}
+```
+
+Controllers validate `req.body` with `ZodSchema.parse()`, call the use case, map the `Either` result, and return a structured response. Per-route middlewares (e.g. rate limiting) are injected in the constructor.
+
+### Middlewares
+
+Every middleware is an injectable class implementing `Middleware<HandleData = void>`:
+
+```ts
+interface Middleware<T = void> {
+  handle(data: T): RequestHandler;
+}
+```
+
+Global middlewares (logger, tracing, metrics) receive no arguments; per-route middlewares (rate-limit) receive options at call time. The `RateLimitMiddleware` is backed by Valkey using atomic `INCR + EXPIRE`.
+
+### Global error handler
+
+The `App` class registers a single Express error handler that serialises errors into a consistent envelope:
+
+```json
+{ "status_code": 422, "message": "...", "errors": [] }
+```
+
+It handles `ZodError` (→ 400), `HttpException` (→ configured status), and any uncaught `Error` (→ 500).
+
+---
+
+## Authentication
+
+JWT-based, stateful refresh tokens:
+
+1. **Login** — verifies credentials with argon2, issues an `access_token` (15 min) and a `refresh_token` (7 days), stores the refresh token in Valkey with TTL.
+2. **Refresh** — verifies the refresh token signature and its presence in Valkey, issues a new pair (rotation), invalidates the old refresh token.
+3. **Logout** — deletes the refresh token from Valkey.
+
+---
+
+## Dependency injection
+
+DI is handled with **tsyringe**. All tokens live in `src/infra/container/tokens.ts` as `Symbol` values in a single `InjectionTokens` const — never inlined at the call site.
+
+Container registration follows a layered setup pattern:
+
+```
+src/infra/container/index.ts        ← root; imports reflect-metadata, calls all setup*()
+src/infra/{concern}/container.ts    ← registers shared infra bindings
+src/modules/{m}/infra/container.ts  ← module orchestrator; calls sub-containers
+src/modules/{m}/infra/{c}/container.ts ← concern-specific bindings (db, http, jwt...)
+```
+
+All bindings use `Lifecycle.Singleton` — every injectable class is stateless, so singletons are always correct.
+
+---
+
+## Database
+
+- **Migrations** are applied via `src/index.migrate.ts`, which sets `lock_timeout = '3s'` and `statement_timeout = '120s'` — a migration that can't acquire its lock within 3 seconds fails immediately instead of stalling behind a long-running transaction.
+- **Primary keys** are UUID v7 generated at the application layer via `UniqueEntityID` — never DB-side.
+- **No PostgreSQL enums** — constrained text columns are validated at the application layer (Zod + domain types). Postgres enums require `ALTER TYPE` to extend, which is painful in production.
+- **Every `CREATE INDEX`** generated by drizzle-kit is manually converted to `CREATE INDEX CONCURRENTLY` before committing to avoid write locks.
+- **Expand / contract** for zero-downtime migrations — unsafe changes (NOT NULL columns, renames, type changes) are split across two deploys.
+
+### Schema (current)
+
+```
+users             id, name, email, password_hash, created_at, updated_at
+roles             id, name, created_at
+permissions       id, key, created_at
+role_permissions  role_id, permission_id  (composite PK — immutable junction)
+user_roles        user_id, role_id        (composite PK — immutable junction)
+```
+
+---
+
+## Observability
+
+| Signal | Implementation |
+|---|---|
+| Structured logs | Pino — JSON in production, pretty-printed in dev |
+| Distributed tracing | OpenTelemetry SDK → OTLP/HTTP → Jaeger |
+| Metrics | prom-client → `/metrics` (Prometheus scrape endpoint) |
+
+Every response carries an `x-trace-id` header. Tracing is opt-in via `OTEL_ENDPOINT` — omit it to disable with no overhead.
+
+---
+
+## Testing
+
+Unit tests are co-located with source (`src/foo.spec.ts`). E2E tests live in `test/` (`*.e2e.spec.ts`).
+
+Test support infrastructure:
+
+- `test/factories/` — `make{Entity}()` functions using `@faker-js/faker`
+- `test/repositories/` — in-memory repository implementations with a public `items` array for seeding and inspection
+
+Use cases are tested against in-memory repositories; domain logic is tested in isolation against value objects and entities. Each layer tests only what it owns — use case specs do not re-test invariants already covered by domain specs.
