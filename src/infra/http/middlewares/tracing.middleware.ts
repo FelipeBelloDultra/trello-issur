@@ -33,6 +33,7 @@ export class TracingMiddleware implements Middleware<void> {
       );
 
       activeSpans.set(req, span);
+      res.setHeader("x-trace-id", span.spanContext().traceId);
 
       res.on("finish", () => {
         const currentSpan = activeSpans.get(req);
@@ -47,7 +48,6 @@ export class TracingMiddleware implements Middleware<void> {
         currentSpan.setStatus({
           code: res.statusCode >= 500 ? SpanStatusCode.ERROR : SpanStatusCode.OK,
         });
-        res.setHeader("x-trace-id", currentSpan.spanContext().traceId);
         currentSpan.end();
         activeSpans.delete(req);
       });
