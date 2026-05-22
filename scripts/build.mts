@@ -20,3 +20,4 @@ await esbuild.build({
 });
 
 await fs.cp("src/infra/db/migrations", "dist/infra/db/migrations", { recursive: true });
+await fs.writeFile("dist/package.json", JSON.stringify({ type: "module" }));

@@ -28,6 +28,9 @@
     "author": "",
     "license": "ISC",
     "packageManager": "pnpm@10.33.0",
+    "pnpm": {
+        "onlyBuiltDependencies": ["argon2", "esbuild"]
+    },
     "engines": {
         "node": ">=24",
         "npm": ">=11",
