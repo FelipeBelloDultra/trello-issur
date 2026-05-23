@@ -29,7 +29,10 @@
     "license": "ISC",
     "packageManager": "pnpm@10.33.0",
     "pnpm": {
-        "onlyBuiltDependencies": ["argon2", "esbuild"]
+        "onlyBuiltDependencies": [
+            "argon2",
+            "esbuild"
+        ]
     },
     "engines": {
         "node": ">=24",
@@ -40,6 +43,7 @@
         "@eslint/js": "10.0.1",
         "@faker-js/faker": "10.4.0",
         "@tsconfig/node24": "24.0.4",
+        "@types/cookie-parser": "1.4.10",
         "@types/cors": "2.8.19",
         "@types/express": "5.0.6",
         "@types/node": "25.6.2",
@@ -67,6 +71,7 @@
         "@opentelemetry/sdk-trace-node": "2.7.1",
         "@opentelemetry/semantic-conventions": "1.41.1",
         "argon2": "0.44.0",
+        "cookie-parser": "1.4.7",
         "cors": "2.8.6",
         "dotenv": "17.4.2",
         "drizzle-orm": "0.45.2",

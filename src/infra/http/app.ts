@@ -1,5 +1,6 @@
 import "../container";
 
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import helmet from "helmet";
@@ -30,6 +31,7 @@ export class App {
 
   private registerMiddlewares() {
     this.expressInstance.use(express.json());
+    this.expressInstance.use(cookieParser());
     this.expressInstance.use(helmet());
     this.expressInstance.use(
       cors({

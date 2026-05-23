@@ -8,9 +8,10 @@ import { Controller, HttpMethod } from "@/infra/http/controller";
 import { HttpException } from "@/infra/http/http-exception";
 import { RateLimitMiddleware } from "@/infra/http/middlewares/rate-limit.middleware";
 import { RefreshTokenCommand } from "@/modules/auth/application/commands/refresh-token/command";
-import { RefreshTokenDto } from "@/modules/auth/application/dtos/refresh-token.dto";
 import { InvalidTokenError } from "@/modules/auth/application/errors/invalid-token.error";
 import { TokenPair } from "@/modules/auth/domain/value-objects/token-pair";
+
+import { REFRESH_TOKEN_COOKIE, refreshTokenCookieOptions } from "../refresh-token-cookie";
 
 @injectable()
 export class RefreshTokenController implements Controller {
@@ -28,9 +29,14 @@ export class RefreshTokenController implements Controller {
   }
 
   public async handler(req: Request, res: Response): Promise<Response> {
-    const input = RefreshTokenDto.parse(req.body);
+    const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE] as string | undefined;
+
+    if (!refreshToken) {
+      throw new HttpException({ statusCode: 401, message: "Missing refresh token" });
+    }
+
     const result = await this.commandBus.dispatch<Either<InvalidTokenError, TokenPair>>(
-      new RefreshTokenCommand(input.refreshToken),
+      new RefreshTokenCommand(refreshToken),
     );
 
     if (result.isLeft()) {
@@ -44,6 +50,7 @@ export class RefreshTokenController implements Controller {
     }
 
     const pair = result.value;
-    return res.status(200).json({ accessToken: pair.accessToken, refreshToken: pair.refreshToken });
+    res.cookie(REFRESH_TOKEN_COOKIE, pair.refreshToken, refreshTokenCookieOptions);
+    return res.status(200).json({ accessToken: pair.accessToken });
   }
 }

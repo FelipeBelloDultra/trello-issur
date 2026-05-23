@@ -12,6 +12,8 @@ import { AuthenticateDto } from "@/modules/auth/application/dtos/authenticate.dt
 import { InvalidCredentialsError } from "@/modules/auth/application/errors/invalid-credentials.error";
 import { TokenPair } from "@/modules/auth/domain/value-objects/token-pair";
 
+import { REFRESH_TOKEN_COOKIE, refreshTokenCookieOptions } from "../refresh-token-cookie";
+
 @injectable()
 export class AuthenticateController implements Controller {
   public readonly path = "/auth/authenticate";
@@ -44,6 +46,7 @@ export class AuthenticateController implements Controller {
     }
 
     const pair = result.value;
-    return res.status(200).json({ accessToken: pair.accessToken, refreshToken: pair.refreshToken });
+    res.cookie(REFRESH_TOKEN_COOKIE, pair.refreshToken, refreshTokenCookieOptions);
+    return res.status(200).json({ accessToken: pair.accessToken });
   }
 }
