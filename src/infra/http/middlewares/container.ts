@@ -2,12 +2,19 @@ import { container, Lifecycle } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
 
+import { AuthMiddleware } from "./auth.middleware";
 import { LoggerMiddleware } from "./logger.middleware";
 import { MetricsMiddleware } from "./metrics.middleware";
 import { RateLimitMiddleware } from "./rate-limit.middleware";
 import { TracingMiddleware } from "./tracing.middleware";
 
 export function setupMiddlewaresContainer(): void {
+  container.register(
+    InjectionTokens.Middlewares.Auth,
+    { useClass: AuthMiddleware },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
   container.register(
     InjectionTokens.Middlewares.RateLimit,
     { useClass: RateLimitMiddleware },
