@@ -16,6 +16,14 @@ export class DrizzleAccountRepository implements AccountRepository {
     private readonly db: DatabaseClient,
   ) {}
 
+  public async findById(id: string): Promise<Account | null> {
+    const [row] = await this.db.query.select().from(accounts).where(eq(accounts.id, id)).limit(1);
+
+    if (!row) return null;
+
+    return AccountMapper.toDomain(row);
+  }
+
   public async findByEmail(email: string): Promise<Account | null> {
     const [row] = await this.db.query
       .select()

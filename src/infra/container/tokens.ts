@@ -27,6 +27,7 @@ export const InjectionTokens = {
     Logout: Symbol("LogoutHandler"),
     RefreshToken: Symbol("RefreshTokenHandler"),
     CreateAccount: Symbol("CreateAccountHandler"),
+    GetAccount: Symbol("GetAccountHandler"),
   },
 
   Controllers: {
@@ -34,6 +35,7 @@ export const InjectionTokens = {
     Authenticate: Symbol("AuthenticateController"),
     RefreshToken: Symbol("RefreshTokenController"),
     Logout: Symbol("LogoutController"),
+    GetMe: Symbol("GetMeController"),
   },
 
   Middlewares: {

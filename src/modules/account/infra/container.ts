@@ -1,9 +1,12 @@
 import { container, Lifecycle } from "tsyringe";
 
 import { InMemoryCommandBus } from "@/infra/bus/in-memory-command-bus";
+import { InMemoryQueryBus } from "@/infra/bus/in-memory-query-bus";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { CreateAccountCommand } from "@/modules/account/application/commands/create-account/command";
 import { CreateAccountHandler } from "@/modules/account/application/commands/create-account/handler";
+import { GetAccountHandler } from "@/modules/account/application/queries/get-account/handler";
+import { GetAccountQuery } from "@/modules/account/application/queries/get-account/query";
 
 import { setupDatabaseAccountContainer } from "./db/container";
 import { setupHTTPAccountContainer } from "./http/container";
@@ -16,11 +19,22 @@ export function setupAccountModule(): void {
     { useClass: CreateAccountHandler },
     { lifecycle: Lifecycle.Singleton },
   );
+  container.register<GetAccountHandler>(
+    InjectionTokens.Handlers.GetAccount,
+    { useClass: GetAccountHandler },
+    { lifecycle: Lifecycle.Singleton },
+  );
 
   const commandBus = container.resolve<InMemoryCommandBus>(InjectionTokens.Bus.Command);
   commandBus.register(
     CreateAccountCommand,
     container.resolve<CreateAccountHandler>(InjectionTokens.Handlers.CreateAccount),
+  );
+
+  const queryBus = container.resolve<InMemoryQueryBus>(InjectionTokens.Bus.Query);
+  queryBus.register(
+    GetAccountQuery,
+    container.resolve<GetAccountHandler>(InjectionTokens.Handlers.GetAccount),
   );
 
   setupHTTPAccountContainer();

@@ -4,6 +4,11 @@ import { Account } from "@/modules/account/domain/entities/account";
 export class InMemoryAccountRepository implements AccountRepository {
   public items: Account[] = [];
 
+  public async findById(id: string): Promise<Account | null> {
+    const account = this.items.find((a) => a.id.toValue() === id);
+    return Promise.resolve(account ?? null);
+  }
+
   public async findByEmail(email: string): Promise<Account | null> {
     const account = this.items.find((a) => a.email === email);
     return Promise.resolve(account ?? null);
