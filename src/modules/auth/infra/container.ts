@@ -10,12 +10,14 @@ import { RefreshTokenCommand } from "@/modules/auth/application/commands/refresh
 import { RefreshTokenHandler } from "@/modules/auth/application/commands/refresh-token/handler";
 import { TokenRepository } from "@/modules/auth/application/repositories/token-repository";
 
+import { setupDatabaseAuthContainer } from "./db/container";
 import { setupHTTPAuthContainer } from "./http/container";
 import { setupJwtContainer } from "./jwt/container";
 import { ValkeyTokenRepository } from "./valkey/valkey-token-repository";
 
 export function setupAuthModule(): void {
   setupJwtContainer();
+  setupDatabaseAuthContainer();
 
   container.register<TokenRepository>(
     InjectionTokens.Repositories.Token,

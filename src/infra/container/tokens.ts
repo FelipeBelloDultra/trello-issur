@@ -11,6 +11,7 @@ export const InjectionTokens = {
   Repositories: {
     Account: Symbol("AccountRepository"),
     Token: Symbol("TokenRepository"),
+    AccountRole: Symbol("AccountRoleRepository"),
   },
 
   Gateways: {
