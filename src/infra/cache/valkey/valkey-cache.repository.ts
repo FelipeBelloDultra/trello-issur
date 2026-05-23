@@ -12,8 +12,8 @@ export class ValkeyCacheRepository implements CacheRepository {
     private readonly valkey: ValkeyClient,
   ) {}
 
-  public async set(key: string, value: string): Promise<void> {
-    await this.valkey.client.set(key, value, "EX", 60 * 15);
+  public async set(key: string, value: string, ttlSeconds = 60 * 15): Promise<void> {
+    await this.valkey.client.set(key, value, "EX", ttlSeconds);
   }
 
   public async get(key: string): Promise<string | null> {
