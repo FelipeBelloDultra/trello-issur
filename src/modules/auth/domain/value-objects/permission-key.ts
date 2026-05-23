@@ -21,6 +21,21 @@ const PERMISSION_REGISTRY = [
 
 export type RawPermissionKey = (typeof PERMISSION_REGISTRY)[number]["key"];
 
+export const Permissions = {
+  WorkspaceManage: "workspace:manage",
+  WorkspaceDelete: "workspace:delete",
+  WorkspaceInvite: "workspace:invite",
+  WorkspaceRemoveMember: "workspace:remove-member",
+  BoardCreate: "board:create",
+  BoardEdit: "board:edit",
+  BoardDelete: "board:delete",
+  CardCreate: "card:create",
+  CardEdit: "card:edit",
+  CardDelete: "card:delete",
+  CardMove: "card:move",
+  CardAssign: "card:assign",
+} as const satisfies Record<string, RawPermissionKey>;
+
 export class PermissionKey extends ValueObject<{ value: RawPermissionKey }> {
   public static readonly registry = PERMISSION_REGISTRY;
 
