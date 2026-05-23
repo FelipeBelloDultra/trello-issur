@@ -41,6 +41,8 @@ export const InjectionTokens = {
 
   Middlewares: {
     Auth: Symbol("AuthMiddleware"),
+    Authorize: Symbol("AuthorizeMiddleware"),
+    ValidateWorkspace: Symbol("ValidateWorkspaceMiddleware"),
     RateLimit: Symbol("RateLimitMiddleware"),
     Logger: Symbol("LoggerMiddleware"),
     Tracing: Symbol("TracingMiddleware"),
