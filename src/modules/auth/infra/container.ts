@@ -1,6 +1,6 @@
 import { container, Lifecycle } from "tsyringe";
 
-import { InMemoryCommandBus } from "@/infra/bus/in-memory-command-bus";
+import { InMemoryCommandBus } from "@/infra/bus/adapters/in-memory/command-bus";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { AuthenticateCommand } from "@/modules/auth/application/commands/authenticate/command";
 import { AuthenticateHandler } from "@/modules/auth/application/commands/authenticate/handler";

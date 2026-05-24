@@ -1,7 +1,7 @@
 import { container, Lifecycle } from "tsyringe";
 
-import { InMemoryCommandBus } from "@/infra/bus/in-memory-command-bus";
-import { InMemoryQueryBus } from "@/infra/bus/in-memory-query-bus";
+import { InMemoryCommandBus } from "@/infra/bus/adapters/in-memory/command-bus";
+import { InMemoryQueryBus } from "@/infra/bus/adapters/in-memory/query-bus";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { CreateAccountCommand } from "@/modules/account/application/commands/create-account/command";
 import { CreateAccountHandler } from "@/modules/account/application/commands/create-account/handler";

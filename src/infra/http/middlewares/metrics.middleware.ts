@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { injectable } from "tsyringe";
 
-import { httpRequestDurationSeconds, httpRequestsTotal } from "@/infra/metrics";
+import { httpRequestDurationSeconds, httpRequestsTotal } from "@/infra/metrics/adapters/prometheus";
 
 import { Middleware } from "../middleware";
 import { resolveRoutePath } from "../request";

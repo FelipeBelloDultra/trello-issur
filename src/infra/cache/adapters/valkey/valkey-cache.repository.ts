@@ -1,9 +1,9 @@
 import { inject, injectable } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
-import { ValkeyClient } from "@/infra/valkey/client";
+import { ValkeyClient } from "@/infra/valkey/adapters/ioredis/client";
 
-import { CacheRepository } from "../cache.repository";
+import { CacheRepository } from "../../cache.repository";
 
 @injectable()
 export class ValkeyCacheRepository implements CacheRepository {

@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { registry } from "@/infra/metrics";
+import { registry } from "@/infra/metrics/adapters/prometheus";
 
 export const metricsRouter = Router();
 

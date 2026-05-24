@@ -2,7 +2,7 @@ import { context, propagation, Span, SpanKind, SpanStatusCode } from "@opentelem
 import { NextFunction, Request, Response } from "express";
 import { injectable } from "tsyringe";
 
-import { tracer } from "@/infra/tracing";
+import { tracer } from "@/infra/tracing/adapters/otel";
 
 import { Middleware } from "../middleware";
 import { resolveRoutePath } from "../request";
