@@ -6,7 +6,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 import { DatabaseClient } from "@/infra/db/client";
 import { accountRoles, permissions, rolePermissions, roles } from "@/infra/db/schema";
 import { AccountRoleRepository } from "@/modules/auth/application/repositories/account-role-repository";
-import type { RawPermissionKey } from "@/modules/auth/domain/value-objects/permission-key";
+import { RawPermissionKey } from "@/modules/auth/domain/value-objects/permission-key";
 
 const CACHE_TTL = 60 * 5;
 
@@ -37,7 +37,10 @@ export class DrizzleAccountRoleRepository implements AccountRoleRepository {
     return member;
   }
 
-  public async findPermissions(accountId: string, workspaceId: string): Promise<RawPermissionKey[]> {
+  public async findPermissions(
+    accountId: string,
+    workspaceId: string,
+  ): Promise<RawPermissionKey[]> {
     const cacheKey = this.cache.createKey(["permissions", accountId, workspaceId]);
     const cached = await this.cache.get(cacheKey);
 

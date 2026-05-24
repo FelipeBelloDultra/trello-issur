@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
 
-import { InMemoryAccountRoleRepository } from "@/test/repositories/in-memory-account-role-repository";
 import { TokenClaims } from "@/modules/auth/domain/value-objects/token-claims";
-
-import { HttpException } from "../http-exception";
+import { InMemoryAccountRoleRepository } from "@/test/repositories/in-memory-account-role-repository";
 
 import { AuthorizeMiddleware } from "./authorize.middleware";
 
@@ -43,7 +41,11 @@ describe("AuthorizeMiddleware", () => {
     const claims = makeClaims();
     accountRoleRepository.seed(claims.sub, WORKSPACE_ID, ["board:create"]);
 
-    const handler = sut.handle(["board:delete"])(makeReq({ account: claims }), {} as Response, vi.fn());
+    const handler = sut.handle(["board:delete"])(
+      makeReq({ account: claims }),
+      {} as Response,
+      vi.fn(),
+    );
 
     await expect(handler).rejects.toMatchObject({ statusCode: 403 });
   });
@@ -73,5 +75,4 @@ describe("AuthorizeMiddleware", () => {
 
     await expect(handler).rejects.toMatchObject({ statusCode: 403 });
   });
-
 });

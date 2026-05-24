@@ -29,7 +29,10 @@ export class AuthorizeMiddleware implements Middleware<RawPermissionKey[]> {
         throw new HttpException({ statusCode: 403, message: "Missing workspace context" });
       }
 
-      const permissions = await this.accountRoleRepository.findPermissions(account.sub, workspaceId);
+      const permissions = await this.accountRoleRepository.findPermissions(
+        account.sub,
+        workspaceId,
+      );
 
       const hasAll = required.every((perm) => permissions.includes(perm));
 

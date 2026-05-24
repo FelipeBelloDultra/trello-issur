@@ -5,6 +5,7 @@ export class InMemoryCacheRepository implements CacheRepository {
 
   public async set(key: string, value: string, _ttlSeconds?: number): Promise<void> {
     this.items.set(key, value);
+    await Promise.resolve();
   }
 
   public async get(key: string): Promise<string | null> {
@@ -13,6 +14,7 @@ export class InMemoryCacheRepository implements CacheRepository {
 
   public async delete(key: string): Promise<void> {
     this.items.delete(key);
+    await Promise.resolve();
   }
 
   public async deleteByPrefix(keyPattern: string): Promise<void> {
@@ -20,6 +22,7 @@ export class InMemoryCacheRepository implements CacheRepository {
     for (const key of this.items.keys()) {
       if (key.startsWith(prefix)) this.items.delete(key);
     }
+    await Promise.resolve();
   }
 
   public createKey(keys: string[]): string {

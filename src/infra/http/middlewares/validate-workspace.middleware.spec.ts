@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
-import { InMemoryAccountRoleRepository } from "@/test/repositories/in-memory-account-role-repository";
 import { TokenClaims } from "@/modules/auth/domain/value-objects/token-claims";
+import { InMemoryAccountRoleRepository } from "@/test/repositories/in-memory-account-role-repository";
 
 import { ValidateWorkspaceMiddleware } from "./validate-workspace.middleware";
 

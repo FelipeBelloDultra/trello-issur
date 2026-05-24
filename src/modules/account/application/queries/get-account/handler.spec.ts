@@ -1,8 +1,8 @@
 import { makeAccount } from "@/test/factories/make-account";
 import { InMemoryAccountRepository } from "@/test/repositories/in-memory-account-repository";
 
-import { GetAccountQuery } from "./query";
 import { GetAccountHandler } from "./handler";
+import { GetAccountQuery } from "./query";
 
 describe("GetAccountHandler", () => {
   let accountRepository: InMemoryAccountRepository;

@@ -1,9 +1,9 @@
 import { faker } from "@faker-js/faker";
 
+import { TokenClaims } from "@/modules/auth/domain/value-objects/token-claims";
 import { makeAccount } from "@/test/factories/make-account";
 import { InMemoryCryptographGateway } from "@/test/gateways/in-memory-cryptograph-gateway";
 import { InMemoryTokenRepository } from "@/test/repositories/in-memory-token-repository";
-import { TokenClaims } from "@/modules/auth/domain/value-objects/token-claims";
 
 import { InvalidTokenError } from "../../errors/invalid-token.error";
 
