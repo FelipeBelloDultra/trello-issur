@@ -12,8 +12,9 @@ import { env } from "@/config/env";
 
 import { InjectionTokens } from "../container/tokens";
 import { DatabaseClient } from "../db/client";
-import { shutdownTracing } from "../tracing";
-import { ValkeyClient } from "../valkey/client";
+import { RabbitMQClient } from "../queue/adapters/rabbitmq/client";
+import { shutdownTracing } from "../tracing/adapters/otel";
+import { ValkeyClient } from "../valkey/adapters/ioredis/client";
 
 import { HttpException } from "./http-exception";
 import { Middleware } from "./middleware";
@@ -28,6 +29,7 @@ export class App {
   private readonly valkeyConnection = container.resolve<ValkeyClient>(
     InjectionTokens.Databases.Valkey,
   );
+  private readonly rabbitMQClient = container.resolve<RabbitMQClient>(InjectionTokens.Queue.Client);
 
   private registerMiddlewares() {
     this.expressInstance.use(express.json());
@@ -55,11 +57,12 @@ export class App {
   public async startServices(): Promise<void> {
     this.drizzleConnection.connect();
     this.valkeyConnection.connect();
+    await this.rabbitMQClient.connect();
     this.registerMiddlewares();
-    await Promise.resolve();
   }
 
   public async stopServices(): Promise<void> {
+    await this.rabbitMQClient.disconnect();
     await this.drizzleConnection.disconnect();
     await this.valkeyConnection.disconnect();
     await shutdownTracing();

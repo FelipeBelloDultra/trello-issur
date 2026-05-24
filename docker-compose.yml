@@ -25,6 +25,22 @@ services:
         networks:
             - trello-issur-net
 
+    rabbitmq:
+        image: rabbitmq:4-management-alpine
+        ports:
+            - "${RABBITMQ_PORT:-5672}:5672"
+            - "15672:15672"
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+        healthcheck:
+            test: ["CMD", "rabbitmq-diagnostics", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - trello-issur-net
+
     jaeger:
         image: jaegertracing/jaeger:2.18.0
         ports:

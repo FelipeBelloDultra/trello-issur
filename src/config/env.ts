@@ -36,6 +36,10 @@ export const env = z
     DB_POOL_MAX: z.coerce.number().min(1).default(10),
     DB_IDLE_TIMEOUT: z.coerce.number().min(0).default(30),
     DB_CONNECT_TIMEOUT: z.coerce.number().min(1).default(10),
+
+    // Queue (RabbitMQ)
+    RABBITMQ_URL: z.string().url().default("amqp://guest:guest@localhost:5672"),
+    RABBITMQ_PREFETCH: z.coerce.number().min(1).default(10),
   })
   .transform((data) => ({
     ...data,

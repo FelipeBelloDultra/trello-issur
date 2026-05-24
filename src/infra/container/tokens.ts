@@ -23,6 +23,12 @@ export const InjectionTokens = {
     Query: Symbol("QueryBus"),
   },
 
+  Queue: {
+    Client: Symbol("RabbitMQClient"),
+    Publisher: Symbol("QueuePublisher"),
+    ConsumerRegistry: Symbol("ConsumerRegistry"),
+  },
+
   Handlers: {
     Authenticate: Symbol("AuthenticateHandler"),
     Logout: Symbol("LogoutHandler"),
