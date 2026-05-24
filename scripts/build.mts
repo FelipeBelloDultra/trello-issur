@@ -6,6 +6,7 @@ import * as esbuild from "esbuild";
 await esbuild.build({
   entryPoints: {
     "index.http": "src/index.http.ts",
+    "index.queue": "src/index.queue.ts",
     "index.migrate": "src/index.migrate.ts",
     seed: "src/infra/db/seeds/seed.ts",
   },
