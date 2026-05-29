@@ -8,10 +8,12 @@ import { CreateAccountHandler } from "@/modules/account/application/commands/cre
 import { GetAccountHandler } from "@/modules/account/application/queries/get-account/handler";
 import { GetAccountQuery } from "@/modules/account/application/queries/get-account/query";
 
+import { setupCacheAccountContainer } from "./cache/container";
 import { setupDatabaseAccountContainer } from "./db/container";
 import { setupHTTPAccountContainer } from "./http/container";
 
 export function setupAccountModule(): void {
+  setupCacheAccountContainer();
   setupDatabaseAccountContainer();
 
   container.register<CreateAccountHandler>(

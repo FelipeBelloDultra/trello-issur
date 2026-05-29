@@ -6,6 +6,8 @@ export const InjectionTokens = {
 
   Cache: {
     Repository: Symbol("CacheRepository"),
+    Account: Symbol("AccountCacheRepository"),
+    AccountRole: Symbol("AccountRoleCacheRepository"),
   },
 
   Repositories: {
