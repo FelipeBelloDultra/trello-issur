@@ -18,6 +18,7 @@ export const InjectionTokens = {
 
   Gateways: {
     Cryptograph: Symbol("CryptographGateway"),
+    PasswordHasher: Symbol("PasswordHasherGateway"),
   },
 
   Bus: {

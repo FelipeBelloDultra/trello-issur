@@ -1,11 +1,10 @@
 import { Entity } from "@/core/entity/entity";
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
-import { Password } from "@/modules/account/domain/value-objects/password";
 
 interface AccountProps {
   name: string;
   email: string;
-  password: Password;
+  passwordHash: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,8 +18,8 @@ export class Account extends Entity<AccountProps> {
     return this.props.email;
   }
 
-  public get password(): Password {
-    return this.props.password;
+  public get passwordHash(): string {
+    return this.props.passwordHash;
   }
 
   public get createdAt(): Date {

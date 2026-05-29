@@ -5,7 +5,6 @@ import { CacheRepository } from "@/infra/cache/cache.repository";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { AccountCacheRepository } from "@/modules/account/application/repositories/account-cache.repository";
 import { Account } from "@/modules/account/domain/entities/account";
-import { Password } from "@/modules/account/domain/value-objects/password";
 
 interface AccountPayload {
   id: string;
@@ -62,7 +61,7 @@ export class ValkeyAccountCacheRepository implements AccountCacheRepository {
       id: account.id.toValue(),
       name: account.name,
       email: account.email,
-      passwordHash: account.password.toString(),
+      passwordHash: account.passwordHash,
       createdAt: account.createdAt.toISOString(),
       updatedAt: account.updatedAt.toISOString(),
     } satisfies AccountPayload);
@@ -74,7 +73,7 @@ export class ValkeyAccountCacheRepository implements AccountCacheRepository {
       {
         name: payload.name,
         email: payload.email,
-        password: Password.restore(payload.passwordHash),
+        passwordHash: payload.passwordHash,
         createdAt: new Date(payload.createdAt),
         updatedAt: new Date(payload.updatedAt),
       },

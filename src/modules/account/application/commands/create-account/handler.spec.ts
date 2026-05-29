@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 
 import { makeAccount } from "@/test/factories/make-account";
+import { InMemoryPasswordHasherGateway } from "@/test/gateways/in-memory-password-hasher-gateway";
 import { InMemoryAccountRepository } from "@/test/repositories/in-memory-account-repository";
 
 import { EmailAlreadyTakenError } from "../../errors/email-already-taken.error";
@@ -19,11 +20,13 @@ function makeInput(overrides?: Partial<{ name: string; email: string; password: 
 
 describe("CreateAccountHandler", () => {
   let accountRepository: InMemoryAccountRepository;
+  let passwordHasher: InMemoryPasswordHasherGateway;
   let sut: CreateAccountHandler;
 
   beforeEach(() => {
     accountRepository = new InMemoryAccountRepository();
-    sut = new CreateAccountHandler(accountRepository);
+    passwordHasher = new InMemoryPasswordHasherGateway();
+    sut = new CreateAccountHandler(accountRepository, passwordHasher);
   });
 
   it("creates and persists the account on success", async () => {

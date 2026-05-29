@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker";
 
-import { Password } from "@/modules/account/domain/value-objects/password";
 import { makeAccount } from "@/test/factories/make-account";
 import { InMemoryCryptographGateway } from "@/test/gateways/in-memory-cryptograph-gateway";
+import { InMemoryPasswordHasherGateway } from "@/test/gateways/in-memory-password-hasher-gateway";
 import { InMemoryAccountRepository } from "@/test/repositories/in-memory-account-repository";
 import { InMemoryTokenRepository } from "@/test/repositories/in-memory-token-repository";
 
@@ -23,18 +23,25 @@ describe("AuthenticateHandler", () => {
   let accountRepository: InMemoryAccountRepository;
   let tokenRepository: InMemoryTokenRepository;
   let cryptographGateway: InMemoryCryptographGateway;
+  let passwordHasher: InMemoryPasswordHasherGateway;
   let sut: AuthenticateHandler;
 
   beforeEach(() => {
     accountRepository = new InMemoryAccountRepository();
     tokenRepository = new InMemoryTokenRepository();
     cryptographGateway = new InMemoryCryptographGateway();
-    sut = new AuthenticateHandler(accountRepository, cryptographGateway, tokenRepository);
+    passwordHasher = new InMemoryPasswordHasherGateway();
+    sut = new AuthenticateHandler(
+      accountRepository,
+      cryptographGateway,
+      passwordHasher,
+      tokenRepository,
+    );
   });
 
   it("returns right and stores the refresh token on valid credentials", async () => {
     const plainPassword = faker.internet.password({ length: 12 });
-    const account = makeAccount({ password: await Password.create(plainPassword) });
+    const account = makeAccount({ passwordHash: `hashed:${plainPassword}` });
     accountRepository.items.push(account);
 
     const result = await sut.execute(new AuthenticateCommand(account.email, plainPassword));
@@ -52,7 +59,7 @@ describe("AuthenticateHandler", () => {
   });
 
   it("returns left with InvalidCredentialsError when password does not match", async () => {
-    const account = makeAccount({ password: await Password.create("correct-password") });
+    const account = makeAccount({ passwordHash: "hashed:correct-password" });
     accountRepository.items.push(account);
 
     const result = await sut.execute(new AuthenticateCommand(account.email, "wrong-password"));

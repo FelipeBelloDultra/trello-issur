@@ -5,6 +5,7 @@ import { CommandHandler } from "@/core/commands/command-handler";
 import { Either, left, right } from "@/core/either";
 import { parseDurationToSeconds } from "@/core/utils/duration";
 import { InjectionTokens } from "@/infra/container/tokens";
+import { PasswordHasherGateway } from "@/modules/account/application/gateways/password-hasher.gateway";
 import { AccountRepository } from "@/modules/account/application/repositories/account-repository";
 import { TokenClaims } from "@/modules/auth/domain/value-objects/token-claims";
 import { TokenPair } from "@/modules/auth/domain/value-objects/token-pair";
@@ -29,6 +30,8 @@ export class AuthenticateHandler implements CommandHandler<
     private readonly accountRepository: AccountRepository,
     @inject(InjectionTokens.Gateways.Cryptograph)
     private readonly cryptographGateway: CryptographGateway,
+    @inject(InjectionTokens.Gateways.PasswordHasher)
+    private readonly passwordHasher: PasswordHasherGateway,
     @inject(InjectionTokens.Repositories.Token)
     private readonly tokenRepository: TokenRepository,
   ) {}
@@ -38,7 +41,7 @@ export class AuthenticateHandler implements CommandHandler<
 
     if (!account) return left(new InvalidCredentialsError());
 
-    const valid = await account.password.compare(command.password);
+    const valid = await this.passwordHasher.compare(command.password, account.passwordHash);
 
     if (!valid) return left(new InvalidCredentialsError());
 

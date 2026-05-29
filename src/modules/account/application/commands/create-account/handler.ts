@@ -3,8 +3,8 @@ import { inject, injectable } from "tsyringe";
 import { CommandHandler } from "@/core/commands/command-handler";
 import { Either, left, right } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
+import { PasswordHasherGateway } from "@/modules/account/application/gateways/password-hasher.gateway";
 import { Account } from "@/modules/account/domain/entities/account";
-import { Password } from "@/modules/account/domain/value-objects/password";
 
 import { EmailAlreadyTakenError } from "../../errors/email-already-taken.error";
 import { AccountRepository } from "../../repositories/account-repository";
@@ -23,6 +23,8 @@ export class CreateAccountHandler implements CommandHandler<
   public constructor(
     @inject(InjectionTokens.Repositories.Account)
     private readonly accountRepository: AccountRepository,
+    @inject(InjectionTokens.Gateways.PasswordHasher)
+    private readonly passwordHasher: PasswordHasherGateway,
   ) {}
 
   public async execute(command: CreateAccountCommand): Output {
@@ -32,12 +34,12 @@ export class CreateAccountHandler implements CommandHandler<
       return left(new EmailAlreadyTakenError(command.email));
     }
 
-    const password = await Password.create(command.password);
+    const passwordHash = await this.passwordHasher.hash(command.password);
 
     const account = Account.create({
       name: command.name,
       email: command.email,
-      password,
+      passwordHash,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
