@@ -8,24 +8,18 @@ import { LogoutCommand } from "@/modules/auth/application/commands/logout/comman
 import { LogoutHandler } from "@/modules/auth/application/commands/logout/handler";
 import { RefreshTokenCommand } from "@/modules/auth/application/commands/refresh-token/command";
 import { RefreshTokenHandler } from "@/modules/auth/application/commands/refresh-token/handler";
-import { TokenRepository } from "@/modules/auth/application/repositories/token-repository";
 
 import { setupCacheAuthContainer } from "./cache/container";
 import { setupDatabaseAuthContainer } from "./db/container";
 import { setupHTTPAuthContainer } from "./http/container";
 import { setupJwtContainer } from "./jwt/container";
-import { ValkeyTokenRepository } from "./valkey/valkey-token-repository";
+import { setupValkeyAuthContainer } from "./valkey/container";
 
 export function setupAuthModule(): void {
   setupJwtContainer();
   setupCacheAuthContainer();
   setupDatabaseAuthContainer();
-
-  container.register<TokenRepository>(
-    InjectionTokens.Repositories.Token,
-    { useClass: ValkeyTokenRepository },
-    { lifecycle: Lifecycle.Singleton },
-  );
+  setupValkeyAuthContainer();
 
   container.register<AuthenticateHandler>(
     InjectionTokens.Handlers.Authenticate,

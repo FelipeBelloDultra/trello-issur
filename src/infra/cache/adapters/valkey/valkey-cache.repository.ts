@@ -1,7 +1,7 @@
 import { inject, injectable } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
-import { ValkeyClient } from "@/infra/valkey/adapters/ioredis/client";
+import { ValkeyClient } from "@/infra/valkey/client";
 
 import { CacheRepository } from "../../cache.repository";
 

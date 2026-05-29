@@ -6,7 +6,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 import { DatabaseClient } from "@/infra/db/client";
 import { logger } from "@/infra/logger";
 import { shutdownTracing } from "@/infra/tracing/adapters/otel";
-import { ValkeyClient } from "@/infra/valkey/adapters/ioredis/client";
+import { ValkeyClient } from "@/infra/valkey/client";
 
 import { RabbitMQClient } from "./adapters/rabbitmq/client";
 import { ConsumerRegistry } from "./consumer-registry";

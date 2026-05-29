@@ -2,7 +2,7 @@ import { container, Lifecycle } from "tsyringe";
 
 import { InjectionTokens } from "../container/tokens";
 
-import { ValkeyClient } from "./adapters/ioredis/client";
+import { ValkeyClient } from "./client";
 
 export function setupValkeyContainer() {
   container.register<ValkeyClient>(

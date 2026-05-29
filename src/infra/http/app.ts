@@ -14,7 +14,7 @@ import { InjectionTokens } from "../container/tokens";
 import { DatabaseClient } from "../db/client";
 import { RabbitMQClient } from "../queue/adapters/rabbitmq/client";
 import { shutdownTracing } from "../tracing/adapters/otel";
-import { ValkeyClient } from "../valkey/adapters/ioredis/client";
+import { ValkeyClient } from "../valkey/client";
 
 import { HttpException } from "./http-exception";
 import { Middleware } from "./middleware";
