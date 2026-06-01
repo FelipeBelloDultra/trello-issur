@@ -8,6 +8,13 @@
       "when": 1779547734199,
       "tag": "0000_burly_absorbing_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780346883620,
+      "tag": "0001_volatile_blur",
+      "breakpoints": true
     }
   ]
 }
