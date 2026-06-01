@@ -3,6 +3,9 @@ import { inject, injectable } from "tsyringe";
 import { CommandHandler } from "@/core/commands/command-handler";
 import { Either, left, right } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
+import { Exchanges } from "@/infra/queue/adapters/rabbitmq/exchanges";
+import { QueueEvents } from "@/infra/queue/events";
+import { QueuePublisher } from "@/infra/queue/publisher";
 import { PasswordHasherGateway } from "@/modules/account/application/gateways/password-hasher.gateway";
 import { Account } from "@/modules/account/domain/entities/account";
 
@@ -25,6 +28,8 @@ export class CreateAccountHandler implements CommandHandler<
     private readonly accountRepository: AccountRepository,
     @inject(InjectionTokens.Gateways.PasswordHasher)
     private readonly passwordHasher: PasswordHasherGateway,
+    @inject(InjectionTokens.Queue.Publisher)
+    private readonly publisher: QueuePublisher,
   ) {}
 
   public async execute(command: CreateAccountCommand): Output {
@@ -45,6 +50,12 @@ export class CreateAccountHandler implements CommandHandler<
     });
 
     await this.accountRepository.create(account);
+
+    this.publisher.publish(Exchanges.Main, QueueEvents.Account.Created, {
+      accountId: account.id.toValue(),
+      name: account.name,
+      email: account.email,
+    });
 
     return right({ account });
   }
