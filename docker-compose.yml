@@ -41,6 +41,14 @@ services:
         networks:
             - trello-issur-net
 
+    mailpit:
+        image: axllent/mailpit:v1.21
+        ports:
+            - "${SMTP_PORT:-1025}:1025"
+            - "8025:8025"
+        networks:
+            - trello-issur-net
+
     jaeger:
         image: jaegertracing/jaeger:2.18.0
         ports:

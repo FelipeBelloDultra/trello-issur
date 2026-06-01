@@ -40,6 +40,13 @@ export const env = z
     // Queue (RabbitMQ)
     RABBITMQ_URL: z.string().url().default("amqp://guest:guest@localhost:5672"),
     RABBITMQ_PREFETCH: z.coerce.number().min(1).default(10),
+
+    // Email (SMTP)
+    SMTP_HOST: z.string().min(1).default("localhost"),
+    SMTP_PORT: z.coerce.number().default(1025),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASS: z.string().optional(),
+    SMTP_FROM: z.string().email().default("noreply@trello-issur.dev"),
   })
   .transform((data) => ({
     ...data,
