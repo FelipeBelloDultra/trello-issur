@@ -16,9 +16,19 @@ export const InjectionTokens = {
     AccountRole: Symbol("AccountRoleRepository"),
   },
 
+  Email: {
+    Gateway: Symbol("EmailGateway"),
+  },
+
   Gateways: {
     Cryptograph: Symbol("CryptographGateway"),
     PasswordHasher: Symbol("PasswordHasherGateway"),
+    SendWelcomeEmail: Symbol("SendWelcomeEmailGateway"),
+  },
+
+  Consumers: {
+    AccountCreated: Symbol("AccountCreatedConsumer"),
+    DeadLetter: Symbol("DeadLetterConsumer"),
   },
 
   Bus: {
@@ -30,6 +40,7 @@ export const InjectionTokens = {
     Client: Symbol("RabbitMQClient"),
     Publisher: Symbol("QueuePublisher"),
     ConsumerRegistry: Symbol("ConsumerRegistry"),
+    DeadLetterRepository: Symbol("DeadLetterRepository"),
   },
 
   Handlers: {
@@ -38,6 +49,7 @@ export const InjectionTokens = {
     RefreshToken: Symbol("RefreshTokenHandler"),
     CreateAccount: Symbol("CreateAccountHandler"),
     GetAccount: Symbol("GetAccountHandler"),
+    SendWelcomeEmail: Symbol("SendWelcomeEmailHandler"),
   },
 
   Controllers: {
