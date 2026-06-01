@@ -2,16 +2,9 @@ import { inject, injectable } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
 import { EmailGateway } from "@/infra/email/email.gateway";
+import { renderWelcomeEmail } from "@/infra/email/templates/welcome-email";
 
 import { SendWelcomeEmailGateway } from "../../application/gateways/send-welcome-email.gateway";
-
-function buildHtml(name: string): string {
-  return `
-    <h1>Welcome to Trello Issur, ${name}!</h1>
-    <p>Your account has been created successfully.</p>
-    <p>Start managing your projects and collaborating with your team today.</p>
-  `;
-}
 
 @injectable()
 export class AccountSendWelcomeEmailGateway implements SendWelcomeEmailGateway {
@@ -21,10 +14,12 @@ export class AccountSendWelcomeEmailGateway implements SendWelcomeEmailGateway {
   ) {}
 
   public async send(name: string, email: string): Promise<void> {
+    const html = await renderWelcomeEmail(name);
+
     await this.emailGateway.send({
       to: email,
       subject: "Welcome to Trello Issur!",
-      html: buildHtml(name),
+      html,
     });
   }
 }

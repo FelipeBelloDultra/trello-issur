@@ -3,6 +3,7 @@
     "compilerOptions": {
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
+        "jsx": "react-jsx",
         "outDir": "./dist",
         "types": ["@types/node", "vitest/globals"],
         "paths": {

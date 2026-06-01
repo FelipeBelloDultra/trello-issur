@@ -9,14 +9,14 @@ import tseslint from "typescript-eslint";
 export default defineConfig([
   { ignores: ["dist/**", "coverage/**", "node_modules/**"] },
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts,tsx}"],
     plugins: { js },
     extends: ["js/recommended"],
     languageOptions: { globals: globals.node },
   },
   tseslint.configs.recommended,
   {
-    files: ["**/*.{ts,mts,cts}"],
+    files: ["**/*.{ts,mts,cts,tsx}"],
     extends: [tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: { project: true },
