@@ -1,6 +1,7 @@
 import { Channel, ConsumeMessage } from "amqplib";
 
 import { logger } from "@/infra/logger";
+import { Consumer } from "@/infra/queue/consumer";
 
 import { Exchanges } from "./exchanges";
 
@@ -13,7 +14,7 @@ export interface QueueConsumerConfig {
 
 const DEFAULT_RETRY_DELAYS: readonly number[] = [5_000, 30_000, 300_000];
 
-export abstract class QueueConsumer<TPayload = unknown> {
+export abstract class QueueConsumer<TPayload = unknown> implements Consumer {
   protected abstract readonly config: QueueConsumerConfig;
 
   public abstract handle(payload: TPayload): Promise<void>;
@@ -35,7 +36,7 @@ export abstract class QueueConsumer<TPayload = unknown> {
     const delays = this.retryDelays;
 
     await channel.assertExchange(exchange, "direct", { durable: true });
-    await channel.assertExchange(Exchanges.Dead, "direct", { durable: true });
+    await channel.assertExchange(Exchanges.Dead, "topic", { durable: true });
 
     await channel.assertQueue(queue, { durable: true });
     await channel.bindQueue(queue, exchange, routingKey);

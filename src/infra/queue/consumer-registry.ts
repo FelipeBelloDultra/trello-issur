@@ -1,16 +1,16 @@
 import { injectable } from "tsyringe";
 
-import { QueueConsumer } from "./adapters/rabbitmq/consumer";
+import { Consumer } from "./consumer";
 
 @injectable()
 export class ConsumerRegistry {
-  private readonly _consumers: QueueConsumer<unknown>[] = [];
+  private readonly _consumers: Consumer[] = [];
 
-  public register(consumer: QueueConsumer<unknown>): void {
+  public register(consumer: Consumer): void {
     this._consumers.push(consumer);
   }
 
-  public getAll(): readonly QueueConsumer<unknown>[] {
+  public getAll(): readonly Consumer[] {
     return [...this._consumers];
   }
 }
