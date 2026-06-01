@@ -3,6 +3,8 @@ import { Channel, ChannelModel } from "amqplib";
 
 import { env } from "@/config/env";
 
+import { Exchanges } from "./exchanges";
+
 export class RabbitMQClient {
   private _model: ChannelModel | null = null;
   private _channel: Channel | null = null;
@@ -11,6 +13,8 @@ export class RabbitMQClient {
     this._model = await amqplib.connect(env.RABBITMQ_URL);
     this._channel = await this._model.createChannel();
     await this._channel.prefetch(env.RABBITMQ_PREFETCH);
+    await this._channel.assertExchange(Exchanges.Main, "direct", { durable: true });
+    await this._channel.assertExchange(Exchanges.Dead, "topic", { durable: true });
   }
 
   public async disconnect(): Promise<void> {
