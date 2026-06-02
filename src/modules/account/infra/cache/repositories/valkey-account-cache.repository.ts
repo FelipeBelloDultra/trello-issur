@@ -1,10 +1,10 @@
 import { inject, injectable } from "tsyringe";
 
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
-import { CacheRepository } from "@/infra/cache/cache.repository";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { AccountCacheRepository } from "@/modules/account/application/repositories/account-cache.repository";
 import { Account } from "@/modules/account/domain/entities/account";
+import { CacheRepository } from "@/shared/cache/application/repositories/cache.repository";
 
 interface AccountPayload {
   id: string;

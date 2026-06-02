@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 
-import { CacheRepository } from "@/infra/cache/cache.repository";
 import { InjectionTokens } from "@/infra/container/tokens";
+import { CacheRepository } from "@/shared/cache/application/repositories/cache.repository";
 
+import { Middleware } from "../contracts/middleware";
 import { HttpException } from "../http-exception";
-import { Middleware } from "../middleware";
 
 interface RateLimitOptions {
   max: number;

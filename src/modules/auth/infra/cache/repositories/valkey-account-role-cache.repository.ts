@@ -1,9 +1,9 @@
 import { inject, injectable } from "tsyringe";
 
-import { CacheRepository } from "@/infra/cache/cache.repository";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { AccountRoleCacheRepository } from "@/modules/auth/application/repositories/account-role-cache.repository";
 import { RawPermissionKey } from "@/modules/auth/domain/value-objects/permission-key";
+import { CacheRepository } from "@/shared/cache/application/repositories/cache.repository";
 
 const TTL = 60 * 5;
 
