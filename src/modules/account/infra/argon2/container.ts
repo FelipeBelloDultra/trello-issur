@@ -5,7 +5,7 @@ import { PasswordHasherGateway } from "@/modules/account/application/gateways/pa
 
 import { Argon2PasswordHasherGateway } from "./argon2-password-hasher.gateway";
 
-export function setupArgon2Container(): void {
+export function setupArgon2AccountContainer(): void {
   container.register<PasswordHasherGateway>(
     InjectionTokens.Gateways.PasswordHasher,
     { useClass: Argon2PasswordHasherGateway },

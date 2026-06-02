@@ -5,7 +5,7 @@ import { CryptographGateway } from "@/modules/auth/application/gateways/cryptogr
 
 import { JwtCryptographGateway } from "./jwt-cryptograph.gateway";
 
-export function setupJwtContainer(): void {
+export function setupJwtAuthContainer(): void {
   container.register<CryptographGateway>(
     InjectionTokens.Gateways.Cryptograph,
     { useClass: JwtCryptographGateway },
