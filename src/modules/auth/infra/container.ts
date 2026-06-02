@@ -1,6 +1,6 @@
 import { container, Lifecycle } from "tsyringe";
 
-import { InMemoryCommandBus } from "@/infra/bus/adapters/in-memory/command-bus";
+import { CommandBus } from "@/core/commands/command-bus";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { AuthenticateCommand } from "@/modules/auth/application/commands/authenticate/command";
 import { AuthenticateHandler } from "@/modules/auth/application/commands/authenticate/handler";
@@ -12,11 +12,11 @@ import { RefreshTokenHandler } from "@/modules/auth/application/commands/refresh
 import { setupCacheAuthContainer } from "./cache/container";
 import { setupDatabaseAuthContainer } from "./db/container";
 import { setupHTTPAuthContainer } from "./http/container";
-import { setupJwtContainer } from "./jwt/container";
+import { setupJwtAuthContainer } from "./jwt/container";
 import { setupValkeyAuthContainer } from "./valkey/container";
 
 export function setupAuthModule(): void {
-  setupJwtContainer();
+  setupJwtAuthContainer();
   setupCacheAuthContainer();
   setupDatabaseAuthContainer();
   setupValkeyAuthContainer();
@@ -37,7 +37,7 @@ export function setupAuthModule(): void {
     { lifecycle: Lifecycle.Singleton },
   );
 
-  const commandBus = container.resolve<InMemoryCommandBus>(InjectionTokens.Bus.Command);
+  const commandBus = container.resolve<CommandBus>(InjectionTokens.Bus.Command);
   commandBus.register(
     AuthenticateCommand,
     container.resolve<AuthenticateHandler>(InjectionTokens.Handlers.Authenticate),
