@@ -28,7 +28,6 @@ export const InjectionTokens = {
 
   Consumers: {
     AccountCreated: Symbol("AccountCreatedConsumer"),
-    DeadLetter: Symbol("DeadLetterConsumer"),
   },
 
   Bus: {
@@ -40,6 +39,7 @@ export const InjectionTokens = {
     Client: Symbol("RabbitMQClient"),
     Publisher: Symbol("QueuePublisher"),
     ConsumerRegistry: Symbol("ConsumerRegistry"),
+    DeadLetterConsumer: Symbol("DeadLetterConsumer"),
     DeadLetterRepository: Symbol("DeadLetterRepository"),
   },
 

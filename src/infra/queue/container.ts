@@ -36,11 +36,13 @@ export function setupQueueContainer(): void {
   );
 
   container.register<DeadLetterConsumer>(
-    InjectionTokens.Consumers.DeadLetter,
+    InjectionTokens.Queue.DeadLetterConsumer,
     { useClass: DeadLetterConsumer },
     { lifecycle: Lifecycle.Singleton },
   );
 
   const registry = container.resolve<ConsumerRegistry>(InjectionTokens.Queue.ConsumerRegistry);
-  registry.register(container.resolve<DeadLetterConsumer>(InjectionTokens.Consumers.DeadLetter));
+  registry.register(
+    container.resolve<DeadLetterConsumer>(InjectionTokens.Queue.DeadLetterConsumer),
+  );
 }
