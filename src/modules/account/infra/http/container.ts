@@ -4,7 +4,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 
 import { CreateAccountController } from "./controllers/create-account.controller";
 
-export function setupHTTPAccountContainer() {
+export function setupHTTPAccountContainer(): void {
   container.register<CreateAccountController>(
     InjectionTokens.Controllers.CreateAccount,
     { useClass: CreateAccountController },

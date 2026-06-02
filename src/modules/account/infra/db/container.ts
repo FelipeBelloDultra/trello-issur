@@ -6,7 +6,7 @@ import { AccountRepository } from "../../application/repositories/account-reposi
 
 import { DrizzleAccountRepository } from "./repositories/drizzle-account-repository";
 
-export function setupDatabaseAccountContainer() {
+export function setupDatabaseAccountContainer(): void {
   container.register<AccountRepository>(
     InjectionTokens.Repositories.Account,
     { useClass: DrizzleAccountRepository },

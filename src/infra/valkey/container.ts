@@ -4,14 +4,10 @@ import { InjectionTokens } from "../container/tokens";
 
 import { ValkeyClient } from "./client";
 
-export function setupValkeyContainer() {
+export function setupValkeyContainer(): void {
   container.register<ValkeyClient>(
     InjectionTokens.Databases.Valkey,
-    {
-      useClass: ValkeyClient,
-    },
-    {
-      lifecycle: Lifecycle.Singleton,
-    },
+    { useClass: ValkeyClient },
+    { lifecycle: Lifecycle.Singleton },
   );
 }

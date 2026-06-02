@@ -6,14 +6,10 @@ import { InjectionTokens } from "../container/tokens";
 
 import { ValkeyCacheRepository } from "./adapters/valkey/valkey-cache.repository";
 
-export function setupCacheContainer() {
+export function setupCacheContainer(): void {
   container.register<CacheRepository>(
     InjectionTokens.Cache.Repository,
-    {
-      useClass: ValkeyCacheRepository,
-    },
-    {
-      lifecycle: Lifecycle.Singleton,
-    },
+    { useClass: ValkeyCacheRepository },
+    { lifecycle: Lifecycle.Singleton },
   );
 }
