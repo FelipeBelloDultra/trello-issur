@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import { QueueEvents } from "@/infra/queue/events";
+import { QueueEvents } from "@/shared/queue/application/events";
 import { makeAccount } from "@/test/factories/make-account";
 import { InMemoryPasswordHasherGateway } from "@/test/gateways/in-memory-password-hasher-gateway";
 import { InMemoryQueuePublisher } from "@/test/queue/in-memory-queue-publisher";

@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
 
-import { Consumer } from "./consumer";
+import { Consumer } from "./contracts/consumer";
 
 @injectable()
 export class ConsumerRegistry {

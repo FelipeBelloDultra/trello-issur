@@ -1,14 +1,14 @@
 import { container, Lifecycle } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
+import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
+import { DeadLetterRepository } from "@/shared/queue/application/repositories/dead-letter.repository";
 
 import { DrizzleDeadLetterRepository } from "./adapters/drizzle/drizzle-dead-letter.repository";
 import { RabbitMQClient } from "./adapters/rabbitmq/client";
 import { DeadLetterConsumer } from "./adapters/rabbitmq/dead-letter.consumer";
 import { RabbitMQPublisher } from "./adapters/rabbitmq/publisher";
 import { ConsumerRegistry } from "./consumer-registry";
-import { DeadLetterRepository } from "./dead-letter.repository";
-import { QueuePublisher } from "./publisher";
 
 export function setupQueueContainer(): void {
   container.register<RabbitMQClient>(
@@ -23,7 +23,7 @@ export function setupQueueContainer(): void {
     { lifecycle: Lifecycle.Singleton },
   );
 
-  container.register<QueuePublisher>(
+  container.register<QueuePublisherGateway>(
     InjectionTokens.Queue.Publisher,
     { useClass: RabbitMQPublisher },
     { lifecycle: Lifecycle.Singleton },

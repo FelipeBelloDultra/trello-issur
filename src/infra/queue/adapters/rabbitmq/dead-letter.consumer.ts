@@ -3,8 +3,11 @@ import { inject, injectable } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
 import { logger } from "@/infra/logger";
-import { Consumer } from "@/infra/queue/consumer";
-import { DeadLetterRepository, FailedQueueEvent } from "@/infra/queue/dead-letter.repository";
+import { Consumer } from "@/infra/queue/contracts/consumer";
+import {
+  DeadLetterRepository,
+  FailedQueueEvent,
+} from "@/shared/queue/application/repositories/dead-letter.repository";
 
 import { Exchanges } from "./exchanges";
 

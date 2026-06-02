@@ -3,8 +3,10 @@ import { inject, injectable } from "tsyringe";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { DatabaseClient } from "@/infra/db/client";
 import { failedQueueEvents } from "@/infra/db/schema/failed-queue-events";
-
-import { DeadLetterRepository, FailedQueueEvent } from "../../dead-letter.repository";
+import {
+  DeadLetterRepository,
+  FailedQueueEvent,
+} from "@/shared/queue/application/repositories/dead-letter.repository";
 
 @injectable()
 export class DrizzleDeadLetterRepository implements DeadLetterRepository {

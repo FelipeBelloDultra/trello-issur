@@ -3,11 +3,10 @@ import { inject, injectable } from "tsyringe";
 import { CommandHandler } from "@/core/commands/command-handler";
 import { Either, left, right } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
-import { Exchanges } from "@/infra/queue/adapters/rabbitmq/exchanges";
-import { QueueEvents } from "@/infra/queue/events";
-import { QueuePublisher } from "@/infra/queue/publisher";
 import { PasswordHasherGateway } from "@/modules/account/application/gateways/password-hasher.gateway";
 import { Account } from "@/modules/account/domain/entities/account";
+import { QueueEvents } from "@/shared/queue/application/events";
+import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
 
 import { EmailAlreadyTakenError } from "../../errors/email-already-taken.error";
 import { AccountRepository } from "../../repositories/account-repository";
@@ -29,7 +28,7 @@ export class CreateAccountHandler implements CommandHandler<
     @inject(InjectionTokens.Gateways.PasswordHasher)
     private readonly passwordHasher: PasswordHasherGateway,
     @inject(InjectionTokens.Queue.Publisher)
-    private readonly publisher: QueuePublisher,
+    private readonly publisher: QueuePublisherGateway,
   ) {}
 
   public async execute(command: CreateAccountCommand): Output {
@@ -51,7 +50,7 @@ export class CreateAccountHandler implements CommandHandler<
 
     await this.accountRepository.create(account);
 
-    this.publisher.publish(Exchanges.Main, QueueEvents.Account.Created, {
+    this.publisher.publish(QueueEvents.Account.Created, {
       accountId: account.id.toValue(),
       name: account.name,
       email: account.email,

@@ -4,8 +4,8 @@ import { CommandBus } from "@/core/commands/command-bus";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { QueueConsumer, QueueConsumerConfig } from "@/infra/queue/adapters/rabbitmq/consumer";
 import { Exchanges } from "@/infra/queue/adapters/rabbitmq/exchanges";
-import { QueueEvents } from "@/infra/queue/events";
 import { SendWelcomeEmailCommand } from "@/modules/account/application/commands/send-welcome-email/command";
+import { QueueEvents } from "@/shared/queue/application/events";
 
 interface AccountCreatedPayload {
   accountId: string;

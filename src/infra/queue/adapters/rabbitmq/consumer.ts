@@ -1,7 +1,7 @@
 import { Channel, ConsumeMessage } from "amqplib";
 
 import { logger } from "@/infra/logger";
-import { Consumer } from "@/infra/queue/consumer";
+import { Consumer } from "@/infra/queue/contracts/consumer";
 
 import { Exchanges } from "./exchanges";
 

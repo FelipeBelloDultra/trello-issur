@@ -1,20 +1,20 @@
 import { inject, injectable } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
-
-import { QueuePublisher } from "../../publisher";
+import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
 
 import { RabbitMQClient } from "./client";
+import { Exchanges } from "./exchanges";
 
 @injectable()
-export class RabbitMQPublisher implements QueuePublisher {
+export class RabbitMQPublisher implements QueuePublisherGateway {
   public constructor(
     @inject(InjectionTokens.Queue.Client)
     private readonly client: RabbitMQClient,
   ) {}
 
-  public publish<TPayload>(exchange: string, routingKey: string, payload: TPayload): void {
-    this.client.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(payload)), {
+  public publish<TPayload>(routingKey: string, payload: TPayload): void {
+    this.client.channel.publish(Exchanges.Main, routingKey, Buffer.from(JSON.stringify(payload)), {
       persistent: true,
       contentType: "application/json",
     });
