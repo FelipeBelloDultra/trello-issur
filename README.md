@@ -6,15 +6,16 @@ A team project management API built with Node.js and TypeScript, following **Dom
 
 ## Architecture
 
-The codebase enforces a strict inward dependency rule across four layers:
+The codebase enforces a strict inward dependency rule across five layers:
 
 ```
-Domain ← Application ← Infrastructure ← Entry points
+Domain ← Application ← Shared ← Infrastructure ← Entry points
 ```
 
 - **Domain** — pure business logic; zero framework or I/O imports. Entities, value objects, domain errors, domain events.
-- **Application** — use cases, repository contracts (interfaces), gateway contracts, DTOs validated with Zod.
-- **Infrastructure** — implementations: Drizzle repositories, JWT gateway, Valkey token store, Express controllers.
+- **Application** — use cases, module-scoped repository/gateway contracts, DTOs validated with Zod.
+- **Shared** (`src/shared/`) — cross-cutting port interfaces and constants with no infra dependency. Application code imports from here, never from `infra/`. Follows the same internal structure as modules (`application/repositories/`, `application/gateways/`, etc.).
+- **Infrastructure** (`src/infra/`) — adapter implementations only. Implements contracts from `shared/`. Technology-specific internal contracts live in `infra/{concern}/contracts/`.
 - **Entry points** — `src/index.{process}.ts` files that wire the DI container and boot the process.
 
 ### Domain primitives
@@ -72,12 +73,25 @@ src/
 │   ├── errors/              # DomainError, UseCaseError base classes
 │   ├── events/              # DomainEvent, EventHandler, DomainEvents dispatcher
 │   └── either.ts            # Either<L, R> + left() / right() helpers
-├── infra/                   # Shared infrastructure
+├── shared/                  # Cross-cutting ports — no infra deps; safe to import from application/
+│   ├── cache/application/repositories/   # CacheRepository
+│   ├── email/application/gateways/       # EmailGateway + SendEmailOptions
+│   └── queue/application/
+│       ├── events.ts                     # QueueEvents routing-key constants
+│       ├── gateways/                     # QueuePublisherGateway
+│       └── repositories/                 # DeadLetterRepository + FailedQueueEvent
+├── infra/                   # Adapter implementations only
 │   ├── container/           # DI root — InjectionTokens + setup orchestration
 │   ├── db/                  # DatabaseClient, Drizzle schema, migrations, seeds
-│   ├── cache/               # CacheRepository abstraction + Valkey implementation
+│   ├── cache/               # Valkey implementation of CacheRepository
+│   ├── email/               # Nodemailer implementation of EmailGateway + React Email templates
+│   ├── queue/
+│   │   ├── contracts/       # Consumer interface (amqplib-specific — can't live in shared/)
+│   │   └── adapters/        # RabbitMQ client, publisher, consumer base, DLQ consumer
 │   ├── valkey/              # ValkeyClient lifecycle
-│   ├── http/                # Express App, Controller/Middleware interfaces, Routes, health, metrics
+│   ├── http/
+│   │   ├── contracts/       # Controller interface, Middleware<T> interface
+│   │   ├── register-controller.ts  # Wires a Controller onto an Express Router
 │   │   └── middlewares/     # Injectable middlewares: logger, tracing, metrics, rate-limit
 │   ├── logger/              # Pino logger singleton
 │   ├── metrics/             # prom-client registry
@@ -87,10 +101,10 @@ src/
     │   ├── domain/          # Value objects: TokenClaims, TokenPair, PermissionKey, UserRole
     │   ├── application/     # Use cases: Login, Logout, RefreshToken — contracts: CryptographGateway, TokenRepository
     │   └── infra/           # JWT gateway, Valkey token repository, Express controllers
-    └── user/
-        ├── domain/          # Entity: User — Value objects: Password (argon2 hash/compare)
-        ├── application/     # Use case: RegisterUser — contract: UserRepository
-        └── infra/           # Drizzle repository, mapper, Express controller, presenter
+    └── account/
+        ├── domain/          # Entity: Account — Value objects: (name, email, password hash)
+        ├── application/     # Use cases: CreateAccount, SendWelcomeEmail — contracts: AccountRepository, PasswordHasherGateway
+        └── infra/           # Drizzle repository, argon2 gateway, queue consumer, cache, HTTP controller
 ```
 
 ### Module layout convention
