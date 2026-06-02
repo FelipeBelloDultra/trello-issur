@@ -4,7 +4,7 @@ import { inject, injectable } from "tsyringe";
 import { CommandBus } from "@/core/commands/command-bus";
 import { Either } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
-import { Controller, HttpMethod } from "@/infra/http/controller";
+import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
 import { CreateAccountCommand } from "@/modules/account/application/commands/create-account/command";
 import { CreateAccountDto } from "@/modules/account/application/dtos/create-account.dto";

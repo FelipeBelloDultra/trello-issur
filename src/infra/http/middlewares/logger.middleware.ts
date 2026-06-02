@@ -3,7 +3,7 @@ import { injectable } from "tsyringe";
 
 import { logger } from "@/infra/logger";
 
-import { Middleware } from "../middleware";
+import { Middleware } from "../contracts/middleware";
 
 type MiddlewareHandler = (req: Request, res: Response, next: NextFunction) => void | Promise<void>;
 

@@ -16,8 +16,8 @@ import { RabbitMQClient } from "../queue/adapters/rabbitmq/client";
 import { shutdownTracing } from "../tracing/adapters/otel";
 import { ValkeyClient } from "../valkey/client";
 
+import { Middleware } from "./contracts/middleware";
 import { HttpException } from "./http-exception";
-import { Middleware } from "./middleware";
 import { Routes } from "./routes";
 
 export class App {

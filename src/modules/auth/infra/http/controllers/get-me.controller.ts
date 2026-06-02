@@ -3,7 +3,7 @@ import { inject, injectable } from "tsyringe";
 
 import { QueryBus } from "@/core/queries/query-bus";
 import { InjectionTokens } from "@/infra/container/tokens";
-import { Controller, HttpMethod } from "@/infra/http/controller";
+import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
 import { AuthMiddleware } from "@/infra/http/middlewares/auth.middleware";
 import { GetAccountQuery } from "@/modules/account/application/queries/get-account/query";

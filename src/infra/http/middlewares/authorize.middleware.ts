@@ -5,8 +5,8 @@ import { InjectionTokens } from "@/infra/container/tokens";
 import { AccountRoleRepository } from "@/modules/auth/application/repositories/account-role-repository";
 import { RawPermissionKey } from "@/modules/auth/domain/value-objects/permission-key";
 
+import { Middleware } from "../contracts/middleware";
 import { HttpException } from "../http-exception";
-import { Middleware } from "../middleware";
 
 @injectable()
 export class AuthorizeMiddleware implements Middleware<RawPermissionKey[]> {

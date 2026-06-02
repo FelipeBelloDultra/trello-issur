@@ -4,7 +4,7 @@ import { inject, injectable } from "tsyringe";
 import { CommandBus } from "@/core/commands/command-bus";
 import { Either } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
-import { Controller, HttpMethod } from "@/infra/http/controller";
+import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
 import { LogoutCommand } from "@/modules/auth/application/commands/logout/command";
 import { InvalidTokenError } from "@/modules/auth/application/errors/invalid-token.error";

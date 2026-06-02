@@ -4,7 +4,7 @@ import { injectable } from "tsyringe";
 
 import { tracer } from "@/infra/tracing/adapters/otel";
 
-import { Middleware } from "../middleware";
+import { Middleware } from "../contracts/middleware";
 import { resolveRoutePath } from "../request";
 
 type MiddlewareHandler = (req: Request, res: Response, next: NextFunction) => void | Promise<void>;

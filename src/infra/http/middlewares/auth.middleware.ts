@@ -4,8 +4,8 @@ import { inject, injectable } from "tsyringe";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { CryptographGateway } from "@/modules/auth/application/gateways/cryptograph.gateway";
 
+import { Middleware } from "../contracts/middleware";
 import { HttpException } from "../http-exception";
-import { Middleware } from "../middleware";
 
 @injectable()
 export class AuthMiddleware implements Middleware {

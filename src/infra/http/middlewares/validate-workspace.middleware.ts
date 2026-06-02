@@ -4,8 +4,8 @@ import { inject, injectable } from "tsyringe";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { AccountRoleRepository } from "@/modules/auth/application/repositories/account-role-repository";
 
+import { Middleware } from "../contracts/middleware";
 import { HttpException } from "../http-exception";
-import { Middleware } from "../middleware";
 
 @injectable()
 export class ValidateWorkspaceMiddleware implements Middleware {
