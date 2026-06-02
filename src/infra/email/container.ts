@@ -1,9 +1,9 @@
 import { container, Lifecycle } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
+import { EmailGateway } from "@/shared/email/application/gateways/email.gateway";
 
 import { NodemailerEmailGateway } from "./adapters/nodemailer/nodemailer-email.gateway";
-import { EmailGateway } from "./email.gateway";
 
 export function setupEmailContainer(): void {
   container.register<EmailGateway>(

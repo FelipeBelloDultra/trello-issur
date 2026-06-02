@@ -1,8 +1,8 @@
 import { inject, injectable } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
-import { EmailGateway } from "@/infra/email/email.gateway";
 import { renderWelcomeEmail } from "@/infra/email/templates/welcome-email";
+import { EmailGateway } from "@/shared/email/application/gateways/email.gateway";
 
 import { SendWelcomeEmailGateway } from "../../application/gateways/send-welcome-email.gateway";
 

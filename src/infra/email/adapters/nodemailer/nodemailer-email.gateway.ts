@@ -2,8 +2,7 @@ import nodemailer from "nodemailer";
 import { injectable } from "tsyringe";
 
 import { env } from "@/config/env";
-
-import { EmailGateway, SendEmailOptions } from "../../email.gateway";
+import { EmailGateway, SendEmailOptions } from "@/shared/email/application/gateways/email.gateway";
 
 @injectable()
 export class NodemailerEmailGateway implements EmailGateway {
