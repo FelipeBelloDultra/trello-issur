@@ -10,6 +10,7 @@ import { GetWorkspaceQuery } from "@/modules/workspace/application/queries/get-w
 
 import { setupDatabaseWorkspaceContainer } from "./db/container";
 import { setupHTTPWorkspaceContainer } from "./http/container";
+import { setupQueueWorkspaceContainer } from "./queue/container";
 
 export function setupWorkspaceModule(): void {
   setupDatabaseWorkspaceContainer();
@@ -39,4 +40,5 @@ export function setupWorkspaceModule(): void {
   );
 
   setupHTTPWorkspaceContainer();
+  setupQueueWorkspaceContainer();
 }
