@@ -6,7 +6,7 @@ export class AccountPresenter {
       id: account.id.toValue(),
       name: account.name,
       email: account.email,
-      createdAt: account.createdAt,
+      created_at: account.createdAt,
     };
   }
 }
