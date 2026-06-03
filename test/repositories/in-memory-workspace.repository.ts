@@ -5,14 +5,16 @@ export class InMemoryWorkspaceRepository implements WorkspaceRepository {
   public readonly items: Workspace[] = [];
 
   public async create(workspace: Workspace): Promise<void> {
-    this.items.push(workspace);
+    await Promise.resolve(this.items.push(workspace));
   }
 
   public async findById(id: string): Promise<Workspace | null> {
-    return this.items.find((w) => w.id.toValue() === id) ?? null;
+    const workspace = this.items.find((w) => w.id.toValue() === id);
+    return Promise.resolve(workspace ?? null);
   }
 
   public async findBySlug(slug: string): Promise<Workspace | null> {
-    return this.items.find((w) => w.slug.toString() === slug) ?? null;
+    const workspace = this.items.find((w) => w.slug.toString() === slug);
+    return Promise.resolve(workspace ?? null);
   }
 }

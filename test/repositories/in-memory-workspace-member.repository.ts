@@ -12,7 +12,11 @@ interface WorkspaceMember {
 export class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
   public readonly items: WorkspaceMember[] = [];
 
-  public async create(workspaceId: string, accountId: string, role: WorkspaceMemberRole): Promise<void> {
-    this.items.push({ workspaceId, accountId, role });
+  public async create(
+    workspaceId: string,
+    accountId: string,
+    role: WorkspaceMemberRole,
+  ): Promise<void> {
+    await Promise.resolve(this.items.push({ workspaceId, accountId, role }));
   }
 }

@@ -53,7 +53,12 @@ describe("CreateAccountHandler", () => {
     const input = makeInput({ createWorkspace: true });
 
     const result = await sut.execute(
-      new CreateAccountCommand({ name: input.name, email: input.email, password: input.password, createWorkspace: input.createWorkspace }),
+      new CreateAccountCommand({
+        name: input.name,
+        email: input.email,
+        password: input.password,
+        createWorkspace: input.createWorkspace,
+      }),
     );
 
     expect(result.isRight()).toBe(true);
@@ -66,7 +71,11 @@ describe("CreateAccountHandler", () => {
     accountRepository.items.push(makeAccount({ email }));
 
     const result = await sut.execute(
-      new CreateAccountCommand({ name: faker.person.fullName(), email, password: faker.internet.password() }),
+      new CreateAccountCommand({
+        name: faker.person.fullName(),
+        email,
+        password: faker.internet.password(),
+      }),
     );
 
     expect(result.value).toBeInstanceOf(EmailAlreadyTakenError);
@@ -77,7 +86,11 @@ describe("CreateAccountHandler", () => {
     accountRepository.items.push(makeAccount({ email }));
 
     await sut.execute(
-      new CreateAccountCommand({ name: faker.person.fullName(), email, password: faker.internet.password() }),
+      new CreateAccountCommand({
+        name: faker.person.fullName(),
+        email,
+        password: faker.internet.password(),
+      }),
     );
 
     expect(accountRepository.items).toHaveLength(1);

@@ -80,6 +80,12 @@ export default defineConfig([
       "import-x/resolver": { typescript: true },
     },
   },
+  {
+    files: ["**/*.spec.ts", "**/*.e2e.spec.ts"],
+    rules: {
+      "max-lines-per-function": "off",
+    },
+  },
   prettierConfig,
   prettierPlugin,
 ]);

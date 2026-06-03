@@ -37,7 +37,14 @@ export class CreateWorkspaceController implements Controller {
     const dto = CreateWorkspaceDto.parse(req.body);
     const result = await this.commandBus.dispatch<
       Either<WorkspaceSlugAlreadyTakenError, { workspace: Workspace }>
-    >(new CreateWorkspaceCommand({ name: dto.name, ownerId: req.account.sub, isPersonal: false, description: dto.description }));
+    >(
+      new CreateWorkspaceCommand({
+        name: dto.name,
+        ownerId: req.account.sub,
+        isPersonal: false,
+        description: dto.description,
+      }),
+    );
 
     if (result.isRight()) {
       return res.status(201).json({ data: WorkspacePresenter.toHTTP(result.value.workspace) });

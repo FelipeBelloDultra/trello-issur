@@ -36,9 +36,7 @@ export class GetWorkspaceController implements Controller {
       throw new HttpException({ statusCode: 404, message: "Workspace not found" });
     }
 
-    const workspace = await this.queryBus.ask<Workspace | null>(
-      new GetWorkspaceQuery(workspaceId),
-    );
+    const workspace = await this.queryBus.ask<Workspace | null>(new GetWorkspaceQuery(workspaceId));
 
     if (!workspace) {
       throw new HttpException({ statusCode: 404, message: "Workspace not found" });

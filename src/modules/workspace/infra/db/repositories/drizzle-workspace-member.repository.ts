@@ -17,7 +17,11 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
     private readonly db: DatabaseClient,
   ) {}
 
-  public async create(workspaceId: string, accountId: string, role: WorkspaceMemberRole): Promise<void> {
+  public async create(
+    workspaceId: string,
+    accountId: string,
+    role: WorkspaceMemberRole,
+  ): Promise<void> {
     const [roleRow] = await this.db.query
       .select({ id: roles.id })
       .from(roles)
@@ -28,8 +32,6 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
       throw new Error(`Role "${role}" not found`);
     }
 
-    await this.db.query
-      .insert(accountRoles)
-      .values({ accountId, roleId: roleRow.id, workspaceId });
+    await this.db.query.insert(accountRoles).values({ accountId, roleId: roleRow.id, workspaceId });
   }
 }

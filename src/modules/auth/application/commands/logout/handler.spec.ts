@@ -39,7 +39,9 @@ describe("LogoutHandler", () => {
   });
 
   it("returns left with InvalidTokenError when the token is malformed", async () => {
-    const result = await sut.execute(new LogoutCommand({ refreshToken: faker.string.alphanumeric(40) }));
+    const result = await sut.execute(
+      new LogoutCommand({ refreshToken: faker.string.alphanumeric(40) }),
+    );
 
     expect(result.value).toBeInstanceOf(InvalidTokenError);
   });
