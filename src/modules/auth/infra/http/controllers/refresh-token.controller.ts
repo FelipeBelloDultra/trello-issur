@@ -36,7 +36,7 @@ export class RefreshTokenController implements Controller {
     }
 
     const result = await this.commandBus.dispatch<Either<InvalidTokenError, TokenPair>>(
-      new RefreshTokenCommand(refreshToken),
+      new RefreshTokenCommand({ refreshToken }),
     );
 
     if (result.isLeft()) {

@@ -24,7 +24,7 @@ export class LogoutHandler implements CommandHandler<LogoutCommand, Either<OnErr
   ) {}
 
   public async execute(command: LogoutCommand): Output {
-    const claims = await this.cryptographGateway.verify(command.refreshToken);
+    const claims = await this.cryptographGateway.verify(command.props.refreshToken);
 
     if (!claims) return left(new InvalidTokenError());
 

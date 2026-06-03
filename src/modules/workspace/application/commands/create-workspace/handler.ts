@@ -30,31 +30,31 @@ export class CreateWorkspaceHandler
   ) {}
 
   public async execute(command: CreateWorkspaceCommand): Output {
-    const name = WorkspaceName.fromRaw(command.name);
-    const baseSlug = WorkspaceSlug.fromName(command.name);
+    const name = WorkspaceName.fromRaw(command.props.name);
+    const baseSlug = WorkspaceSlug.fromName(command.props.name);
 
-    if (!command.isPersonal) {
+    if (!command.props.isPersonal) {
       const taken = await this.workspaceRepository.findBySlug(baseSlug.toString());
       if (taken) return left(new WorkspaceSlugAlreadyTakenError(baseSlug.toString()));
     }
 
-    const slug = command.isPersonal
+    const slug = command.props.isPersonal
       ? await this.resolveUniqueSlug(baseSlug)
       : baseSlug;
 
     const workspace = Workspace.create({
       name,
       slug,
-      ownerId: UniqueEntityID.create(command.ownerId),
-      description: command.description,
+      ownerId: UniqueEntityID.create(command.props.ownerId),
+      description: command.props.description ?? null,
       avatarUrl: null,
-      isPersonal: command.isPersonal,
+      isPersonal: command.props.isPersonal,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
     await this.workspaceRepository.create(workspace);
-    await this.workspaceMemberRepository.create(workspace.id.toValue(), command.ownerId, "owner");
+    await this.workspaceMemberRepository.create(workspace.id.toValue(), command.props.ownerId, "owner");
 
     return right({ workspace });
   }

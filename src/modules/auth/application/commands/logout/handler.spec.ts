@@ -32,14 +32,14 @@ describe("LogoutHandler", () => {
     const account = makeAccount();
     const pair = await seedStoredToken(account.id.toValue(), account.email);
 
-    const result = await sut.execute(new LogoutCommand(pair.refreshToken));
+    const result = await sut.execute(new LogoutCommand({ refreshToken: pair.refreshToken }));
 
     expect(result.isRight()).toBe(true);
     expect(tokenRepository.items.has(account.id.toValue())).toBe(false);
   });
 
   it("returns left with InvalidTokenError when the token is malformed", async () => {
-    const result = await sut.execute(new LogoutCommand(faker.string.alphanumeric(40)));
+    const result = await sut.execute(new LogoutCommand({ refreshToken: faker.string.alphanumeric(40) }));
 
     expect(result.value).toBeInstanceOf(InvalidTokenError);
   });

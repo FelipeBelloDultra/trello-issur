@@ -32,7 +32,7 @@ describe("RefreshTokenHandler", () => {
     const account = makeAccount();
     const oldPair = await seedStoredToken(account.id.toValue(), account.email);
 
-    const result = await sut.execute(new RefreshTokenCommand(oldPair.refreshToken));
+    const result = await sut.execute(new RefreshTokenCommand({ refreshToken: oldPair.refreshToken }));
 
     const stored = await tokenRepository.find(account.id.toValue());
     expect(result.isRight()).toBe(true);
@@ -40,7 +40,7 @@ describe("RefreshTokenHandler", () => {
   });
 
   it("returns left with InvalidTokenError when the token is malformed", async () => {
-    const result = await sut.execute(new RefreshTokenCommand(faker.string.alphanumeric(40)));
+    const result = await sut.execute(new RefreshTokenCommand({ refreshToken: faker.string.alphanumeric(40) }));
 
     expect(result.value).toBeInstanceOf(InvalidTokenError);
   });
@@ -52,7 +52,7 @@ describe("RefreshTokenHandler", () => {
     const differentPair = await cryptographGateway.generatePair(claims);
     await tokenRepository.save(account.id.toValue(), differentPair.refreshToken, 3600);
 
-    const result = await sut.execute(new RefreshTokenCommand(pair.refreshToken));
+    const result = await sut.execute(new RefreshTokenCommand({ refreshToken: pair.refreshToken }));
 
     expect(result.value).toBeInstanceOf(InvalidTokenError);
   });

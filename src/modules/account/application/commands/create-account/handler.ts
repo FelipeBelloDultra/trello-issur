@@ -32,17 +32,17 @@ export class CreateAccountHandler implements CommandHandler<
   ) {}
 
   public async execute(command: CreateAccountCommand): Output {
-    const existing = await this.accountRepository.findByEmail(command.email);
+    const existing = await this.accountRepository.findByEmail(command.props.email);
 
     if (existing) {
-      return left(new EmailAlreadyTakenError(command.email));
+      return left(new EmailAlreadyTakenError(command.props.email));
     }
 
-    const passwordHash = await this.passwordHasher.hash(command.password);
+    const passwordHash = await this.passwordHasher.hash(command.props.password);
 
     const account = Account.create({
-      name: command.name,
-      email: command.email,
+      name: command.props.name,
+      email: command.props.email,
       passwordHash,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -56,7 +56,7 @@ export class CreateAccountHandler implements CommandHandler<
       email: account.email,
     });
 
-    if (command.createWorkspace) {
+    if (command.props.createWorkspace) {
       this.publisher.publish(QueueEvents.Workspace.PersonalCreationRequested, {
         accountId: account.id.toValue(),
         accountName: account.name,

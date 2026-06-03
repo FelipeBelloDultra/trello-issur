@@ -28,7 +28,7 @@ export class CreateAccountController implements Controller {
     const dto = CreateAccountDto.create(req.body);
     const result = await this.commandBus.dispatch<
       Either<EmailAlreadyTakenError, { account: Account }>
-    >(new CreateAccountCommand(dto.name, dto.email, dto.password, dto.createWorkspace));
+    >(new CreateAccountCommand({ name: dto.name, email: dto.email, password: dto.password, createWorkspace: dto.createWorkspace }));
 
     if (result.isRight()) {
       return res.status(201).json({

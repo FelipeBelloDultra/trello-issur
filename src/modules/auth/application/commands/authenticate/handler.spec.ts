@@ -44,7 +44,7 @@ describe("AuthenticateHandler", () => {
     const account = makeAccount({ passwordHash: `hashed:${plainPassword}` });
     accountRepository.items.push(account);
 
-    const result = await sut.execute(new AuthenticateCommand(account.email, plainPassword));
+    const result = await sut.execute(new AuthenticateCommand({ email: account.email, password: plainPassword }));
 
     expect(result.isRight()).toBe(true);
     expect(tokenRepository.items.has(account.id.toValue())).toBe(true);
@@ -53,7 +53,7 @@ describe("AuthenticateHandler", () => {
   it("returns left with InvalidCredentialsError when account does not exist", async () => {
     const input = makeInput();
 
-    const result = await sut.execute(new AuthenticateCommand(input.email, input.password));
+    const result = await sut.execute(new AuthenticateCommand({ email: input.email, password: input.password }));
 
     expect(result.value).toBeInstanceOf(InvalidCredentialsError);
   });
@@ -62,7 +62,7 @@ describe("AuthenticateHandler", () => {
     const account = makeAccount({ passwordHash: "hashed:correct-password" });
     accountRepository.items.push(account);
 
-    const result = await sut.execute(new AuthenticateCommand(account.email, "wrong-password"));
+    const result = await sut.execute(new AuthenticateCommand({ email: account.email, password: "wrong-password" }));
 
     expect(result.value).toBeInstanceOf(InvalidCredentialsError);
   });

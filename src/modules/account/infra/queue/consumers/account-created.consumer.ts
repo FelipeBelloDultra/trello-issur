@@ -29,6 +29,8 @@ export class AccountCreatedConsumer extends QueueConsumer<AccountCreatedPayload>
   }
 
   public async handle(payload: AccountCreatedPayload): Promise<void> {
-    await this.commandBus.dispatch<void>(new SendWelcomeEmailCommand(payload.name, payload.email));
+    await this.commandBus.dispatch<void>(
+      new SendWelcomeEmailCommand({ name: payload.name, email: payload.email }),
+    );
   }
 }

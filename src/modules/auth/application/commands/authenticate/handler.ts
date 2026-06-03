@@ -37,11 +37,11 @@ export class AuthenticateHandler implements CommandHandler<
   ) {}
 
   public async execute(command: AuthenticateCommand): Output {
-    const account = await this.accountRepository.findByEmail(command.email);
+    const account = await this.accountRepository.findByEmail(command.props.email);
 
     if (!account) return left(new InvalidCredentialsError());
 
-    const valid = await this.passwordHasher.compare(command.password, account.passwordHash);
+    const valid = await this.passwordHasher.compare(command.props.password, account.passwordHash);
 
     if (!valid) return left(new InvalidCredentialsError());
 

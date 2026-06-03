@@ -30,13 +30,13 @@ export class RefreshTokenHandler implements CommandHandler<
   ) {}
 
   public async execute(command: RefreshTokenCommand): Output {
-    const claims = await this.cryptographGateway.verify(command.refreshToken);
+    const claims = await this.cryptographGateway.verify(command.props.refreshToken);
 
     if (!claims) return left(new InvalidTokenError());
 
     const stored = await this.tokenRepository.find(claims.sub);
 
-    if (stored !== command.refreshToken) return left(new InvalidTokenError());
+    if (stored !== command.props.refreshToken) return left(new InvalidTokenError());
 
     const pair = await this.cryptographGateway.generatePair(claims);
 

@@ -30,7 +30,7 @@ export class WorkspacePersonalCreationRequestedConsumer extends QueueConsumer<Wo
   public async handle(payload: WorkspacePersonalCreationRequestedPayload): Promise<void> {
     const [firstName] = payload.accountName.split(" ");
     await this.commandBus.dispatch(
-      new CreateWorkspaceCommand(`${firstName} Workspace`, payload.accountId, true),
+      new CreateWorkspaceCommand({ name: `${firstName} Workspace`, ownerId: payload.accountId, isPersonal: true }),
     );
   }
 }

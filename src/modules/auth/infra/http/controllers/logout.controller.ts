@@ -30,7 +30,7 @@ export class LogoutController implements Controller {
     }
 
     const result = await this.commandBus.dispatch<Either<InvalidTokenError, void>>(
-      new LogoutCommand(refreshToken),
+      new LogoutCommand({ refreshToken }),
     );
 
     if (result.isLeft()) {

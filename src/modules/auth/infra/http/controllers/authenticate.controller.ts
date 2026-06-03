@@ -32,7 +32,7 @@ export class AuthenticateController implements Controller {
   public async handler(req: Request, res: Response): Promise<Response> {
     const input = AuthenticateDto.parse(req.body);
     const result = await this.commandBus.dispatch<Either<InvalidCredentialsError, TokenPair>>(
-      new AuthenticateCommand(input.email, input.password),
+      new AuthenticateCommand({ email: input.email, password: input.password }),
     );
 
     if (result.isLeft()) {

@@ -15,6 +15,6 @@ export class SendWelcomeEmailHandler implements CommandHandler<SendWelcomeEmailC
   ) {}
 
   public async execute(command: SendWelcomeEmailCommand): Promise<void> {
-    await this.sendWelcomeEmail.send(command.name, command.email);
+    await this.sendWelcomeEmail.send(command.props.name, command.props.email);
   }
 }

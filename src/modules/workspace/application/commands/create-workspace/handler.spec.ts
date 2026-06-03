@@ -38,7 +38,7 @@ describe("CreateWorkspaceHandler", () => {
     const input = makeInput();
 
     const result = await sut.execute(
-      new CreateWorkspaceCommand(input.name, input.ownerId, input.isPersonal),
+      new CreateWorkspaceCommand({ name: input.name, ownerId: input.ownerId, isPersonal: input.isPersonal }),
     );
 
     expect(result.isRight()).toBe(true);
@@ -53,7 +53,7 @@ describe("CreateWorkspaceHandler", () => {
     workspaceRepository.items.push(makeWorkspace({ slug: WorkspaceSlug.fromName("My Workspace") }));
 
     const result = await sut.execute(
-      new CreateWorkspaceCommand(input.name, input.ownerId, input.isPersonal),
+      new CreateWorkspaceCommand({ name: input.name, ownerId: input.ownerId, isPersonal: input.isPersonal }),
     );
 
     expect(result.isRight()).toBe(true);
@@ -66,7 +66,7 @@ describe("CreateWorkspaceHandler", () => {
     workspaceRepository.items.push(makeWorkspace({ slug: WorkspaceSlug.fromName("My Workspace") }));
 
     const result = await sut.execute(
-      new CreateWorkspaceCommand(input.name, input.ownerId, input.isPersonal),
+      new CreateWorkspaceCommand({ name: input.name, ownerId: input.ownerId, isPersonal: input.isPersonal }),
     );
 
     expect(result.value).toBeInstanceOf(WorkspaceSlugAlreadyTakenError);
@@ -76,7 +76,7 @@ describe("CreateWorkspaceHandler", () => {
     const input = makeInput({ name: "My Workspace" });
     workspaceRepository.items.push(makeWorkspace({ slug: WorkspaceSlug.fromName("My Workspace") }));
 
-    await sut.execute(new CreateWorkspaceCommand(input.name, input.ownerId, input.isPersonal));
+    await sut.execute(new CreateWorkspaceCommand({ name: input.name, ownerId: input.ownerId, isPersonal: input.isPersonal }));
 
     expect(workspaceRepository.items).toHaveLength(1);
     expect(workspaceMemberRepository.items).toHaveLength(0);
