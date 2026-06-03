@@ -12,7 +12,12 @@ import { CreateWorkspaceCommand } from "./command";
 import { CreateWorkspaceHandler } from "./handler";
 
 function makeInput(
-  overrides?: Partial<{ name: string; ownerId: string; isPersonal: boolean; description: string | null }>,
+  overrides?: Partial<{
+    name: string;
+    ownerId: string;
+    isPersonal: boolean;
+    description: string | null;
+  }>,
 ) {
   return {
     name: faker.company.name(),
@@ -38,7 +43,11 @@ describe("CreateWorkspaceHandler", () => {
     const input = makeInput();
 
     const result = await sut.execute(
-      new CreateWorkspaceCommand({ name: input.name, ownerId: input.ownerId, isPersonal: input.isPersonal }),
+      new CreateWorkspaceCommand({
+        name: input.name,
+        ownerId: input.ownerId,
+        isPersonal: input.isPersonal,
+      }),
     );
 
     expect(result.isRight()).toBe(true);
@@ -53,12 +62,16 @@ describe("CreateWorkspaceHandler", () => {
     workspaceRepository.items.push(makeWorkspace({ slug: WorkspaceSlug.fromName("My Workspace") }));
 
     const result = await sut.execute(
-      new CreateWorkspaceCommand({ name: input.name, ownerId: input.ownerId, isPersonal: input.isPersonal }),
+      new CreateWorkspaceCommand({
+        name: input.name,
+        ownerId: input.ownerId,
+        isPersonal: input.isPersonal,
+      }),
     );
 
     expect(result.isRight()).toBe(true);
     expect(workspaceRepository.items).toHaveLength(2);
-    expect(workspaceRepository.items[1].slug.toString()).toBe("my-workspace-2");
+    expect(workspaceRepository.items[1].slug.toString()).toMatch(/^my-workspace-[a-z0-9]{6}$/);
   });
 
   it("returns WorkspaceSlugAlreadyTakenError when slug is taken for a manual workspace", async () => {
@@ -66,7 +79,11 @@ describe("CreateWorkspaceHandler", () => {
     workspaceRepository.items.push(makeWorkspace({ slug: WorkspaceSlug.fromName("My Workspace") }));
 
     const result = await sut.execute(
-      new CreateWorkspaceCommand({ name: input.name, ownerId: input.ownerId, isPersonal: input.isPersonal }),
+      new CreateWorkspaceCommand({
+        name: input.name,
+        ownerId: input.ownerId,
+        isPersonal: input.isPersonal,
+      }),
     );
 
     expect(result.value).toBeInstanceOf(WorkspaceSlugAlreadyTakenError);
@@ -76,7 +93,13 @@ describe("CreateWorkspaceHandler", () => {
     const input = makeInput({ name: "My Workspace" });
     workspaceRepository.items.push(makeWorkspace({ slug: WorkspaceSlug.fromName("My Workspace") }));
 
-    await sut.execute(new CreateWorkspaceCommand({ name: input.name, ownerId: input.ownerId, isPersonal: input.isPersonal }));
+    await sut.execute(
+      new CreateWorkspaceCommand({
+        name: input.name,
+        ownerId: input.ownerId,
+        isPersonal: input.isPersonal,
+      }),
+    );
 
     expect(workspaceRepository.items).toHaveLength(1);
     expect(workspaceMemberRepository.items).toHaveLength(0);

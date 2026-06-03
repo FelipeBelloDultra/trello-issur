@@ -19,9 +19,10 @@ type OnSuccess = { workspace: Workspace };
 type Output = Promise<Either<OnError, OnSuccess>>;
 
 @injectable()
-export class CreateWorkspaceHandler
-  implements CommandHandler<CreateWorkspaceCommand, Either<OnError, OnSuccess>>
-{
+export class CreateWorkspaceHandler implements CommandHandler<
+  CreateWorkspaceCommand,
+  Either<OnError, OnSuccess>
+> {
   public constructor(
     @inject(InjectionTokens.Repositories.Workspace)
     private readonly workspaceRepository: WorkspaceRepository,
@@ -38,9 +39,7 @@ export class CreateWorkspaceHandler
       if (taken) return left(new WorkspaceSlugAlreadyTakenError(baseSlug.toString()));
     }
 
-    const slug = command.props.isPersonal
-      ? await this.resolveUniqueSlug(baseSlug)
-      : baseSlug;
+    const slug = command.props.isPersonal ? await this.resolveUniqueSlug(baseSlug) : baseSlug;
 
     const workspace = Workspace.create({
       name,
@@ -54,18 +53,20 @@ export class CreateWorkspaceHandler
     });
 
     await this.workspaceRepository.create(workspace);
-    await this.workspaceMemberRepository.create(workspace.id.toValue(), command.props.ownerId, "owner");
+    await this.workspaceMemberRepository.create(
+      workspace.id.toValue(),
+      command.props.ownerId,
+      "owner",
+    );
 
     return right({ workspace });
   }
 
   private async resolveUniqueSlug(base: WorkspaceSlug): Promise<WorkspaceSlug> {
     let candidate = base;
-    let suffix = 1;
 
     while (await this.workspaceRepository.findBySlug(candidate.toString())) {
-      suffix++;
-      candidate = WorkspaceSlug.fromRaw(`${base.toString()}-${suffix}`);
+      candidate = base.withRandomSuffix();
     }
 
     return candidate;

@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 import { ValueObject } from "@/core/entity/value-object";
 
 import { InvalidWorkspaceSlugError } from "../errors/invalid-workspace-slug.error";
@@ -29,6 +31,12 @@ export class WorkspaceSlug extends ValueObject<{ value: string }> {
     }
 
     return new WorkspaceSlug(trimmed);
+  }
+
+  public withRandomSuffix(): WorkspaceSlug {
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    const suffix = Array.from(randomBytes(6), (byte) => chars[byte % chars.length]).join("");
+    return WorkspaceSlug.fromRaw(`${this.props.value}-${suffix}`);
   }
 
   public static fromName(name: string): WorkspaceSlug {
