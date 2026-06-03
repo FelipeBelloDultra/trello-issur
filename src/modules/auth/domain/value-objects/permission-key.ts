@@ -7,6 +7,10 @@ const PERMISSION_REGISTRY = [
   { key: "workspace:delete", description: "Delete the workspace" },
   { key: "workspace:invite", description: "Invite members to the workspace" },
   { key: "workspace:remove-member", description: "Remove members from the workspace" },
+  {
+    key: "workspace:transfer-ownership",
+    description: "Transfer workspace ownership to another member",
+  },
   // Board
   { key: "board:create", description: "Create new boards" },
   { key: "board:edit", description: "Edit board settings" },
@@ -26,6 +30,7 @@ export const Permissions = {
   WorkspaceDelete: "workspace:delete",
   WorkspaceInvite: "workspace:invite",
   WorkspaceRemoveMember: "workspace:remove-member",
+  WorkspaceTransferOwnership: "workspace:transfer-ownership",
   BoardCreate: "board:create",
   BoardEdit: "board:edit",
   BoardDelete: "board:delete",

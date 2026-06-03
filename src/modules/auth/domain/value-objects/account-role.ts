@@ -4,6 +4,7 @@ import { InvalidAccountRoleError } from "@/modules/auth/domain/errors/invalid-ac
 import { RawPermissionKey } from "./permission-key";
 
 const ROLE_REGISTRY = [
+  { name: "owner", description: "Workspace owner — full control including transfer of ownership" },
   { name: "admin", description: "Full control over the workspace" },
   { name: "member", description: "Can create and edit content" },
   { name: "viewer", description: "Read-only access" },
@@ -12,6 +13,21 @@ const ROLE_REGISTRY = [
 export type RawAccountRole = (typeof ROLE_REGISTRY)[number]["name"];
 
 const ROLE_PERMISSION_MAP: Record<RawAccountRole, RawPermissionKey[]> = {
+  owner: [
+    "workspace:manage",
+    "workspace:delete",
+    "workspace:invite",
+    "workspace:remove-member",
+    "workspace:transfer-ownership",
+    "board:create",
+    "board:edit",
+    "board:delete",
+    "card:create",
+    "card:edit",
+    "card:delete",
+    "card:move",
+    "card:assign",
+  ],
   admin: [
     "workspace:manage",
     "workspace:delete",
