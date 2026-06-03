@@ -5,5 +5,6 @@ export class CreateAccountCommand implements Command {
     public readonly name: string,
     public readonly email: string,
     public readonly password: string,
+    public readonly createWorkspace: boolean = false,
   ) {}
 }

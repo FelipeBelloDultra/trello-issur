@@ -11,11 +11,14 @@ import { EmailAlreadyTakenError } from "../../errors/email-already-taken.error";
 import { CreateAccountCommand } from "./command";
 import { CreateAccountHandler } from "./handler";
 
-function makeInput(overrides?: Partial<{ name: string; email: string; password: string }>) {
+function makeInput(
+  overrides?: Partial<{ name: string; email: string; password: string; createWorkspace: boolean }>,
+) {
   return {
     name: faker.person.fullName(),
     email: faker.internet.email(),
     password: faker.internet.password({ length: 12 }),
+    createWorkspace: false,
     ...overrides,
   };
 }
@@ -44,6 +47,18 @@ describe("CreateAccountHandler", () => {
     expect(accountRepository.items).toHaveLength(1);
     expect(publisher.events).toHaveLength(1);
     expect(publisher.events[0].routingKey).toBe(QueueEvents.Account.Created);
+  });
+
+  it("also publishes workspace personal creation event when createWorkspace is true", async () => {
+    const input = makeInput({ createWorkspace: true });
+
+    const result = await sut.execute(
+      new CreateAccountCommand(input.name, input.email, input.password, input.createWorkspace),
+    );
+
+    expect(result.isRight()).toBe(true);
+    expect(publisher.events).toHaveLength(2);
+    expect(publisher.events[1].routingKey).toBe(QueueEvents.Workspace.PersonalCreationRequested);
   });
 
   it("returns left with EmailAlreadyTakenError when the email is already registered", async () => {

@@ -56,6 +56,13 @@ export class CreateAccountHandler implements CommandHandler<
       email: account.email,
     });
 
+    if (command.createWorkspace) {
+      this.publisher.publish(QueueEvents.Workspace.PersonalCreationRequested, {
+        accountId: account.id.toValue(),
+        accountName: account.name,
+      });
+    }
+
     return right({ account });
   }
 }
