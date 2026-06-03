@@ -14,6 +14,8 @@ export const InjectionTokens = {
     Account: Symbol("AccountRepository"),
     Token: Symbol("TokenRepository"),
     AccountRole: Symbol("AccountRoleRepository"),
+    Workspace: Symbol("WorkspaceRepository"),
+    WorkspaceMember: Symbol("WorkspaceMemberRepository"),
   },
 
   Email: {
@@ -50,6 +52,8 @@ export const InjectionTokens = {
     CreateAccount: Symbol("CreateAccountHandler"),
     GetAccount: Symbol("GetAccountHandler"),
     SendWelcomeEmail: Symbol("SendWelcomeEmailHandler"),
+    CreateWorkspace: Symbol("CreateWorkspaceHandler"),
+    GetWorkspace: Symbol("GetWorkspaceHandler"),
   },
 
   Controllers: {
@@ -58,6 +62,8 @@ export const InjectionTokens = {
     RefreshToken: Symbol("RefreshTokenController"),
     Logout: Symbol("LogoutController"),
     GetMe: Symbol("GetMeController"),
+    CreateWorkspace: Symbol("CreateWorkspaceController"),
+    GetWorkspace: Symbol("GetWorkspaceController"),
   },
 
   Middlewares: {
