@@ -4,6 +4,7 @@ import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 
 import { accounts } from "./accounts";
 import { roles } from "./roles";
+import { workspaces } from "./workspaces";
 
 export const accountRoles = pgTable(
   "account_roles",
@@ -17,8 +18,9 @@ export const accountRoles = pgTable(
     roleId: uuid("role_id")
       .notNull()
       .references(() => roles.id, { onDelete: "restrict" }),
-    // TODO: add FK to workspaces.id once workspace module is built
-    workspaceId: uuid("workspace_id").notNull(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [

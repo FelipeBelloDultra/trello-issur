@@ -15,6 +15,13 @@
       "when": 1780346883620,
       "tag": "0001_volatile_blur",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780494263254,
+      "tag": "0002_keen_mongu",
+      "breakpoints": true
     }
   ]
 }

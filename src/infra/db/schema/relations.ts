@@ -5,6 +5,7 @@ import { accounts } from "./accounts";
 import { permissions } from "./permissions";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
+import { workspaces } from "./workspaces";
 
 export const accountsRelations = relations(accounts, ({ many }) => ({
   accountRoles: many(accountRoles),
@@ -27,7 +28,13 @@ export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => 
   }),
 }));
 
+export const workspacesRelations = relations(workspaces, ({ one, many }) => ({
+  owner: one(accounts, { fields: [workspaces.ownerId], references: [accounts.id] }),
+  accountRoles: many(accountRoles),
+}));
+
 export const accountRolesRelations = relations(accountRoles, ({ one }) => ({
   account: one(accounts, { fields: [accountRoles.accountId], references: [accounts.id] }),
   role: one(roles, { fields: [accountRoles.roleId], references: [roles.id] }),
+  workspace: one(workspaces, { fields: [accountRoles.workspaceId], references: [workspaces.id] }),
 }));
