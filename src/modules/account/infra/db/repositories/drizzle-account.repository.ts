@@ -5,7 +5,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 import { DatabaseClient } from "@/infra/db/client";
 import { accounts } from "@/infra/db/schema/accounts";
 import { AccountCacheRepository } from "@/modules/account/application/repositories/account-cache.repository";
-import { AccountRepository } from "@/modules/account/application/repositories/account-repository";
+import { AccountRepository } from "@/modules/account/application/repositories/account.repository";
 import { Account } from "@/modules/account/domain/entities/account";
 
 import { AccountMapper } from "../mappers/account.mapper";

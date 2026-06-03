@@ -2,9 +2,9 @@ import { container, Lifecycle } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
 
-import { AccountRepository } from "../../application/repositories/account-repository";
+import { AccountRepository } from "../../application/repositories/account.repository";
 
-import { DrizzleAccountRepository } from "./repositories/drizzle-account-repository";
+import { DrizzleAccountRepository } from "./repositories/drizzle-account.repository";
 
 export function setupDatabaseAccountContainer(): void {
   container.register<AccountRepository>(

@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
-import { AccountRoleRepository } from "@/modules/auth/application/repositories/account-role-repository";
+import { AccountRoleRepository } from "@/modules/auth/application/repositories/account-role.repository";
 import { RawPermissionKey } from "@/modules/auth/domain/value-objects/permission-key";
 
 import { Middleware } from "../contracts/middleware";

@@ -3,7 +3,7 @@ import { inject, injectable } from "tsyringe";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { ValkeyClient } from "@/infra/valkey/client";
 
-import { TokenRepository } from "../../application/repositories/token-repository";
+import { TokenRepository } from "../../application/repositories/token.repository";
 
 const keyFor = (accountId: string) => `refresh_token:${accountId}`;
 

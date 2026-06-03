@@ -4,7 +4,7 @@ import { QueryHandler } from "@/core/queries/query-handler";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { Account } from "@/modules/account/domain/entities/account";
 
-import { AccountRepository } from "../../repositories/account-repository";
+import { AccountRepository } from "../../repositories/account.repository";
 
 import { GetAccountQuery } from "./query";
 

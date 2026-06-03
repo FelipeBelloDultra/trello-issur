@@ -4,7 +4,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 
 import { SendWelcomeEmailGateway } from "../../application/gateways/send-welcome-email.gateway";
 
-import { AccountSendWelcomeEmailGateway } from "./account-send-welcome-email.gateway";
+import { AccountSendWelcomeEmailGateway } from "./send-welcome-email.gateway";
 
 export function setupEmailAccountContainer(): void {
   container.register<SendWelcomeEmailGateway>(

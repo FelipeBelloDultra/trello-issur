@@ -9,7 +9,7 @@ import { QueueEvents } from "@/shared/queue/application/events";
 import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
 
 import { EmailAlreadyTakenError } from "../../errors/email-already-taken.error";
-import { AccountRepository } from "../../repositories/account-repository";
+import { AccountRepository } from "../../repositories/account.repository";
 
 import { CreateAccountCommand } from "./command";
 

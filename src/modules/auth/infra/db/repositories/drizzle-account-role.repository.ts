@@ -5,7 +5,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 import { DatabaseClient } from "@/infra/db/client";
 import { accountRoles, permissions, rolePermissions, roles } from "@/infra/db/schema";
 import { AccountRoleCacheRepository } from "@/modules/auth/application/repositories/account-role-cache.repository";
-import { AccountRoleRepository } from "@/modules/auth/application/repositories/account-role-repository";
+import { AccountRoleRepository } from "@/modules/auth/application/repositories/account-role.repository";
 import { RawPermissionKey } from "@/modules/auth/domain/value-objects/permission-key";
 
 @injectable()

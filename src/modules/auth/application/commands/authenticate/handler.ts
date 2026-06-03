@@ -6,13 +6,13 @@ import { Either, left, right } from "@/core/either";
 import { parseDurationToSeconds } from "@/core/utils/duration";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { PasswordHasherGateway } from "@/modules/account/application/gateways/password-hasher.gateway";
-import { AccountRepository } from "@/modules/account/application/repositories/account-repository";
+import { AccountRepository } from "@/modules/account/application/repositories/account.repository";
 import { TokenClaims } from "@/modules/auth/domain/value-objects/token-claims";
 import { TokenPair } from "@/modules/auth/domain/value-objects/token-pair";
 
 import { InvalidCredentialsError } from "../../errors/invalid-credentials.error";
 import { CryptographGateway } from "../../gateways/cryptograph.gateway";
-import { TokenRepository } from "../../repositories/token-repository";
+import { TokenRepository } from "../../repositories/token.repository";
 
 import { AuthenticateCommand } from "./command";
 

@@ -1,4 +1,4 @@
-import { AccountRepository } from "@/modules/account/application/repositories/account-repository";
+import { AccountRepository } from "@/modules/account/application/repositories/account.repository";
 import { Account } from "@/modules/account/domain/entities/account";
 
 export class InMemoryAccountRepository implements AccountRepository {

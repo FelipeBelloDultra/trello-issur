@@ -1,10 +1,10 @@
 import { faker } from "@faker-js/faker";
 
 import { makeAccount } from "@/test/factories/make-account";
-import { InMemoryCryptographGateway } from "@/test/gateways/in-memory-cryptograph-gateway";
-import { InMemoryPasswordHasherGateway } from "@/test/gateways/in-memory-password-hasher-gateway";
-import { InMemoryAccountRepository } from "@/test/repositories/in-memory-account-repository";
-import { InMemoryTokenRepository } from "@/test/repositories/in-memory-token-repository";
+import { InMemoryCryptographGateway } from "@/test/gateways/in-memory-cryptograph.gateway";
+import { InMemoryPasswordHasherGateway } from "@/test/gateways/in-memory-password-hasher.gateway";
+import { InMemoryAccountRepository } from "@/test/repositories/in-memory-account.repository";
+import { InMemoryTokenRepository } from "@/test/repositories/in-memory-token.repository";
 
 import { InvalidCredentialsError } from "../../errors/invalid-credentials.error";
 

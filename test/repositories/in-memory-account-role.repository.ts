@@ -1,4 +1,4 @@
-import { AccountRoleRepository } from "@/modules/auth/application/repositories/account-role-repository";
+import { AccountRoleRepository } from "@/modules/auth/application/repositories/account-role.repository";
 import { RawPermissionKey } from "@/modules/auth/domain/value-objects/permission-key";
 
 export class InMemoryAccountRoleRepository implements AccountRoleRepository {

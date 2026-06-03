@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 import { TokenClaims } from "@/modules/auth/domain/value-objects/token-claims";
-import { InMemoryAccountRoleRepository } from "@/test/repositories/in-memory-account-role-repository";
+import { InMemoryAccountRoleRepository } from "@/test/repositories/in-memory-account-role.repository";
 
 import { AuthorizeMiddleware } from "./authorize.middleware";
 

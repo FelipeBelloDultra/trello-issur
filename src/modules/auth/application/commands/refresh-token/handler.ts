@@ -9,7 +9,7 @@ import { TokenPair } from "@/modules/auth/domain/value-objects/token-pair";
 
 import { InvalidTokenError } from "../../errors/invalid-token.error";
 import { CryptographGateway } from "../../gateways/cryptograph.gateway";
-import { TokenRepository } from "../../repositories/token-repository";
+import { TokenRepository } from "../../repositories/token.repository";
 
 import { RefreshTokenCommand } from "./command";
 

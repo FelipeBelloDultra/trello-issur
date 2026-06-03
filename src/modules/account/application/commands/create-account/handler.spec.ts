@@ -2,9 +2,9 @@ import { faker } from "@faker-js/faker";
 
 import { QueueEvents } from "@/shared/queue/application/events";
 import { makeAccount } from "@/test/factories/make-account";
-import { InMemoryPasswordHasherGateway } from "@/test/gateways/in-memory-password-hasher-gateway";
+import { InMemoryPasswordHasherGateway } from "@/test/gateways/in-memory-password-hasher.gateway";
 import { InMemoryQueuePublisher } from "@/test/queue/in-memory-queue-publisher";
-import { InMemoryAccountRepository } from "@/test/repositories/in-memory-account-repository";
+import { InMemoryAccountRepository } from "@/test/repositories/in-memory-account.repository";
 
 import { EmailAlreadyTakenError } from "../../errors/email-already-taken.error";
 

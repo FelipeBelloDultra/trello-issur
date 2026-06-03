@@ -1,4 +1,4 @@
-import { TokenRepository } from "@/modules/auth/application/repositories/token-repository";
+import { TokenRepository } from "@/modules/auth/application/repositories/token.repository";
 
 export class InMemoryTokenRepository implements TokenRepository {
   public items: Map<string, string> = new Map();

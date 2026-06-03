@@ -6,7 +6,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 
 import { InvalidTokenError } from "../../errors/invalid-token.error";
 import { CryptographGateway } from "../../gateways/cryptograph.gateway";
-import { TokenRepository } from "../../repositories/token-repository";
+import { TokenRepository } from "../../repositories/token.repository";
 
 import { LogoutCommand } from "./command";
 

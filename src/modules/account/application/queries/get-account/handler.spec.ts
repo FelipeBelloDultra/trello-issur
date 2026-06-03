@@ -1,5 +1,5 @@
 import { makeAccount } from "@/test/factories/make-account";
-import { InMemoryAccountRepository } from "@/test/repositories/in-memory-account-repository";
+import { InMemoryAccountRepository } from "@/test/repositories/in-memory-account.repository";
 
 import { GetAccountHandler } from "./handler";
 import { GetAccountQuery } from "./query";
