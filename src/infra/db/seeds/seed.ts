@@ -7,7 +7,13 @@ import { createRoles } from "./create-roles";
 
 type SeedFn = (client: DatabaseClient) => Promise<void>;
 
+async function bootstrap(client: DatabaseClient): Promise<void> {
+  await createPermissions(client);
+  await createRoles(client);
+}
+
 const seeds: Record<string, SeedFn> = {
+  bootstrap,
   "create-permissions": createPermissions,
   "create-roles": createRoles,
 };
