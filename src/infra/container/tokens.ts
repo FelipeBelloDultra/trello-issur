@@ -22,6 +22,11 @@ export const InjectionTokens = {
     Gateway: Symbol("EmailGateway"),
   },
 
+  Storage: {
+    Gateway: Symbol("StorageGateway"),
+    Lifecycle: Symbol("StorageLifecycle"),
+  },
+
   Gateways: {
     Cryptograph: Symbol("CryptographGateway"),
     PasswordHasher: Symbol("PasswordHasherGateway"),
@@ -55,6 +60,7 @@ export const InjectionTokens = {
     SendWelcomeEmail: Symbol("SendWelcomeEmailHandler"),
     CreateWorkspace: Symbol("CreateWorkspaceHandler"),
     GetWorkspace: Symbol("GetWorkspaceHandler"),
+    UpdateWorkspaceAvatar: Symbol("UpdateWorkspaceAvatarHandler"),
   },
 
   Controllers: {
@@ -65,12 +71,14 @@ export const InjectionTokens = {
     GetMe: Symbol("GetMeController"),
     CreateWorkspace: Symbol("CreateWorkspaceController"),
     GetWorkspace: Symbol("GetWorkspaceController"),
+    UpdateWorkspaceAvatar: Symbol("UpdateWorkspaceAvatarController"),
   },
 
   Middlewares: {
     Auth: Symbol("AuthMiddleware"),
     Authorize: Symbol("AuthorizeMiddleware"),
     ValidateWorkspace: Symbol("ValidateWorkspaceMiddleware"),
+    FileUpload: Symbol("FileUploadMiddleware"),
     RateLimit: Symbol("RateLimitMiddleware"),
     Logger: Symbol("LoggerMiddleware"),
     Tracing: Symbol("TracingMiddleware"),

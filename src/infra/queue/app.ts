@@ -8,6 +8,8 @@ import { logger } from "@/infra/logger";
 import { shutdownTracing } from "@/infra/tracing/adapters/otel";
 import { ValkeyClient } from "@/infra/valkey/client";
 
+import { StorageLifecycle } from "../storage/contracts/storage-lifecycle";
+
 import { RabbitMQClient } from "./adapters/rabbitmq/client";
 import { ConsumerRegistry } from "./consumer-registry";
 
@@ -27,6 +29,7 @@ export class QueueApp {
     this.drizzleConnection.connect();
     this.valkeyConnection.connect();
     await this.rabbitMQClient.connect();
+    await container.resolve<StorageLifecycle>(InjectionTokens.Storage.Lifecycle).initialize();
 
     const channel = this.rabbitMQClient.channel;
     const consumers = this.consumerRegistry.getAll();

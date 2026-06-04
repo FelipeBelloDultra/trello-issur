@@ -1,4 +1,4 @@
-import os from "os";
+import os from "node:os";
 
 import { z } from "zod";
 
@@ -47,6 +47,33 @@ export const env = z
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
     SMTP_FROM: z.string().email().default("noreply@trello-issur.dev"),
+
+    // Storage
+    STORAGE_DRIVER: z.enum(["s3", "local"]).default("local"),
+    S3_BUCKET: z.string().optional(),
+    S3_REGION: z.string().default("us-east-1"),
+    S3_ENDPOINT: z.string().url().optional(),
+    S3_ACCESS_KEY: z.string().optional(),
+    S3_SECRET_KEY: z.string().optional(),
+    S3_PUBLIC_URL: z.string().optional(),
+    STORAGE_LOCAL_PATH: z.string().default("./uploads"),
+    STORAGE_LOCAL_BASE_URL: z.string().default("http://localhost:3000/uploads"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.STORAGE_DRIVER !== "s3") return;
+
+    const required = {
+      S3_BUCKET: data.S3_BUCKET,
+      S3_ACCESS_KEY: data.S3_ACCESS_KEY,
+      S3_SECRET_KEY: data.S3_SECRET_KEY,
+      S3_PUBLIC_URL: data.S3_PUBLIC_URL,
+    };
+
+    for (const [key, value] of Object.entries(required)) {
+      if (value === undefined) {
+        ctx.addIssue({ code: "custom", path: [key], message: "Required when STORAGE_DRIVER=s3." });
+      }
+    }
   })
   .transform((data) => ({
     ...data,

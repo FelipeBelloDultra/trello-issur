@@ -2,6 +2,8 @@
 dist
 package-lock.json
 yarn.lock
+/uploads/*
+!/uploads/.gitkeep
 
 # Created by https://www.gitignore.io/api/node,macos
 
@@ -110,3 +112,4 @@ typings/
 
 # ClaudeIA configs
 .claude
+memory

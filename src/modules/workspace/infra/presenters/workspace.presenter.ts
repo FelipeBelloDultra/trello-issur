@@ -1,4 +1,5 @@
 import { Workspace } from "@/modules/workspace/domain/entities/workspace";
+import { StorageUrlService } from "@/shared/storage/application/services/storage-url.service";
 
 export class WorkspacePresenter {
   public static toHTTP(workspace: Workspace) {
@@ -7,7 +8,7 @@ export class WorkspacePresenter {
       name: workspace.name.toString(),
       slug: workspace.slug.toString(),
       description: workspace.description,
-      avatar_url: workspace.avatarUrl,
+      avatar_url: StorageUrlService.resolve(workspace.avatarUrl),
       is_personal: workspace.isPersonal,
       owner_id: workspace.ownerId.toValue(),
       created_at: workspace.createdAt,

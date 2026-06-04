@@ -5,6 +5,8 @@ import { QueryBus } from "@/core/queries/query-bus";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { CreateWorkspaceCommand } from "@/modules/workspace/application/commands/create-workspace/command";
 import { CreateWorkspaceHandler } from "@/modules/workspace/application/commands/create-workspace/handler";
+import { UpdateWorkspaceAvatarCommand } from "@/modules/workspace/application/commands/update-workspace-avatar/command";
+import { UpdateWorkspaceAvatarHandler } from "@/modules/workspace/application/commands/update-workspace-avatar/handler";
 import { GetWorkspaceHandler } from "@/modules/workspace/application/queries/get-workspace/handler";
 import { GetWorkspaceQuery } from "@/modules/workspace/application/queries/get-workspace/query";
 
@@ -27,10 +29,21 @@ export function setupWorkspaceModule(): void {
     { lifecycle: Lifecycle.Singleton },
   );
 
+  container.register<UpdateWorkspaceAvatarHandler>(
+    InjectionTokens.Handlers.UpdateWorkspaceAvatar,
+    { useClass: UpdateWorkspaceAvatarHandler },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
   const commandBus = container.resolve<CommandBus>(InjectionTokens.Bus.Command);
   commandBus.register(
     CreateWorkspaceCommand,
     container.resolve<CreateWorkspaceHandler>(InjectionTokens.Handlers.CreateWorkspace),
+  );
+
+  commandBus.register(
+    UpdateWorkspaceAvatarCommand,
+    container.resolve<UpdateWorkspaceAvatarHandler>(InjectionTokens.Handlers.UpdateWorkspaceAvatar),
   );
 
   const queryBus = container.resolve<QueryBus>(InjectionTokens.Bus.Query);
