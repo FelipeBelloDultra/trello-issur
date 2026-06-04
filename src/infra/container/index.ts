@@ -10,12 +10,14 @@ import { setupDatabaseContainer } from "../db/container";
 import { setupEmailContainer } from "../email/container";
 import { setupMiddlewaresContainer } from "../http/middlewares/container";
 import { setupQueueContainer } from "../queue/container";
+import { setupStorageContainer } from "../storage/container";
 import { setupValkeyContainer } from "../valkey/container";
 
 setupValkeyContainer();
 setupCacheContainer();
 setupDatabaseContainer();
 setupEmailContainer();
+setupStorageContainer();
 setupMiddlewaresContainer();
 setupBusContainer();
 setupQueueContainer();

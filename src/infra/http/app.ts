@@ -1,5 +1,7 @@
 import "../container";
 
+import path from "node:path";
+
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
@@ -13,6 +15,7 @@ import { env } from "@/config/env";
 import { InjectionTokens } from "../container/tokens";
 import { DatabaseClient } from "../db/client";
 import { RabbitMQClient } from "../queue/adapters/rabbitmq/client";
+import { StorageLifecycle } from "../storage/contracts/storage-lifecycle";
 import { shutdownTracing } from "../tracing/adapters/otel";
 import { ValkeyClient } from "../valkey/client";
 
@@ -58,6 +61,7 @@ export class App {
     this.drizzleConnection.connect();
     this.valkeyConnection.connect();
     await this.rabbitMQClient.connect();
+    await container.resolve<StorageLifecycle>(InjectionTokens.Storage.Lifecycle).initialize();
     this.registerMiddlewares();
   }
 
@@ -69,6 +73,13 @@ export class App {
   }
 
   private registerRoutes() {
+    if (env.STORAGE_DRIVER === "local") {
+      this.expressInstance.use(
+        "/uploads",
+        express.static(path.resolve(env.STORAGE_LOCAL_PATH), { dotfiles: "deny" }),
+      );
+    }
+
     this.expressInstance.use("/api", this.routes.router);
   }
 
