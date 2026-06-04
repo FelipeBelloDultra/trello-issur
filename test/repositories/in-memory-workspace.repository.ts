@@ -13,6 +13,12 @@ export class InMemoryWorkspaceRepository implements WorkspaceRepository {
     return Promise.resolve(workspace ?? null);
   }
 
+  public async save(workspace: Workspace): Promise<void> {
+    const index = this.items.findIndex((w) => w.id.equals(workspace.id));
+    if (index >= 0) this.items[index] = workspace;
+    return Promise.resolve();
+  }
+
   public async findBySlug(slug: string): Promise<Workspace | null> {
     const workspace = this.items.find((w) => w.slug.toString() === slug);
     return Promise.resolve(workspace ?? null);

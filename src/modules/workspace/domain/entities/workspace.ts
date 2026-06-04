@@ -48,6 +48,15 @@ export class Workspace extends Entity<WorkspaceProps> {
     return this.props.updatedAt;
   }
 
+  public updateAvatar(key: string | null): void {
+    this.props.avatarUrl = key;
+    this.touch();
+  }
+
+  private touch(): void {
+    this.props.updatedAt = new Date();
+  }
+
   private constructor(props: WorkspaceProps, id?: UniqueEntityID) {
     super(props, id);
   }

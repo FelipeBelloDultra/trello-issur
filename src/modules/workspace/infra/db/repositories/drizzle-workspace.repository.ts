@@ -20,6 +20,15 @@ export class DrizzleWorkspaceRepository implements WorkspaceRepository {
     await this.db.query.insert(workspaces).values(WorkspaceMapper.toPersistence(workspace));
   }
 
+  public async save(workspace: Workspace): Promise<void> {
+    const { description, avatarUrl, name, updatedAt } = WorkspaceMapper.toPersistence(workspace);
+
+    await this.db.query
+      .update(workspaces)
+      .set({ name, description, avatarUrl, updatedAt })
+      .where(eq(workspaces.id, workspace.id.toValue()));
+  }
+
   public async findById(id: string): Promise<Workspace | null> {
     const [row] = await this.db.query
       .select()
