@@ -5,6 +5,7 @@ import { Either, left, right } from "@/core/either";
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { Workspace } from "@/modules/workspace/domain/entities/workspace";
+import { WorkspaceMemberRoles } from "@/modules/workspace/domain/value-objects/workspace-member-role";
 import { WorkspaceName } from "@/modules/workspace/domain/value-objects/workspace-name";
 import { WorkspaceSlug } from "@/modules/workspace/domain/value-objects/workspace-slug";
 
@@ -53,11 +54,11 @@ export class CreateWorkspaceHandler implements CommandHandler<
     });
 
     await this.workspaceRepository.create(workspace);
-    await this.workspaceMemberRepository.create(
-      workspace.id.toValue(),
-      command.props.ownerId,
-      "owner",
-    );
+    await this.workspaceMemberRepository.create({
+      workspaceId: workspace.id.toValue(),
+      accountId: command.props.ownerId,
+      role: WorkspaceMemberRoles.Owner,
+    });
 
     return right({ workspace });
   }
