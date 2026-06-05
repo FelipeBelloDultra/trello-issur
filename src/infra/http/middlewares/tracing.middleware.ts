@@ -2,6 +2,7 @@ import { context, propagation, Span, SpanKind, SpanStatusCode } from "@opentelem
 import { NextFunction, Request, Response } from "express";
 import { injectable } from "tsyringe";
 
+import { env } from "@/config/env";
 import { tracer } from "@/infra/tracing/adapters/otel";
 
 import { Middleware } from "../contracts/middleware";
@@ -34,6 +35,7 @@ export class TracingMiddleware implements Middleware<void> {
 
       activeSpans.set(req, span);
       res.setHeader("x-trace-id", span.spanContext().traceId);
+      res.setHeader("x-replica-id", env.INSTANCE_ID);
 
       res.on("finish", () => {
         const currentSpan = activeSpans.get(req);
