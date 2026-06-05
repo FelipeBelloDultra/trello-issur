@@ -58,3 +58,41 @@ services:
             - http
         networks:
             - trello-issur-net
+
+    prometheus:
+        image: prom/prometheus:v3.1.0
+        ports:
+            - "9090:9090"
+        volumes:
+            - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+            - prometheus_data:/prometheus
+        command:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"
+            - "--web.enable-lifecycle"
+        depends_on:
+            - http
+        networks:
+            - trello-issur-net
+
+    grafana:
+        image: grafana/grafana:11.4.0
+        ports:
+            - "3001:3000"
+        environment:
+            GF_SECURITY_ADMIN_USER: admin
+            GF_SECURITY_ADMIN_PASSWORD: admin
+            GF_USERS_ALLOW_SIGN_UP: "false"
+        volumes:
+            - ./grafana/provisioning:/etc/grafana/provisioning:ro
+            - grafana_data:/var/lib/grafana
+        depends_on:
+            - prometheus
+        networks:
+            - trello-issur-net
+
+volumes:
+    prometheus_data:
+        driver: local
+    grafana_data:
+        driver: local
