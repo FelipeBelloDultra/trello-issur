@@ -1,0 +1,1 @@
+ALTER TABLE "failed_queue_events" ADD COLUMN "replayed_at" timestamp;

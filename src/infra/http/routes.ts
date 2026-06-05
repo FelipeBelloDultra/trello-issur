@@ -8,9 +8,10 @@ import { workspaceControllers } from "@/modules/workspace/infra/http/routes";
 import { Controller } from "./contracts/controller";
 import { healthRouter } from "./health.router";
 import { metricsRouter } from "./metrics.router";
+import { queueRouter } from "./queue.router";
 
 export class Routes {
-  private readonly staticRouters = [healthRouter, metricsRouter];
+  private readonly staticRouters = [healthRouter, metricsRouter, queueRouter];
   private readonly controllerTokens = [
     ...accountControllers,
     ...authControllers,

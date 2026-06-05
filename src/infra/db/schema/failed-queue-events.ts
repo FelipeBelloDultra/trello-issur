@@ -14,5 +14,6 @@ export const failedQueueEvents = pgTable("failed_queue_events", {
   retryCount: integer("retry_count").notNull().default(0),
   firstFailedAt: timestamp("first_failed_at").notNull(),
   deadAt: timestamp("dead_at").notNull(),
+  replayedAt: timestamp("replayed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
