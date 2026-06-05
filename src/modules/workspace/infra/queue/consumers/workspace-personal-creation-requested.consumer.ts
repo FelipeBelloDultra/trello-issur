@@ -5,6 +5,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 import { QueueConsumer, QueueConsumerConfig } from "@/infra/queue/adapters/rabbitmq/consumer";
 import { Exchanges } from "@/infra/queue/adapters/rabbitmq/exchanges";
 import { CreateWorkspaceCommand } from "@/modules/workspace/application/commands/create-workspace/command";
+import { CacheRepository } from "@/shared/cache/application/repositories/cache.repository";
 import { QueueEvents } from "@/shared/queue/application/events";
 
 interface WorkspacePersonalCreationRequestedPayload {
@@ -23,8 +24,10 @@ export class WorkspacePersonalCreationRequestedConsumer extends QueueConsumer<Wo
   public constructor(
     @inject(InjectionTokens.Bus.Command)
     private readonly commandBus: CommandBus,
+    @inject(InjectionTokens.Cache.Repository)
+    cache: CacheRepository,
   ) {
-    super();
+    super(cache);
   }
 
   public async handle(payload: WorkspacePersonalCreationRequestedPayload): Promise<void> {

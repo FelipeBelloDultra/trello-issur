@@ -1,7 +1,10 @@
 import { Channel, ConsumeMessage } from "amqplib";
+import { inject } from "tsyringe";
 
+import { InjectionTokens } from "@/infra/container/tokens";
 import { logger } from "@/infra/logger";
 import { Consumer } from "@/infra/queue/contracts/consumer";
+import { CacheRepository } from "@/shared/cache/application/repositories/cache.repository";
 
 import { Exchanges } from "./exchanges";
 
@@ -13,9 +16,15 @@ export interface QueueConsumerConfig {
 }
 
 const DEFAULT_RETRY_DELAYS: readonly number[] = [5_000, 30_000, 300_000];
+const IDEMPOTENCY_TTL_SECONDS = 86_400;
 
 export abstract class QueueConsumer<TPayload = unknown> implements Consumer {
   protected abstract readonly config: QueueConsumerConfig;
+
+  public constructor(
+    @inject(InjectionTokens.Cache.Repository)
+    private readonly cache: CacheRepository,
+  ) {}
 
   public abstract handle(payload: TPayload): Promise<void>;
 
@@ -63,6 +72,14 @@ export abstract class QueueConsumer<TPayload = unknown> implements Consumer {
 
     logger.info({ queue, retryCount }, "message received");
 
+    const idempotencyKey = this.getIdempotencyKey(msg);
+
+    if (idempotencyKey && (await this.isAlreadyProcessed(idempotencyKey))) {
+      logger.info({ queue, idempotencyKey }, "duplicate message — skipping");
+      channel.ack(msg);
+      return;
+    }
+
     const payload = this.parsePayload(msg);
 
     if (!payload) {
@@ -74,6 +91,7 @@ export abstract class QueueConsumer<TPayload = unknown> implements Consumer {
 
     try {
       await this.handle(payload);
+      if (idempotencyKey) await this.markProcessed(idempotencyKey);
       channel.ack(msg);
       logger.info({ queue, retryCount }, "message processed");
     } catch (err: unknown) {
@@ -81,6 +99,25 @@ export abstract class QueueConsumer<TPayload = unknown> implements Consumer {
       logger.warn({ queue, retryCount, err }, "message processing failed");
       this.handleFailure(channel, msg, retryCount, errorMessage);
       channel.ack(msg);
+    }
+  }
+
+  private async isAlreadyProcessed(idempotencyKey: string): Promise<boolean> {
+    const cacheKey = this.cache.createKey(["idempotency", this.config.queue, idempotencyKey]);
+    try {
+      return (await this.cache.get(cacheKey)) !== null;
+    } catch (err: unknown) {
+      logger.warn({ err, queue: this.config.queue }, "idempotency check failed — proceeding");
+      return false;
+    }
+  }
+
+  private async markProcessed(idempotencyKey: string): Promise<void> {
+    const cacheKey = this.cache.createKey(["idempotency", this.config.queue, idempotencyKey]);
+    try {
+      await this.cache.set(cacheKey, "1", IDEMPOTENCY_TTL_SECONDS);
+    } catch (err: unknown) {
+      logger.warn({ err, queue: this.config.queue }, "failed to store idempotency key");
     }
   }
 
@@ -149,6 +186,12 @@ export abstract class QueueConsumer<TPayload = unknown> implements Consumer {
     } catch {
       return null;
     }
+  }
+
+  private getIdempotencyKey(msg: ConsumeMessage): string | null {
+    const headers = msg.properties.headers as Record<string, unknown> | null | undefined;
+    const key = headers?.["x-idempotency-key"];
+    return typeof key === "string" ? key : null;
   }
 
   private getRetryCount(msg: ConsumeMessage): number {

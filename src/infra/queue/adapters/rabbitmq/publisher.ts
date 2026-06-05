@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { inject, injectable } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
@@ -17,6 +19,7 @@ export class RabbitMQPublisher implements QueuePublisherGateway {
     this.client.channel.publish(Exchanges.Main, routingKey, Buffer.from(JSON.stringify(payload)), {
       persistent: true,
       contentType: "application/json",
+      headers: { "x-idempotency-key": randomUUID() },
     });
   }
 }

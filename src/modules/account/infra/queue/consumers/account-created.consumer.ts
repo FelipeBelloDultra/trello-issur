@@ -5,6 +5,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 import { QueueConsumer, QueueConsumerConfig } from "@/infra/queue/adapters/rabbitmq/consumer";
 import { Exchanges } from "@/infra/queue/adapters/rabbitmq/exchanges";
 import { SendWelcomeEmailCommand } from "@/modules/account/application/commands/send-welcome-email/command";
+import { CacheRepository } from "@/shared/cache/application/repositories/cache.repository";
 import { QueueEvents } from "@/shared/queue/application/events";
 
 interface AccountCreatedPayload {
@@ -24,8 +25,10 @@ export class AccountCreatedConsumer extends QueueConsumer<AccountCreatedPayload>
   public constructor(
     @inject(InjectionTokens.Bus.Command)
     private readonly commandBus: CommandBus,
+    @inject(InjectionTokens.Cache.Repository)
+    cache: CacheRepository,
   ) {
-    super();
+    super(cache);
   }
 
   public async handle(payload: AccountCreatedPayload): Promise<void> {
