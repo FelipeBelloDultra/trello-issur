@@ -19,7 +19,6 @@
         "db:generate": "drizzle-kit generate",
         "db:migrate": "tsx src/index.migrate.ts",
         "start:migrate": "node dist/index.migrate.js",
-        "db:push": "drizzle-kit push",
         "db:seed": "tsx src/infra/db/seeds/seed.ts",
         "start:seed": "node dist/seed.js",
         "db:studio": "drizzle-kit studio",
