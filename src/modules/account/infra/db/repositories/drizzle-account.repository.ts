@@ -33,13 +33,14 @@ export class DrizzleAccountRepository implements AccountRepository {
   }
 
   public async findByEmail(email: string): Promise<Account | null> {
-    const cached = await this.accountCache.findByEmail(email);
+    const normalized = email.trim().toLowerCase();
+    const cached = await this.accountCache.findByEmail(normalized);
     if (cached) return cached;
 
     const [row] = await this.db.query
       .select()
       .from(accounts)
-      .where(eq(accounts.email, email))
+      .where(eq(accounts.email, normalized))
       .limit(1);
     if (!row) return null;
 

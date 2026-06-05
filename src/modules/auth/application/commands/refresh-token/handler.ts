@@ -41,7 +41,11 @@ export class RefreshTokenHandler implements CommandHandler<
     const pair = await this.cryptographGateway.generatePair(claims);
 
     const ttl = parseDurationToSeconds(env.JWT_REFRESH_EXPIRES);
-    await this.tokenRepository.save(claims.sub, pair.refreshToken, ttl);
+    await this.tokenRepository.save({
+      accountId: claims.sub,
+      refreshToken: pair.refreshToken,
+      ttlSeconds: ttl,
+    });
 
     return right(pair);
   }

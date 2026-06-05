@@ -24,7 +24,7 @@ describe("RefreshTokenHandler", () => {
   async function seedStoredToken(accountId: string, email: string) {
     const claims = TokenClaims.create(accountId, email);
     const pair = await cryptographGateway.generatePair(claims);
-    await tokenRepository.save(accountId, pair.refreshToken, 3600);
+    await tokenRepository.save({ accountId, refreshToken: pair.refreshToken, ttlSeconds: 3600 });
     return pair;
   }
 
@@ -54,7 +54,11 @@ describe("RefreshTokenHandler", () => {
     const claims = TokenClaims.create(account.id.toValue(), account.email);
     const pair = await cryptographGateway.generatePair(claims);
     const differentPair = await cryptographGateway.generatePair(claims);
-    await tokenRepository.save(account.id.toValue(), differentPair.refreshToken, 3600);
+    await tokenRepository.save({
+      accountId: account.id.toValue(),
+      refreshToken: differentPair.refreshToken,
+      ttlSeconds: 3600,
+    });
 
     const result = await sut.execute(new RefreshTokenCommand({ refreshToken: pair.refreshToken }));
 

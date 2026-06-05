@@ -8,6 +8,7 @@ export const InjectionTokens = {
     Repository: Symbol("CacheRepository"),
     Account: Symbol("AccountCacheRepository"),
     AccountRole: Symbol("AccountRoleCacheRepository"),
+    WorkspaceMember: Symbol("WorkspaceMemberCacheRepository"),
   },
 
   Repositories: {
@@ -61,6 +62,9 @@ export const InjectionTokens = {
     CreateWorkspace: Symbol("CreateWorkspaceHandler"),
     GetWorkspace: Symbol("GetWorkspaceHandler"),
     UpdateWorkspaceAvatar: Symbol("UpdateWorkspaceAvatarHandler"),
+    ListWorkspaceMembers: Symbol("ListWorkspaceMembersHandler"),
+    RemoveWorkspaceMember: Symbol("RemoveWorkspaceMemberHandler"),
+    UpdateWorkspaceMemberRole: Symbol("UpdateWorkspaceMemberRoleHandler"),
   },
 
   Controllers: {
@@ -72,6 +76,9 @@ export const InjectionTokens = {
     CreateWorkspace: Symbol("CreateWorkspaceController"),
     GetWorkspace: Symbol("GetWorkspaceController"),
     UpdateWorkspaceAvatar: Symbol("UpdateWorkspaceAvatarController"),
+    ListWorkspaceMembers: Symbol("ListWorkspaceMembersController"),
+    RemoveWorkspaceMember: Symbol("RemoveWorkspaceMemberController"),
+    UpdateWorkspaceMemberRole: Symbol("UpdateWorkspaceMemberRoleController"),
   },
 
   Middlewares: {
@@ -80,6 +87,7 @@ export const InjectionTokens = {
     Authorize: Symbol("AuthorizeMiddleware"),
     ValidateWorkspace: Symbol("ValidateWorkspaceMiddleware"),
     FileUpload: Symbol("FileUploadMiddleware"),
+    Pagination: Symbol("PaginationMiddleware"),
     RateLimit: Symbol("RateLimitMiddleware"),
     Logger: Symbol("LoggerMiddleware"),
     Tracing: Symbol("TracingMiddleware"),

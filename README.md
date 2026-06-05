@@ -92,6 +92,25 @@ Driver-based: `STORAGE_DRIVER=s3` routes to `S3StorageGateway` (AWS SDK v3, MinI
 
 Every HTTP response carries an `x-trace-id` header. Tracing is zero-cost when `OTEL_ENDPOINT` is unset.
 
+### Outbox pattern *(deferred)*
+
+Currently, `CreateAccountHandler` calls `QueuePublisherGateway.publish()` after persisting the account. If the process crashes between the `INSERT` and the `publish()`, the event is silently lost — the account exists in the database but no downstream consumers are notified.
+
+The planned fix is **Option A — full atomicity via Unit of Work**:
+
+1. A new `outbox_events` table (`routing_key`, `payload` jsonb, `published_at` nullable) lives in the same database.
+2. `AccountUnitOfWork` wraps a Drizzle transaction: `accounts.create()` and `outbox.save()` commit atomically — either both land or neither does.
+3. An `OutboxRelay` process polls `findPending()` every 5 seconds, publishes each event to RabbitMQ, and marks it `published_at`. If publishing fails, the event stays pending and is retried on the next tick.
+4. The relay runs inside `QueueApp` (`index.queue.ts`) via `setInterval`.
+
+This eliminates the publish/persist race without distributed transactions. `DrizzleAccountRepository` will be refactored to accept `NodePgDatabase<typeof schema>` directly so both the DI container (via factory) and the Unit of Work (passing `tx`) can construct it.
+
+### Circuit breaker *(deferred)*
+
+Outbound calls to RabbitMQ, Valkey, and PostgreSQL have no circuit breaker today. Under sustained downstream failure, the thread pool saturates and latency spikes propagate upstream.
+
+Deferred until after the first production deploy — no real traffic yet means no realistic failure data to calibrate thresholds. When added, **opossum** is the preferred library: battle-tested, maintained by the Node.js org, minimal API, and ships its own TypeScript types.
+
 ---
 
 ## Stack
