@@ -109,7 +109,7 @@ export class App {
     this.expressInstance.use(
       (err: Error, _req: Request, response: Response, _next: NextFunction) => {
         if (err instanceof ZodError) {
-          return response.status(400).json({
+          return response.status(422).json({
             message: HttpMessages.General.ValidationFailed,
             errors: fromZodError(err).details.map((d) => ({
               field: d.path.join("."),
