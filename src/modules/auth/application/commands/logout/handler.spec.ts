@@ -24,7 +24,7 @@ describe("LogoutHandler", () => {
   async function seedStoredToken(accountId: string, email: string) {
     const claims = TokenClaims.create(accountId, email);
     const pair = await cryptographGateway.generatePair(claims);
-    await tokenRepository.save(accountId, pair.refreshToken, 3600);
+    await tokenRepository.save({ accountId, refreshToken: pair.refreshToken, ttlSeconds: 3600 });
     return pair;
   }
 

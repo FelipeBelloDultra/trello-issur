@@ -49,7 +49,11 @@ export class AuthenticateHandler implements CommandHandler<
     const pair = await this.cryptographGateway.generatePair(claims);
 
     const ttl = parseDurationToSeconds(env.JWT_REFRESH_EXPIRES);
-    await this.tokenRepository.save(account.id.toValue(), pair.refreshToken, ttl);
+    await this.tokenRepository.save({
+      accountId: account.id.toValue(),
+      refreshToken: pair.refreshToken,
+      ttlSeconds: ttl,
+    });
 
     return right(pair);
   }

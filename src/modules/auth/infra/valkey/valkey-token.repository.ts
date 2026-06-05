@@ -3,7 +3,7 @@ import { inject, injectable } from "tsyringe";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { ValkeyClient } from "@/infra/valkey/client";
 
-import { TokenRepository } from "../../application/repositories/token.repository";
+import { SaveTokenOptions, TokenRepository } from "../../application/repositories/token.repository";
 
 const keyFor = (accountId: string) => `refresh_token:${accountId}`;
 
@@ -14,7 +14,7 @@ export class ValkeyTokenRepository implements TokenRepository {
     private readonly valkey: ValkeyClient,
   ) {}
 
-  public async save(accountId: string, refreshToken: string, ttlSeconds: number): Promise<void> {
+  public async save({ accountId, refreshToken, ttlSeconds }: SaveTokenOptions): Promise<void> {
     await this.valkey.client.set(keyFor(accountId), refreshToken, "EX", ttlSeconds);
   }
 
