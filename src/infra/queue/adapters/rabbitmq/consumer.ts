@@ -27,6 +27,7 @@ export abstract class QueueConsumer<TPayload = unknown> implements Consumer {
 
       this.processMessage(channel, msg).catch((err: unknown) => {
         logger.error({ err, queue: this.config.queue }, "unhandled error in consumer");
+        channel.nack(msg, false, true);
       });
     });
   }
