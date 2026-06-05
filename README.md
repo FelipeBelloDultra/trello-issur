@@ -50,6 +50,9 @@ All domain objects follow the **static factory pattern** — constructors are `p
 | ORM | Drizzle ORM + drizzle-kit |
 | Database | PostgreSQL 16 |
 | Cache / token store | Valkey 8 (Redis-compatible) |
+| Message queue | RabbitMQ (amqplib) |
+| Email | Nodemailer (SMTP) + Mailpit (dev) |
+| File storage | S3 / MinIO (`@aws-sdk/client-s3`) + local disk |
 | Auth | Custom — JWT (jose) + argon2 |
 | Validation | Zod 4 |
 | Logging | Pino |
@@ -76,10 +79,13 @@ src/
 ├── shared/                  # Cross-cutting ports — no infra deps; safe to import from application/
 │   ├── cache/application/repositories/   # CacheRepository
 │   ├── email/application/gateways/       # EmailGateway + SendEmailOptions
-│   └── queue/application/
-│       ├── events.ts                     # QueueEvents routing-key constants
-│       ├── gateways/                     # QueuePublisherGateway
-│       └── repositories/                 # DeadLetterRepository + FailedQueueEvent
+│   ├── queue/application/
+│   │   ├── events.ts                     # QueueEvents routing-key constants
+│   │   ├── gateways/                     # QueuePublisherGateway
+│   │   └── repositories/                 # DeadLetterRepository + FailedQueueEvent
+│   └── storage/application/
+│       ├── gateways/                     # StorageGateway + UploadFileOptions
+│       └── services/                     # StorageUrlService (resolve key → URL, buildKey)
 ├── infra/                   # Adapter implementations only
 │   ├── container/           # DI root — InjectionTokens + setup orchestration
 │   ├── db/                  # DatabaseClient, Drizzle schema, migrations, seeds
@@ -92,10 +98,13 @@ src/
 │   ├── http/
 │   │   ├── contracts/       # Controller interface, Middleware<T> interface
 │   │   ├── register-controller.ts  # Wires a Controller onto an Express Router
-│   │   └── middlewares/     # Injectable middlewares: logger, tracing, metrics, rate-limit
+│   │   └── middlewares/     # Injectable middlewares: logger, tracing, metrics, rate-limit, file-upload
 │   ├── logger/              # Pino logger singleton
 │   ├── metrics/             # prom-client registry
-│   └── tracing/             # OpenTelemetry SDK bootstrap + shutdown
+│   ├── tracing/             # OpenTelemetry SDK bootstrap + shutdown
+│   └── storage/
+│       ├── contracts/       # StorageLifecycle (initialize() — infra-internal, not in shared/)
+│       └── adapters/        # S3StorageGateway (AWS SDK v3 / MinIO), LocalStorageGateway
 └── modules/
     ├── auth/
     │   ├── domain/          # Value objects: TokenClaims, TokenPair, PermissionKey, UserRole
@@ -118,14 +127,17 @@ modules/{module}/
 │   ├── entities/        # Objects with identity
 │   └── errors/          # Typed domain errors with a `code` property
 ├── application/
+│   ├── commands/        # Write operations — {name}/command.ts + handler.ts (returns Either)
+│   ├── queries/         # Read operations  — {name}/query.ts  + handler.ts (returns plain data)
 │   ├── dtos/            # Zod schema + inferred type (transport-agnostic)
-│   ├── use-cases/       # One class per use case; execute(input) returns Either
+│   ├── errors/          # Use-case-level errors (implement UseCaseError)
 │   ├── repositories/    # Repository interfaces (contracts)
 │   └── gateways/        # External-service interfaces (contracts)
 └── infra/
     ├── container.ts     # Module DI orchestrator
     ├── db/              # Drizzle repository implementations + mappers
-    └── http/            # Controllers, presenters, router
+    ├── http/            # Controllers + router
+    └── presenters/      # Static presenter classes — map domain → HTTP shapes
 ```
 
 ---
@@ -181,6 +193,18 @@ JWT-based, stateful refresh tokens:
 
 ---
 
+## File storage
+
+Storage is driver-based: set `STORAGE_DRIVER=s3` for AWS S3 or MinIO, `local` for local disk (development only). Both implement the same `StorageGateway` port from `src/shared/`.
+
+- **`StorageUrlService.resolve(key)`** — converts a stored key to a full public URL at read time. Presenters call this; handlers and use cases never do.
+- **`StorageUrlService.buildKey(prefix, name)`** — generates a UUID-prefixed key for multi-file contexts.
+- **Keys, not URLs, are stored in the database** — columns named `*_url` may hold a storage key/path. This keeps the driver and bucket swappable without a data migration.
+- **`StorageLifecycle.initialize()`** is called by `App` and `QueueApp` on boot to create the bucket + public policy (S3/MinIO) or the upload directory (local). It is an infra-internal contract, not part of the shared port — use cases cannot call it.
+- Local driver serves files via Express static middleware at `/uploads` — only registered when `STORAGE_DRIVER=local`.
+
+---
+
 ## Dependency injection
 
 DI is handled with **tsyringe**. All tokens live in `src/infra/container/tokens.ts` as `Symbol` values in a single `InjectionTokens` const — never inlined at the call site.
@@ -209,11 +233,13 @@ All bindings use `Lifecycle.Singleton` — every injectable class is stateless, 
 ### Schema (current)
 
 ```
-users             id, name, email, password_hash, created_at, updated_at
-roles             id, name, created_at
-permissions       id, key, created_at
-role_permissions  role_id, permission_id  (composite PK — immutable junction)
-user_roles        user_id, role_id        (composite PK — immutable junction)
+accounts              id, name, email, password_hash, created_at, updated_at
+roles                 id, name, created_at
+permissions           id, key, created_at
+role_permissions      role_id, permission_id  (composite PK — immutable junction)
+account_roles         account_id, role_id     (composite PK — immutable junction)
+workspaces            id, name, slug, owner_id, description, avatar_url, is_personal, created_at, updated_at
+failed_queue_events   id, routing_key, payload, error, original_queue, created_at
 ```
 
 ---
