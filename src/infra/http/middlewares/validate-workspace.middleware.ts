@@ -6,6 +6,7 @@ import { AccountRoleRepository } from "@/modules/auth/application/repositories/a
 
 import { Middleware } from "../contracts/middleware";
 import { HttpException } from "../http-exception";
+import { HttpMessages } from "../http-messages";
 
 @injectable()
 export class ValidateWorkspaceMiddleware implements Middleware {
@@ -19,19 +20,19 @@ export class ValidateWorkspaceMiddleware implements Middleware {
       const { account } = req;
 
       if (!account) {
-        throw new HttpException({ statusCode: 401, message: "Unauthorized" });
+        throw new HttpException({ statusCode: 401, message: HttpMessages.Auth.Unauthorized });
       }
 
       const workspaceId = req.params.workspaceId;
 
       if (!workspaceId || Array.isArray(workspaceId)) {
-        throw new HttpException({ statusCode: 404, message: "Workspace not found" });
+        throw new HttpException({ statusCode: 404, message: HttpMessages.Workspace.NotFound });
       }
 
       const member = await this.accountRoleRepository.isMember(account.sub, workspaceId);
 
       if (!member) {
-        throw new HttpException({ statusCode: 404, message: "Workspace not found" });
+        throw new HttpException({ statusCode: 404, message: HttpMessages.Workspace.NotFound });
       }
 
       next();

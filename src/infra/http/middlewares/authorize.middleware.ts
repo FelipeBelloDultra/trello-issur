@@ -7,6 +7,7 @@ import { RawPermissionKey } from "@/modules/auth/domain/value-objects/permission
 
 import { Middleware } from "../contracts/middleware";
 import { HttpException } from "../http-exception";
+import { HttpMessages } from "../http-messages";
 
 @injectable()
 export class AuthorizeMiddleware implements Middleware<RawPermissionKey[]> {
@@ -20,13 +21,13 @@ export class AuthorizeMiddleware implements Middleware<RawPermissionKey[]> {
       const { account } = req;
 
       if (!account) {
-        throw new HttpException({ statusCode: 401, message: "Unauthorized" });
+        throw new HttpException({ statusCode: 401, message: HttpMessages.Auth.Unauthorized });
       }
 
       const workspaceId = req.params.workspaceId;
 
       if (!workspaceId || Array.isArray(workspaceId)) {
-        throw new HttpException({ statusCode: 403, message: "Missing workspace context" });
+        throw new HttpException({ statusCode: 403, message: HttpMessages.Workspace.NotFound });
       }
 
       const permissions = await this.accountRoleRepository.findPermissions(
@@ -37,7 +38,7 @@ export class AuthorizeMiddleware implements Middleware<RawPermissionKey[]> {
       const hasAll = required.every((perm) => permissions.includes(perm));
 
       if (!hasAll) {
-        throw new HttpException({ statusCode: 403, message: "Forbidden" });
+        throw new HttpException({ statusCode: 403, message: HttpMessages.General.Forbidden });
       }
 
       next();
