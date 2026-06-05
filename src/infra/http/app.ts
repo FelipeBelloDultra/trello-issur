@@ -11,9 +11,11 @@ import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
 import { env } from "@/config/env";
+import { DomainError } from "@/core/errors/domain-error";
 
 import { InjectionTokens } from "../container/tokens";
 import { DatabaseClient } from "../db/client";
+import { logger } from "../logger";
 import { RabbitMQClient } from "../queue/adapters/rabbitmq/client";
 import { StorageLifecycle } from "../storage/contracts/storage-lifecycle";
 import { shutdownTracing } from "../tracing/adapters/otel";
@@ -122,6 +124,15 @@ export class App {
           return response.status(err.statusCode).json({ message: err.message });
         }
 
+        if (err instanceof DomainError) {
+          logger.error(
+            { err, code: err.code },
+            "domain invariant violated — possible data corruption or validation gap",
+          );
+          return response.status(500).json({ message: HttpMessages.General.InternalServerError });
+        }
+
+        logger.error({ err }, "unhandled error");
         return response.status(500).json({ message: HttpMessages.General.InternalServerError });
       },
     );
