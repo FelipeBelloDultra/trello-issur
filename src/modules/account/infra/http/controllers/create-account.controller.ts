@@ -26,7 +26,7 @@ export class CreateAccountController implements Controller {
   ) {}
 
   public async handler(req: Request, res: Response): Promise<Response> {
-    const dto = CreateAccountDto.create(req.body);
+    const dto = CreateAccountDto.parse(req.body);
     const result = await this.commandBus.dispatch<
       Either<EmailAlreadyTakenError, { account: Account }>
     >(
@@ -34,7 +34,7 @@ export class CreateAccountController implements Controller {
         name: dto.name,
         email: dto.email,
         password: dto.password,
-        createWorkspace: dto.createWorkspace,
+        createWorkspace: dto.create_workspace,
       }),
     );
 
