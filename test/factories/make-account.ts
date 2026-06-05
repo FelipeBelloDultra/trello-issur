@@ -2,6 +2,8 @@ import { faker } from "@faker-js/faker";
 
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 import { Account } from "@/modules/account/domain/entities/account";
+import { AccountName } from "@/modules/account/domain/value-objects/account-name";
+import { Email } from "@/modules/account/domain/value-objects/email";
 
 export function makeAccount(
   overrides?: Partial<Parameters<typeof Account.create>[0]>,
@@ -9,8 +11,8 @@ export function makeAccount(
 ): Account {
   return Account.create(
     {
-      name: faker.person.fullName(),
-      email: faker.internet.email(),
+      name: AccountName.fromRaw(faker.person.fullName()),
+      email: Email.fromRaw(faker.internet.email()),
       passwordHash: `hashed:${faker.internet.password()}`,
       createdAt: new Date(),
       updatedAt: new Date(),

@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 
+import { Email } from "@/modules/account/domain/value-objects/email";
 import { QueueEvents } from "@/shared/queue/application/events";
 import { makeAccount } from "@/test/factories/make-account";
 import { InMemoryPasswordHasherGateway } from "@/test/gateways/in-memory-password-hasher.gateway";
@@ -68,7 +69,7 @@ describe("CreateAccountHandler", () => {
 
   it("returns left with EmailAlreadyTakenError when the email is already registered", async () => {
     const email = faker.internet.email();
-    accountRepository.items.push(makeAccount({ email }));
+    accountRepository.items.push(makeAccount({ email: Email.fromRaw(email) }));
 
     const result = await sut.execute(
       new CreateAccountCommand({
@@ -83,7 +84,7 @@ describe("CreateAccountHandler", () => {
 
   it("does not persist a duplicate account", async () => {
     const email = faker.internet.email();
-    accountRepository.items.push(makeAccount({ email }));
+    accountRepository.items.push(makeAccount({ email: Email.fromRaw(email) }));
 
     await sut.execute(
       new CreateAccountCommand({

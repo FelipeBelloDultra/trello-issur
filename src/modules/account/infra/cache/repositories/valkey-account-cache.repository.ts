@@ -4,6 +4,8 @@ import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { AccountCacheRepository } from "@/modules/account/application/repositories/account-cache.repository";
 import { Account } from "@/modules/account/domain/entities/account";
+import { AccountName } from "@/modules/account/domain/value-objects/account-name";
+import { Email } from "@/modules/account/domain/value-objects/email";
 import { CacheRepository } from "@/shared/cache/application/repositories/cache.repository";
 
 interface AccountPayload {
@@ -71,8 +73,8 @@ export class ValkeyAccountCacheRepository implements AccountCacheRepository {
     const payload = JSON.parse(raw) as AccountPayload;
     return Account.create(
       {
-        name: payload.name,
-        email: payload.email,
+        name: AccountName.fromRaw(payload.name),
+        email: Email.fromRaw(payload.email),
         passwordHash: payload.passwordHash,
         createdAt: new Date(payload.createdAt),
         updatedAt: new Date(payload.updatedAt),

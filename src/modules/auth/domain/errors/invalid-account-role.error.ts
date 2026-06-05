@@ -4,6 +4,6 @@ export class InvalidAccountRoleError extends Error implements DomainError {
   public readonly code = "INVALID_ACCOUNT_ROLE";
 
   public constructor(value: string) {
-    super(`Unknown role: "${value}"`);
+    super(`unknown role: "${value}"`);
   }
 }

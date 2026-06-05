@@ -2,8 +2,8 @@ import { ValueObject } from "@/core/entity/value-object";
 
 import { InvalidWorkspaceNameError } from "../errors/invalid-workspace-name.error";
 
-const MIN = 3;
-const MAX = 80;
+export const WORKSPACE_NAME_MIN = 3;
+export const WORKSPACE_NAME_MAX = 80;
 
 export class WorkspaceName extends ValueObject<{ value: string }> {
   private constructor(value: string) {
@@ -13,12 +13,12 @@ export class WorkspaceName extends ValueObject<{ value: string }> {
   public static fromRaw(value: string): WorkspaceName {
     const trimmed = value.trim();
 
-    if (trimmed.length < MIN) {
-      throw new InvalidWorkspaceNameError(`must be at least ${MIN} characters`);
+    if (trimmed.length < WORKSPACE_NAME_MIN) {
+      throw new InvalidWorkspaceNameError(`must be at least ${WORKSPACE_NAME_MIN} characters`);
     }
 
-    if (trimmed.length > MAX) {
-      throw new InvalidWorkspaceNameError(`must be at most ${MAX} characters`);
+    if (trimmed.length > WORKSPACE_NAME_MAX) {
+      throw new InvalidWorkspaceNameError(`must be at most ${WORKSPACE_NAME_MAX} characters`);
     }
 
     return new WorkspaceName(trimmed);

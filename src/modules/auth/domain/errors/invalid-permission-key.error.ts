@@ -4,6 +4,6 @@ export class InvalidPermissionKeyError extends Error implements DomainError {
   public readonly code = "INVALID_PERMISSION_KEY";
 
   public constructor(value: string) {
-    super(`Unknown permission key: "${value}"`);
+    super(`unknown permission key: "${value}"`);
   }
 }
