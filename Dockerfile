@@ -24,6 +24,14 @@ FROM install AS build
 COPY . .
 RUN pnpm run build
 
+# ─── dev-watch ────────────────────────────────────────────────────────────────
+# src/ is bind-mounted from the host at runtime — no source copy here
+FROM install AS dev-watch
+WORKDIR /app
+COPY tsconfig.json ./
+ENV NODE_ENV=development
+EXPOSE 3000
+
 # ─── dev ──────────────────────────────────────────────────────────────────────
 FROM build AS dev
 ENV NODE_ENV=development
