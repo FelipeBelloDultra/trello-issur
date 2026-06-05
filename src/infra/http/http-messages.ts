@@ -1,4 +1,8 @@
 export const HttpMessages = {
+  General: {
+    InternalServerError: "internal server error",
+    ValidationFailed: "validation failed",
+  },
   Auth: {
     Unauthorized: "unauthorized",
     MissingRefreshToken: "missing refresh token",

@@ -21,6 +21,7 @@ import { ValkeyClient } from "../valkey/client";
 
 import { Middleware } from "./contracts/middleware";
 import { HttpException } from "./http-exception";
+import { HttpMessages } from "./http-messages";
 import { Routes } from "./routes";
 
 export class App {
@@ -109,8 +110,7 @@ export class App {
       (err: Error, _req: Request, response: Response, _next: NextFunction) => {
         if (err instanceof ZodError) {
           return response.status(400).json({
-            status_code: 400,
-            message: "validation failed",
+            message: HttpMessages.General.ValidationFailed,
             errors: fromZodError(err).details.map((d) => ({
               field: d.path.join("."),
               message: d.message.toLowerCase(),
@@ -119,16 +119,10 @@ export class App {
         }
 
         if (err instanceof HttpException) {
-          return response.status(err.statusCode).json({
-            status_code: err.statusCode,
-            message: err.message,
-          });
+          return response.status(err.statusCode).json({ message: err.message });
         }
 
-        return response.status(500).json({
-          status_code: 500,
-          message: "internal server error",
-        });
+        return response.status(500).json({ message: HttpMessages.General.InternalServerError });
       },
     );
   }
