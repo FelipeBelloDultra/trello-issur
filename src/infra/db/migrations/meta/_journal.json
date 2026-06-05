@@ -29,6 +29,13 @@
       "when": 1780664196396,
       "tag": "0003_bouncy_devos",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780667003025,
+      "tag": "0004_petite_joystick",
+      "breakpoints": true
     }
   ]
 }
