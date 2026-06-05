@@ -7,4 +7,8 @@ const transport: TransportSingleOptions | undefined =
     ? { target: "pino-pretty", options: { colorize: true, ignore: "pid,hostname" } }
     : undefined;
 
-export const logger: Logger = pino({ level: env.LOG_LEVEL, base: { instanceId: env.INSTANCE_ID }, transport });
+export const logger: Logger = pino({
+  level: env.LOG_LEVEL,
+  base: { instanceId: env.INSTANCE_ID },
+  transport,
+});
