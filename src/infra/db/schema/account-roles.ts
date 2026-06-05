@@ -30,5 +30,7 @@ export const accountRoles = pgTable(
       table.workspaceId,
     ),
     index("account_roles_account_workspace_idx").on(table.accountId, table.workspaceId),
+    index("account_roles_workspace_idx").on(table.workspaceId),
+    index("account_roles_role_idx").on(table.roleId),
   ],
 );

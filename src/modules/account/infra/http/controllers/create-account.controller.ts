@@ -6,6 +6,7 @@ import { Either } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
+import { HttpMessages } from "@/infra/http/http-messages";
 import { CreateAccountCommand } from "@/modules/account/application/commands/create-account/command";
 import { CreateAccountDto } from "@/modules/account/application/dtos/create-account.dto";
 import { EmailAlreadyTakenError } from "@/modules/account/application/errors/email-already-taken.error";
@@ -38,17 +39,14 @@ export class CreateAccountController implements Controller {
     );
 
     if (result.isRight()) {
-      return res.status(201).json({
-        data: AccountPresenter.toHTTP(result.value.account),
-      });
+      return res.status(201).json({ data: AccountPresenter.toHTTP(result.value.account) });
     }
 
     switch (result.value.constructor) {
       case EmailAlreadyTakenError:
         throw new HttpException({
-          message: "Email already used",
           statusCode: 409,
-          errors: [{ message: "Email already used" }],
+          message: HttpMessages.Account.EmailAlreadyTaken,
         });
       default:
         throw new Error();

@@ -3,6 +3,8 @@ import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 import { accounts } from "@/infra/db/schema/accounts";
 import { Account } from "@/modules/account/domain/entities/account";
+import { AccountName } from "@/modules/account/domain/value-objects/account-name";
+import { Email } from "@/modules/account/domain/value-objects/email";
 
 type AccountRow = InferSelectModel<typeof accounts>;
 type AccountInsert = InferInsertModel<typeof accounts>;
@@ -11,8 +13,8 @@ export class AccountMapper {
   public static toDomain(raw: AccountRow): Account {
     return Account.create(
       {
-        name: raw.name,
-        email: raw.email,
+        name: AccountName.fromRaw(raw.name),
+        email: Email.fromRaw(raw.email),
         passwordHash: raw.passwordHash,
         createdAt: raw.createdAt,
         updatedAt: raw.updatedAt,

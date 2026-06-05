@@ -5,6 +5,7 @@ import { QueryBus } from "@/core/queries/query-bus";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
+import { HttpMessages } from "@/infra/http/http-messages";
 import { AuthMiddleware } from "@/infra/http/middlewares/auth.middleware";
 import { GetAccountQuery } from "@/modules/account/application/queries/get-account/query";
 import { Account } from "@/modules/account/domain/entities/account";
@@ -26,12 +27,16 @@ export class GetMeController implements Controller {
   }
 
   public async handler(req: Request, res: Response): Promise<Response> {
-    const account = await this.queryBus.ask<Account | null>(new GetAccountQuery(req.account!.sub));
-
-    if (!account) {
-      throw new HttpException({ statusCode: 404, message: "Account not found" });
+    if (!req.account) {
+      throw new HttpException({ statusCode: 401, message: HttpMessages.Auth.Unauthorized });
     }
 
-    return res.status(200).json(AccountPresenter.toHTTP(account));
+    const account = await this.queryBus.ask<Account | null>(new GetAccountQuery(req.account.sub));
+
+    if (!account) {
+      throw new HttpException({ statusCode: 404, message: HttpMessages.Account.NotFound });
+    }
+
+    return res.status(200).json({ data: AccountPresenter.toHTTP(account) });
   }
 }

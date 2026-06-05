@@ -6,6 +6,7 @@ import { Either } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
+import { HttpMessages } from "@/infra/http/http-messages";
 import { LogoutCommand } from "@/modules/auth/application/commands/logout/command";
 import { InvalidTokenError } from "@/modules/auth/application/errors/invalid-token.error";
 
@@ -26,7 +27,7 @@ export class LogoutController implements Controller {
     const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE] as string | undefined;
 
     if (!refreshToken) {
-      throw new HttpException({ statusCode: 401, message: "Missing refresh token" });
+      throw new HttpException({ statusCode: 401, message: HttpMessages.Auth.MissingRefreshToken });
     }
 
     const result = await this.commandBus.dispatch<Either<InvalidTokenError, void>>(
@@ -34,13 +35,7 @@ export class LogoutController implements Controller {
     );
 
     if (result.isLeft()) {
-      const error = result.value;
-
-      if (error instanceof InvalidTokenError) {
-        throw new HttpException({ statusCode: 401, message: error.message });
-      }
-
-      throw new Error("Unexpected logout error");
+      throw new HttpException({ statusCode: 401, message: HttpMessages.Auth.InvalidToken });
     }
 
     res.clearCookie(REFRESH_TOKEN_COOKIE, refreshTokenCookieOptions);

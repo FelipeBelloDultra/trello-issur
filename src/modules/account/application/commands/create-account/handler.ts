@@ -5,6 +5,8 @@ import { Either, left, right } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { PasswordHasherGateway } from "@/modules/account/application/gateways/password-hasher.gateway";
 import { Account } from "@/modules/account/domain/entities/account";
+import { AccountName } from "@/modules/account/domain/value-objects/account-name";
+import { Email } from "@/modules/account/domain/value-objects/email";
 import { QueueEvents } from "@/shared/queue/application/events";
 import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
 
@@ -41,8 +43,8 @@ export class CreateAccountHandler implements CommandHandler<
     const passwordHash = await this.passwordHasher.hash(command.props.password);
 
     const account = Account.create({
-      name: command.props.name,
-      email: command.props.email,
+      name: AccountName.fromRaw(command.props.name),
+      email: Email.fromRaw(command.props.email),
       passwordHash,
       createdAt: new Date(),
       updatedAt: new Date(),

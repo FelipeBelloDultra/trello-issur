@@ -1,9 +1,8 @@
 import { DomainError } from "@/core/errors/domain-error";
 
-export class InvalidAccountRoleError extends Error implements DomainError {
+export class InvalidAccountRoleError extends DomainError {
   public readonly code = "INVALID_ACCOUNT_ROLE";
-
   public constructor(value: string) {
-    super(`Unknown role: "${value}"`);
+    super(`unknown role: "${value}"`);
   }
 }

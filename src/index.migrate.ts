@@ -2,25 +2,26 @@ import "dotenv/config";
 
 import path from "node:path";
 
-import { drizzle } from "drizzle-orm/postgres-js";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { Client } from "pg";
 
 import { env } from "@/config/env";
 import { logger } from "@/infra/logger";
 
 async function run(): Promise<void> {
-  const client = postgres(env.DATABASE_URL, {
-    max: 1,
-    connect_timeout: env.DB_CONNECT_TIMEOUT,
-    onnotice: () => {},
+  const client = new Client({
+    connectionString: env.DATABASE_URL,
+    connectionTimeoutMillis: env.DB_CONNECT_TIMEOUT * 1000,
   });
+
+  await client.connect();
 
   const db = drizzle({ client });
 
   try {
-    await client`SET lock_timeout = '3s'`;
-    await client`SET statement_timeout = '120s'`;
+    await client.query("SET lock_timeout = '3s'");
+    await client.query("SET statement_timeout = '120s'");
 
     logger.info("running migrations");
     await migrate(db, { migrationsFolder: path.join(__dirname, "infra/db/migrations") });

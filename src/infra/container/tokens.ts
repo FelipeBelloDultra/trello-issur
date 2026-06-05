@@ -75,6 +75,7 @@ export const InjectionTokens = {
   },
 
   Middlewares: {
+    ErrorHandler: Symbol("ErrorHandlerMiddleware"),
     Auth: Symbol("AuthMiddleware"),
     Authorize: Symbol("AuthorizeMiddleware"),
     ValidateWorkspace: Symbol("ValidateWorkspaceMiddleware"),

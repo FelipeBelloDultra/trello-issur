@@ -4,6 +4,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 
 import { AuthMiddleware } from "./auth.middleware";
 import { AuthorizeMiddleware } from "./authorize.middleware";
+import { ErrorHandlerMiddleware } from "./error-handler.middleware";
 import { FileUploadMiddleware } from "./file-upload.middleware";
 import { LoggerMiddleware } from "./logger.middleware";
 import { MetricsMiddleware } from "./metrics.middleware";
@@ -12,6 +13,12 @@ import { TracingMiddleware } from "./tracing.middleware";
 import { ValidateWorkspaceMiddleware } from "./validate-workspace.middleware";
 
 export function setupMiddlewaresContainer(): void {
+  container.register(
+    InjectionTokens.Middlewares.ErrorHandler,
+    { useClass: ErrorHandlerMiddleware },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
   container.register(
     InjectionTokens.Middlewares.FileUpload,
     { useClass: FileUploadMiddleware },

@@ -6,6 +6,7 @@ import { Either } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
+import { HttpMessages } from "@/infra/http/http-messages";
 import { RateLimitMiddleware } from "@/infra/http/middlewares/rate-limit.middleware";
 import { AuthenticateCommand } from "@/modules/auth/application/commands/authenticate/command";
 import { AuthenticateDto } from "@/modules/auth/application/dtos/authenticate.dto";
@@ -36,17 +37,11 @@ export class AuthenticateController implements Controller {
     );
 
     if (result.isLeft()) {
-      const error = result.value;
-
-      if (error instanceof InvalidCredentialsError) {
-        throw new HttpException({ statusCode: 401, message: error.message });
-      }
-
-      throw new Error("Unexpected authenticate error");
+      throw new HttpException({ statusCode: 401, message: HttpMessages.Auth.InvalidCredentials });
     }
 
     const pair = result.value;
     res.cookie(REFRESH_TOKEN_COOKIE, pair.refreshToken, refreshTokenCookieOptions);
-    return res.status(200).json({ accessToken: pair.accessToken });
+    return res.status(200).json({ data: { access_token: pair.accessToken } });
   }
 }
