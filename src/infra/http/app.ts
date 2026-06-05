@@ -4,26 +4,21 @@ import path from "node:path";
 
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express, { NextFunction, Request, Response } from "express";
+import express from "express";
 import helmet from "helmet";
 import { container } from "tsyringe";
-import { ZodError } from "zod";
-import { fromZodError } from "zod-validation-error";
 
 import { env } from "@/config/env";
-import { DomainError } from "@/core/errors/domain-error";
 
 import { InjectionTokens } from "../container/tokens";
 import { DatabaseClient } from "../db/client";
-import { logger } from "../logger";
 import { RabbitMQClient } from "../queue/adapters/rabbitmq/client";
 import { StorageLifecycle } from "../storage/contracts/storage-lifecycle";
 import { shutdownTracing } from "../tracing/adapters/otel";
 import { ValkeyClient } from "../valkey/client";
 
+import { ErrorMiddleware } from "./contracts/error-middleware";
 import { Middleware } from "./contracts/middleware";
-import { HttpException } from "./http-exception";
-import { HttpMessages } from "./http-messages";
 import { Routes } from "./routes";
 
 export class App {
@@ -57,7 +52,11 @@ export class App {
     this.expressInstance.use(metricsMiddleware.handle());
 
     this.registerRoutes();
-    this.setGlobalErrorHandler();
+
+    const errorHandler = container.resolve<ErrorMiddleware>(
+      InjectionTokens.Middlewares.ErrorHandler,
+    );
+    this.expressInstance.use(errorHandler.handle());
   }
 
   public async startServices(): Promise<void> {
@@ -105,36 +104,5 @@ export class App {
       process.stderr.write(`${String(err)}\n`);
       process.exit(1);
     }
-  }
-
-  private setGlobalErrorHandler() {
-    this.expressInstance.use(
-      (err: Error, _req: Request, response: Response, _next: NextFunction) => {
-        if (err instanceof ZodError) {
-          return response.status(422).json({
-            message: HttpMessages.General.ValidationFailed,
-            errors: fromZodError(err).details.map((d) => ({
-              field: d.path.join("."),
-              message: d.message.toLowerCase(),
-            })),
-          });
-        }
-
-        if (err instanceof HttpException) {
-          return response.status(err.statusCode).json({ message: err.message });
-        }
-
-        if (err instanceof DomainError) {
-          logger.error(
-            { err, code: err.code },
-            "domain invariant violated — possible data corruption or validation gap",
-          );
-          return response.status(500).json({ message: HttpMessages.General.InternalServerError });
-        }
-
-        logger.error({ err }, "unhandled error");
-        return response.status(500).json({ message: HttpMessages.General.InternalServerError });
-      },
-    );
   }
 }
