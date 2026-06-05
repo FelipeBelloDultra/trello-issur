@@ -110,8 +110,11 @@ export class App {
         if (err instanceof ZodError) {
           return response.status(400).json({
             status_code: 400,
-            message: "Validation failed",
-            errors: fromZodError(err).details,
+            message: "validation failed",
+            errors: fromZodError(err).details.map((d) => ({
+              field: d.path.join("."),
+              message: d.message.toLowerCase(),
+            })),
           });
         }
 
@@ -119,14 +122,12 @@ export class App {
           return response.status(err.statusCode).json({
             status_code: err.statusCode,
             message: err.message,
-            errors: err.errors,
           });
         }
 
         return response.status(500).json({
           status_code: 500,
-          message: "Internal server error",
-          errors: [],
+          message: "internal server error",
         });
       },
     );

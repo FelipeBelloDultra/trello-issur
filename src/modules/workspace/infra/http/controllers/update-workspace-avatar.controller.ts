@@ -6,6 +6,7 @@ import { Either } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
+import { HttpMessages } from "@/infra/http/http-messages";
 import { AuthMiddleware } from "@/infra/http/middlewares/auth.middleware";
 import { FileUploadMiddleware } from "@/infra/http/middlewares/file-upload.middleware";
 import { ValidateWorkspaceMiddleware } from "@/infra/http/middlewares/validate-workspace.middleware";
@@ -45,11 +46,11 @@ export class UpdateWorkspaceAvatarController implements Controller {
     const file = req.uploadedFile;
 
     if (!workspaceId || Array.isArray(workspaceId)) {
-      throw new HttpException({ statusCode: 404, message: "Workspace not found." });
+      throw new HttpException({ statusCode: 404, message: HttpMessages.Workspace.NotFound });
     }
 
     if (!file) {
-      throw new HttpException({ statusCode: 400, message: "No file uploaded." });
+      throw new HttpException({ statusCode: 400, message: HttpMessages.Upload.NoFile });
     }
 
     const result = await this.commandBus.dispatch<
@@ -64,7 +65,7 @@ export class UpdateWorkspaceAvatarController implements Controller {
     );
 
     if (result.isLeft()) {
-      throw new HttpException({ statusCode: 404, message: result.value.message });
+      throw new HttpException({ statusCode: 404, message: HttpMessages.Workspace.NotFound });
     }
 
     return res.status(200).json({ data: WorkspacePresenter.toHTTP(result.value.workspace) });

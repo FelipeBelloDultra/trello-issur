@@ -5,6 +5,7 @@ import { QueryBus } from "@/core/queries/query-bus";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
+import { HttpMessages } from "@/infra/http/http-messages";
 import { AuthMiddleware } from "@/infra/http/middlewares/auth.middleware";
 import { ValidateWorkspaceMiddleware } from "@/infra/http/middlewares/validate-workspace.middleware";
 import { GetWorkspaceQuery } from "@/modules/workspace/application/queries/get-workspace/query";
@@ -33,13 +34,13 @@ export class GetWorkspaceController implements Controller {
     const { workspaceId } = req.params;
 
     if (!workspaceId || Array.isArray(workspaceId)) {
-      throw new HttpException({ statusCode: 404, message: "Workspace not found" });
+      throw new HttpException({ statusCode: 404, message: HttpMessages.Workspace.NotFound });
     }
 
     const workspace = await this.queryBus.ask<Workspace | null>(new GetWorkspaceQuery(workspaceId));
 
     if (!workspace) {
-      throw new HttpException({ statusCode: 404, message: "Workspace not found" });
+      throw new HttpException({ statusCode: 404, message: HttpMessages.Workspace.NotFound });
     }
 
     return res.status(200).json({ data: WorkspacePresenter.toHTTP(workspace) });

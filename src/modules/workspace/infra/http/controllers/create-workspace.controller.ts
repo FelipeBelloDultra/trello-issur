@@ -6,6 +6,7 @@ import { Either } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
+import { HttpMessages } from "@/infra/http/http-messages";
 import { AuthMiddleware } from "@/infra/http/middlewares/auth.middleware";
 import { CreateWorkspaceCommand } from "@/modules/workspace/application/commands/create-workspace/command";
 import { CreateWorkspaceDto } from "@/modules/workspace/application/dtos/create-workspace.dto";
@@ -31,7 +32,7 @@ export class CreateWorkspaceController implements Controller {
 
   public async handler(req: Request, res: Response): Promise<Response> {
     if (!req.account) {
-      throw new HttpException({ statusCode: 401, message: "Unauthorized" });
+      throw new HttpException({ statusCode: 401, message: HttpMessages.Auth.Unauthorized });
     }
 
     const dto = CreateWorkspaceDto.parse(req.body);
@@ -52,7 +53,10 @@ export class CreateWorkspaceController implements Controller {
 
     switch (result.value.constructor) {
       case WorkspaceSlugAlreadyTakenError:
-        throw new HttpException({ statusCode: 409, message: result.value.message });
+        throw new HttpException({
+          statusCode: 409,
+          message: HttpMessages.Workspace.SlugAlreadyTaken,
+        });
       default:
         throw new Error();
     }
