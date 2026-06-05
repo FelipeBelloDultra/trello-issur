@@ -8,9 +8,30 @@ import { ErrorHandlerMiddleware } from "./error-handler.middleware";
 import { FileUploadMiddleware } from "./file-upload.middleware";
 import { LoggerMiddleware } from "./logger.middleware";
 import { MetricsMiddleware } from "./metrics.middleware";
+import { PaginationMiddleware } from "./pagination.middleware";
 import { RateLimitMiddleware } from "./rate-limit.middleware";
 import { TracingMiddleware } from "./tracing.middleware";
 import { ValidateWorkspaceMiddleware } from "./validate-workspace.middleware";
+
+function setupObservabilityMiddlewaresContainer(): void {
+  container.register(
+    InjectionTokens.Middlewares.Logger,
+    { useClass: LoggerMiddleware },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register(
+    InjectionTokens.Middlewares.Tracing,
+    { useClass: TracingMiddleware },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register(
+    InjectionTokens.Middlewares.Metrics,
+    { useClass: MetricsMiddleware },
+    { lifecycle: Lifecycle.Singleton },
+  );
+}
 
 export function setupMiddlewaresContainer(): void {
   container.register(
@@ -44,26 +65,16 @@ export function setupMiddlewaresContainer(): void {
   );
 
   container.register(
+    InjectionTokens.Middlewares.Pagination,
+    { useClass: PaginationMiddleware },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register(
     InjectionTokens.Middlewares.RateLimit,
     { useClass: RateLimitMiddleware },
     { lifecycle: Lifecycle.Singleton },
   );
 
-  container.register(
-    InjectionTokens.Middlewares.Logger,
-    { useClass: LoggerMiddleware },
-    { lifecycle: Lifecycle.Singleton },
-  );
-
-  container.register(
-    InjectionTokens.Middlewares.Tracing,
-    { useClass: TracingMiddleware },
-    { lifecycle: Lifecycle.Singleton },
-  );
-
-  container.register(
-    InjectionTokens.Middlewares.Metrics,
-    { useClass: MetricsMiddleware },
-    { lifecycle: Lifecycle.Singleton },
-  );
+  setupObservabilityMiddlewaresContainer();
 }

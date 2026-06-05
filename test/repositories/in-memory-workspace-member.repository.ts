@@ -1,22 +1,71 @@
+import { Pagination } from "@/core/entity/pagination";
+import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 import {
+  CreateWorkspaceMemberOptions,
+  UpdateMemberRoleOptions,
   WorkspaceMemberRepository,
-  WorkspaceMemberRole,
+  WorkspaceMemberView,
 } from "@/modules/workspace/application/repositories/workspace-member.repository";
+import { WorkspaceMember } from "@/modules/workspace/domain/entities/workspace-member";
 
-interface WorkspaceMember {
+interface StoredMember {
+  id: string;
   workspaceId: string;
   accountId: string;
-  role: WorkspaceMemberRole;
+  role: string;
 }
 
 export class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
-  public readonly items: WorkspaceMember[] = [];
+  public readonly items: StoredMember[] = [];
 
-  public async create(
+  public create({ workspaceId, accountId, role }: CreateWorkspaceMemberOptions): Promise<void> {
+    this.items.push({ id: UniqueEntityID.create().toValue(), workspaceId, accountId, role });
+    return Promise.resolve();
+  }
+
+  public findById(id: string): Promise<WorkspaceMember | null> {
+    const item = this.items.find((m) => m.id === id);
+    if (!item) return Promise.resolve(null);
+
+    return Promise.resolve(
+      WorkspaceMember.create(
+        {
+          workspaceId: UniqueEntityID.create(item.workspaceId),
+          accountId: UniqueEntityID.create(item.accountId),
+          role: item.role as WorkspaceMember["role"],
+          createdAt: new Date(),
+        },
+        UniqueEntityID.create(item.id),
+      ),
+    );
+  }
+
+  public findManyByWorkspace(
     workspaceId: string,
-    accountId: string,
-    role: WorkspaceMemberRole,
-  ): Promise<void> {
-    await Promise.resolve(this.items.push({ workspaceId, accountId, role }));
+    pagination: Pagination,
+  ): Promise<{ members: WorkspaceMemberView[]; total: number }> {
+    const all = this.items.filter((m) => m.workspaceId === workspaceId);
+    const members = all.slice(pagination.skip, pagination.skip + pagination.take).map((m) => ({
+      id: m.id,
+      accountId: m.accountId,
+      accountName: "",
+      accountEmail: "",
+      role: m.role as WorkspaceMemberView["role"],
+      joinedAt: new Date(),
+    }));
+
+    return Promise.resolve({ members, total: all.length });
+  }
+
+  public remove(id: string): Promise<void> {
+    const index = this.items.findIndex((m) => m.id === id);
+    if (index !== -1) this.items.splice(index, 1);
+    return Promise.resolve();
+  }
+
+  public updateRole({ id, role }: UpdateMemberRoleOptions): Promise<void> {
+    const item = this.items.find((m) => m.id === id);
+    if (item) item.role = role;
+    return Promise.resolve();
   }
 }
