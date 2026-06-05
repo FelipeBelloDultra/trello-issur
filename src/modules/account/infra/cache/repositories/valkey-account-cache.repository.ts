@@ -73,8 +73,8 @@ export class ValkeyAccountCacheRepository implements AccountCacheRepository {
     const payload = JSON.parse(raw) as AccountPayload;
     return Account.create(
       {
-        name: AccountName.fromRaw(payload.name),
-        email: Email.fromRaw(payload.email),
+        name: AccountName.restore(payload.name),
+        email: Email.restore(payload.email),
         passwordHash: payload.passwordHash,
         createdAt: new Date(payload.createdAt),
         updatedAt: new Date(payload.updatedAt),

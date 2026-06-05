@@ -9,7 +9,7 @@ export class Email extends ValueObject<{ value: string }> {
     super({ value });
   }
 
-  public static fromRaw(value: string): Email {
+  public static create(value: string): Email {
     const normalized = value.trim().toLowerCase();
 
     if (!EMAIL_PATTERN.test(normalized)) {
@@ -17,6 +17,10 @@ export class Email extends ValueObject<{ value: string }> {
     }
 
     return new Email(normalized);
+  }
+
+  public static restore(value: string): Email {
+    return new Email(value);
   }
 
   public toString(): string {

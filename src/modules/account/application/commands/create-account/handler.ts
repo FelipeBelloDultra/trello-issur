@@ -43,8 +43,8 @@ export class CreateAccountHandler implements CommandHandler<
     const passwordHash = await this.passwordHasher.hash(command.props.password);
 
     const account = Account.create({
-      name: AccountName.fromRaw(command.props.name),
-      email: Email.fromRaw(command.props.email),
+      name: AccountName.create(command.props.name),
+      email: Email.create(command.props.email),
       passwordHash,
       createdAt: new Date(),
       updatedAt: new Date(),

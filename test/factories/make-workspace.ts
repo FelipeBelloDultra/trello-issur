@@ -24,7 +24,7 @@ export function makeWorkspace(
 
   return Workspace.create(
     {
-      name: overrides.name ?? WorkspaceName.fromRaw(rawName),
+      name: overrides.name ?? WorkspaceName.create(rawName),
       slug: overrides.slug ?? WorkspaceSlug.fromName(rawName),
       ownerId: overrides.ownerId ?? UniqueEntityID.create(),
       description: overrides.description ?? null,

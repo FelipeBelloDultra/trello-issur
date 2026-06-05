@@ -69,7 +69,7 @@ describe("CreateAccountHandler", () => {
 
   it("returns left with EmailAlreadyTakenError when the email is already registered", async () => {
     const email = faker.internet.email();
-    accountRepository.items.push(makeAccount({ email: Email.fromRaw(email) }));
+    accountRepository.items.push(makeAccount({ email: Email.create(email) }));
 
     const result = await sut.execute(
       new CreateAccountCommand({
@@ -84,7 +84,7 @@ describe("CreateAccountHandler", () => {
 
   it("does not persist a duplicate account", async () => {
     const email = faker.internet.email();
-    accountRepository.items.push(makeAccount({ email: Email.fromRaw(email) }));
+    accountRepository.items.push(makeAccount({ email: Email.create(email) }));
 
     await sut.execute(
       new CreateAccountCommand({

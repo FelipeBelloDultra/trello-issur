@@ -11,8 +11,8 @@ export function makeAccount(
 ): Account {
   return Account.create(
     {
-      name: AccountName.fromRaw(faker.person.fullName()),
-      email: Email.fromRaw(faker.internet.email()),
+      name: AccountName.create(faker.person.fullName()),
+      email: Email.create(faker.internet.email()),
       passwordHash: `hashed:${faker.internet.password()}`,
       createdAt: new Date(),
       updatedAt: new Date(),

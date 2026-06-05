@@ -13,8 +13,8 @@ export class AccountMapper {
   public static toDomain(raw: AccountRow): Account {
     return Account.create(
       {
-        name: AccountName.fromRaw(raw.name),
-        email: Email.fromRaw(raw.email),
+        name: AccountName.restore(raw.name),
+        email: Email.restore(raw.email),
         passwordHash: raw.passwordHash,
         createdAt: raw.createdAt,
         updatedAt: raw.updatedAt,

@@ -31,7 +31,7 @@ export class CreateWorkspaceHandler implements CommandHandler<
   ) {}
 
   public async execute(command: CreateWorkspaceCommand): Output {
-    const name = WorkspaceName.fromRaw(command.props.name);
+    const name = WorkspaceName.create(command.props.name);
     const baseSlug = WorkspaceSlug.fromName(command.props.name);
 
     if (!command.props.isPersonal) {

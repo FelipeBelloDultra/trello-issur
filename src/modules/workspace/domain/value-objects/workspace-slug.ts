@@ -13,7 +13,7 @@ export class WorkspaceSlug extends ValueObject<{ value: string }> {
     super({ value });
   }
 
-  public static fromRaw(value: string): WorkspaceSlug {
+  public static create(value: string): WorkspaceSlug {
     const trimmed = value.trim().toLowerCase();
 
     if (trimmed.length < MIN) {
@@ -33,10 +33,14 @@ export class WorkspaceSlug extends ValueObject<{ value: string }> {
     return new WorkspaceSlug(trimmed);
   }
 
+  public static restore(value: string): WorkspaceSlug {
+    return new WorkspaceSlug(value);
+  }
+
   public withRandomSuffix(): WorkspaceSlug {
     const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
     const suffix = Array.from(randomBytes(6), (byte) => chars[byte % chars.length]).join("");
-    return WorkspaceSlug.fromRaw(`${this.props.value}-${suffix}`);
+    return WorkspaceSlug.create(`${this.props.value}-${suffix}`);
   }
 
   public static fromName(name: string): WorkspaceSlug {
@@ -48,7 +52,7 @@ export class WorkspaceSlug extends ValueObject<{ value: string }> {
       .replace(/^-+|-+$/g, "")
       .replace(/-{2,}/g, "-");
 
-    return WorkspaceSlug.fromRaw(slug);
+    return WorkspaceSlug.create(slug);
   }
 
   public toString(): string {

@@ -10,7 +10,7 @@ export class WorkspaceName extends ValueObject<{ value: string }> {
     super({ value });
   }
 
-  public static fromRaw(value: string): WorkspaceName {
+  public static create(value: string): WorkspaceName {
     const trimmed = value.trim();
 
     if (trimmed.length < WORKSPACE_NAME_MIN) {
@@ -22,6 +22,10 @@ export class WorkspaceName extends ValueObject<{ value: string }> {
     }
 
     return new WorkspaceName(trimmed);
+  }
+
+  public static restore(value: string): WorkspaceName {
+    return new WorkspaceName(value);
   }
 
   public toString(): string {

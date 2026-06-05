@@ -13,8 +13,8 @@ export class WorkspaceMapper {
   public static toDomain(raw: WorkspaceRow): Workspace {
     return Workspace.create(
       {
-        name: WorkspaceName.fromRaw(raw.name),
-        slug: WorkspaceSlug.fromRaw(raw.slug),
+        name: WorkspaceName.restore(raw.name),
+        slug: WorkspaceSlug.restore(raw.slug),
         ownerId: UniqueEntityID.create(raw.ownerId),
         description: raw.description,
         avatarUrl: raw.avatarUrl,

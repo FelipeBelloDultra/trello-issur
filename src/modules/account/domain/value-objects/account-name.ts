@@ -10,7 +10,7 @@ export class AccountName extends ValueObject<{ value: string }> {
     super({ value });
   }
 
-  public static fromRaw(value: string): AccountName {
+  public static create(value: string): AccountName {
     const trimmed = value.trim();
 
     if (trimmed.length > ACCOUNT_NAME_MAX) {
@@ -24,6 +24,10 @@ export class AccountName extends ValueObject<{ value: string }> {
     }
 
     return new AccountName(trimmed);
+  }
+
+  public static restore(value: string): AccountName {
+    return new AccountName(value);
   }
 
   public toString(): string {
