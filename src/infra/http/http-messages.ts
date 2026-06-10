@@ -21,6 +21,7 @@ export const HttpMessages = {
   WorkspaceMember: {
     NotFound: "workspace member not found",
     CannotRemoveOwner: "workspace owner cannot be removed",
+    CannotRemoveSelf: "you cannot remove yourself from the workspace",
     CannotUpdateOwnerRole: "workspace owner role cannot be changed",
   },
   WorkspaceInvite: {

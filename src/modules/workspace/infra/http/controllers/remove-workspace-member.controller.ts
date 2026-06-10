@@ -11,10 +11,14 @@ import { AuthMiddleware } from "@/infra/http/middlewares/auth.middleware";
 import { AuthorizeMiddleware } from "@/infra/http/middlewares/authorize.middleware";
 import { ValidateWorkspaceMiddleware } from "@/infra/http/middlewares/validate-workspace.middleware";
 import { RemoveWorkspaceMemberCommand } from "@/modules/workspace/application/commands/remove-workspace-member/command";
+import { CannotRemoveSelfError } from "@/modules/workspace/application/errors/cannot-remove-self.error";
 import { CannotRemoveWorkspaceOwnerError } from "@/modules/workspace/application/errors/cannot-remove-workspace-owner.error";
 import { WorkspaceMemberNotFoundError } from "@/modules/workspace/application/errors/workspace-member-not-found.error";
 
-type OnError = WorkspaceMemberNotFoundError | CannotRemoveWorkspaceOwnerError;
+type OnError =
+  | WorkspaceMemberNotFoundError
+  | CannotRemoveWorkspaceOwnerError
+  | CannotRemoveSelfError;
 
 @injectable()
 export class RemoveWorkspaceMemberController implements Controller {
@@ -47,7 +51,7 @@ export class RemoveWorkspaceMemberController implements Controller {
     }
 
     const result = await this.commandBus.dispatch<Either<OnError, void>>(
-      new RemoveWorkspaceMemberCommand(memberId),
+      new RemoveWorkspaceMemberCommand(memberId, workspaceId, req.account!.sub),
     );
 
     if (result.isLeft()) {
@@ -57,6 +61,13 @@ export class RemoveWorkspaceMemberController implements Controller {
         throw new HttpException({
           statusCode: 404,
           message: HttpMessages.WorkspaceMember.NotFound,
+        });
+      }
+
+      if (error instanceof CannotRemoveSelfError) {
+        throw new HttpException({
+          statusCode: 422,
+          message: HttpMessages.WorkspaceMember.CannotRemoveSelf,
         });
       }
 
