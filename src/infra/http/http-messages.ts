@@ -31,6 +31,10 @@ export const HttpMessages = {
     EmailMismatch: "this invite was not sent to your email address",
     AlreadyAMember: "account is already a member of this workspace",
   },
+  Notification: {
+    NotFound: "notification not found",
+    AccessDenied: "notification does not belong to your account",
+  },
   Upload: {
     NoFile: "no file uploaded",
   },
