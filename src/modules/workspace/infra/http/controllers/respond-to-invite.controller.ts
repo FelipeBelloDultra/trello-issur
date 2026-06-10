@@ -11,6 +11,7 @@ import { AuthMiddleware } from "@/infra/http/middlewares/auth.middleware";
 import { RespondToInviteCommand } from "@/modules/workspace/application/commands/respond-to-invite/command";
 import { RespondToInviteSchema } from "@/modules/workspace/application/dtos/respond-to-invite.dto";
 import { AlreadyAMemberError } from "@/modules/workspace/application/errors/already-a-member.error";
+import { InvalidInviteActionError } from "@/modules/workspace/application/errors/invalid-invite-action.error";
 import { InviteAlreadyUsedError } from "@/modules/workspace/application/errors/invite-already-used.error";
 import { InviteEmailMismatchError } from "@/modules/workspace/application/errors/invite-email-mismatch.error";
 import { InviteExpiredError } from "@/modules/workspace/application/errors/invite-expired.error";
@@ -21,7 +22,8 @@ type OnError =
   | InviteExpiredError
   | InviteAlreadyUsedError
   | InviteEmailMismatchError
-  | AlreadyAMemberError;
+  | AlreadyAMemberError
+  | InvalidInviteActionError;
 
 @injectable()
 export class RespondToInviteController implements Controller {
@@ -84,10 +86,14 @@ export class RespondToInviteController implements Controller {
         });
       }
 
-      throw new HttpException({
-        statusCode: 409,
-        message: HttpMessages.WorkspaceInvite.AlreadyAMember,
-      });
+      if (error instanceof AlreadyAMemberError) {
+        throw new HttpException({
+          statusCode: 409,
+          message: HttpMessages.WorkspaceInvite.AlreadyAMember,
+        });
+      }
+
+      throw new HttpException({ statusCode: 400, message: HttpMessages.General.ValidationFailed });
     }
 
     return res.status(204).send();

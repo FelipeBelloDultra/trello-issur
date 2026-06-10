@@ -12,10 +12,11 @@ import { AuthorizeMiddleware } from "@/infra/http/middlewares/authorize.middlewa
 import { ValidateWorkspaceMiddleware } from "@/infra/http/middlewares/validate-workspace.middleware";
 import { InviteMemberCommand } from "@/modules/workspace/application/commands/invite-member/command";
 import { InviteMemberSchema } from "@/modules/workspace/application/dtos/invite-member.dto";
+import { AlreadyAMemberError } from "@/modules/workspace/application/errors/already-a-member.error";
 import { InviteAlreadyPendingError } from "@/modules/workspace/application/errors/invite-already-pending.error";
 import { WorkspaceInvite } from "@/modules/workspace/domain/entities/workspace-invite";
 
-type OnError = InviteAlreadyPendingError;
+type OnError = InviteAlreadyPendingError | AlreadyAMemberError;
 
 @injectable()
 export class InviteMemberController implements Controller {
@@ -54,6 +55,15 @@ export class InviteMemberController implements Controller {
     );
 
     if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof AlreadyAMemberError) {
+        throw new HttpException({
+          statusCode: 409,
+          message: HttpMessages.WorkspaceInvite.AlreadyAMember,
+        });
+      }
+
       throw new HttpException({
         statusCode: 409,
         message: HttpMessages.WorkspaceInvite.AlreadyPending,
