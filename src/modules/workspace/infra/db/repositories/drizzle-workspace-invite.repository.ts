@@ -1,4 +1,5 @@
 import { and, asc, eq, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { inject, injectable } from "tsyringe";
 
 import { Pagination } from "@/core/entity/pagination";
@@ -74,6 +75,9 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
   }
 
   public async findDetailsById(id: string): Promise<WorkspaceInviteDetails | null> {
+    const invitedByAccount = alias(accounts, "invited_by_account");
+    const inviteeAccount = alias(accounts, "invitee_account");
+
     const [row] = await this.db.query
       .select({
         id: workspaceInvites.id,
@@ -82,11 +86,13 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
         token: workspaceInvites.token,
         expiresAt: workspaceInvites.expiresAt,
         workspaceName: workspaces.name,
-        invitedByName: accounts.name,
+        invitedByName: invitedByAccount.name,
+        inviteeAccountId: inviteeAccount.id,
       })
       .from(workspaceInvites)
       .innerJoin(workspaces, eq(workspaceInvites.workspaceId, workspaces.id))
-      .innerJoin(accounts, eq(workspaceInvites.invitedByAccountId, accounts.id))
+      .innerJoin(invitedByAccount, eq(workspaceInvites.invitedByAccountId, invitedByAccount.id))
+      .leftJoin(inviteeAccount, eq(inviteeAccount.email, workspaceInvites.email))
       .where(eq(workspaceInvites.id, id))
       .limit(1);
 

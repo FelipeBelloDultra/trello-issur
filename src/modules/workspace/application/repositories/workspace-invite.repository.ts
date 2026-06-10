@@ -21,6 +21,7 @@ export type WorkspaceInviteDetails = {
   expiresAt: Date;
   workspaceName: string;
   invitedByName: string;
+  inviteeAccountId: string | null;
 };
 
 export interface WorkspaceInviteRepository {
