@@ -28,6 +28,10 @@ export type UpdateMemberRoleOptions = {
 export interface WorkspaceMemberRepository {
   create(options: CreateWorkspaceMemberOptions): Promise<void>;
   findById(id: string): Promise<WorkspaceMember | null>;
+  findByAccountAndWorkspace(
+    accountId: string,
+    workspaceId: string,
+  ): Promise<WorkspaceMember | null>;
   findManyByWorkspace(
     workspaceId: string,
     pagination: Pagination,
