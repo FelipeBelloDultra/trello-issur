@@ -9,6 +9,7 @@ export const InjectionTokens = {
     Account: Symbol("AccountCacheRepository"),
     AccountRole: Symbol("AccountRoleCacheRepository"),
     WorkspaceMember: Symbol("WorkspaceMemberCacheRepository"),
+    WorkspaceInvite: Symbol("WorkspaceInviteCacheRepository"),
   },
 
   Repositories: {
@@ -17,6 +18,7 @@ export const InjectionTokens = {
     AccountRole: Symbol("AccountRoleRepository"),
     Workspace: Symbol("WorkspaceRepository"),
     WorkspaceMember: Symbol("WorkspaceMemberRepository"),
+    WorkspaceInvite: Symbol("WorkspaceInviteRepository"),
   },
 
   Email: {
@@ -32,11 +34,14 @@ export const InjectionTokens = {
     Cryptograph: Symbol("CryptographGateway"),
     PasswordHasher: Symbol("PasswordHasherGateway"),
     SendWelcomeEmail: Symbol("SendWelcomeEmailGateway"),
+    TokenGenerator: Symbol("TokenGeneratorGateway"),
+    SendInviteEmail: Symbol("SendInviteEmailGateway"),
   },
 
   Consumers: {
     AccountCreated: Symbol("AccountCreatedConsumer"),
     WorkspacePersonalCreationRequested: Symbol("WorkspacePersonalCreationRequestedConsumer"),
+    WorkspaceInviteCreated: Symbol("WorkspaceInviteCreatedConsumer"),
   },
 
   Bus: {
@@ -65,6 +70,10 @@ export const InjectionTokens = {
     ListWorkspaceMembers: Symbol("ListWorkspaceMembersHandler"),
     RemoveWorkspaceMember: Symbol("RemoveWorkspaceMemberHandler"),
     UpdateWorkspaceMemberRole: Symbol("UpdateWorkspaceMemberRoleHandler"),
+    InviteMember: Symbol("InviteMemberHandler"),
+    RespondToInvite: Symbol("RespondToInviteHandler"),
+    SendInviteEmail: Symbol("SendInviteEmailHandler"),
+    ListWorkspaceInvites: Symbol("ListWorkspaceInvitesHandler"),
   },
 
   Controllers: {
@@ -79,6 +88,9 @@ export const InjectionTokens = {
     ListWorkspaceMembers: Symbol("ListWorkspaceMembersController"),
     RemoveWorkspaceMember: Symbol("RemoveWorkspaceMemberController"),
     UpdateWorkspaceMemberRole: Symbol("UpdateWorkspaceMemberRoleController"),
+    InviteMember: Symbol("InviteMemberController"),
+    RespondToInvite: Symbol("RespondToInviteController"),
+    ListWorkspaceInvites: Symbol("ListWorkspaceInvitesController"),
   },
 
   Middlewares: {
