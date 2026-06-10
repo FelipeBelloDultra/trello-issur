@@ -2,6 +2,7 @@ import { inject, injectable } from "tsyringe";
 
 import { CommandHandler } from "@/core/commands/command-handler";
 import { Either, left, right } from "@/core/either";
+import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 import { InjectionTokens } from "@/infra/container/tokens";
 
 import { CannotUpdateOwnerRoleError } from "../../errors/cannot-update-owner-role.error";
@@ -27,7 +28,7 @@ export class UpdateWorkspaceMemberRoleHandler implements CommandHandler<
   public async execute(command: UpdateWorkspaceMemberRoleCommand): Output {
     const member = await this.workspaceMemberRepository.findById(command.memberId);
 
-    if (!member) {
+    if (!member?.workspaceId.equals(UniqueEntityID.create(command.workspaceId))) {
       return left(new WorkspaceMemberNotFoundError());
     }
 
