@@ -8,6 +8,7 @@ import { QueueEvents } from "@/shared/queue/application/events";
 import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
 
 import { AlreadyAMemberError } from "../../errors/already-a-member.error";
+import { InvalidInviteActionError } from "../../errors/invalid-invite-action.error";
 import { InviteAlreadyUsedError } from "../../errors/invite-already-used.error";
 import { InviteEmailMismatchError } from "../../errors/invite-email-mismatch.error";
 import { InviteExpiredError } from "../../errors/invite-expired.error";
@@ -22,7 +23,8 @@ type OnError =
   | InviteExpiredError
   | InviteAlreadyUsedError
   | InviteEmailMismatchError
-  | AlreadyAMemberError;
+  | AlreadyAMemberError
+  | InvalidInviteActionError;
 type OnSuccess = void;
 type Output = Promise<Either<OnError, OnSuccess>>;
 type Strategy = (invite: WorkspaceInvite, accountId: string) => Output;
@@ -54,7 +56,7 @@ export class RespondToInviteHandler implements CommandHandler<
     const strategy = this.strategies[action];
 
     if (!strategy) {
-      throw new Error(`unknown invite action: ${action}`);
+      return left(new InvalidInviteActionError());
     }
 
     const invite = await this.inviteRepository.findByToken(token);
@@ -79,20 +81,15 @@ export class RespondToInviteHandler implements CommandHandler<
   }
 
   private async accept(invite: WorkspaceInvite, accountId: string): Output {
-    const existingMember = await this.memberRepository.findByAccountAndWorkspace(
-      accountId,
-      invite.workspaceId.toValue(),
-    );
-
-    if (existingMember) {
-      return left(new AlreadyAMemberError());
-    }
-
-    await this.memberRepository.create({
+    const created = await this.memberRepository.create({
       workspaceId: invite.workspaceId.toValue(),
       accountId,
       role: invite.role,
     });
+
+    if (!created) {
+      return left(new AlreadyAMemberError());
+    }
 
     invite.accept();
     await this.inviteRepository.save(invite);
