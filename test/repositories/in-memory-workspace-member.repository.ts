@@ -23,6 +23,26 @@ export class InMemoryWorkspaceMemberRepository implements WorkspaceMemberReposit
     return Promise.resolve();
   }
 
+  public findByAccountAndWorkspace(
+    accountId: string,
+    workspaceId: string,
+  ): Promise<WorkspaceMember | null> {
+    const item = this.items.find((m) => m.accountId === accountId && m.workspaceId === workspaceId);
+    if (!item) return Promise.resolve(null);
+
+    return Promise.resolve(
+      WorkspaceMember.create(
+        {
+          workspaceId: UniqueEntityID.create(item.workspaceId),
+          accountId: UniqueEntityID.create(item.accountId),
+          role: item.role as WorkspaceMember["role"],
+          createdAt: new Date(),
+        },
+        UniqueEntityID.create(item.id),
+      ),
+    );
+  }
+
   public findById(id: string): Promise<WorkspaceMember | null> {
     const item = this.items.find((m) => m.id === id);
     if (!item) return Promise.resolve(null);

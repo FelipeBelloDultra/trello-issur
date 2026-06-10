@@ -15,6 +15,7 @@ export const env = z
 
     // HTTP server
     HTTP_SERVER_PORT: z.coerce.number().default(3000),
+    APP_URL: z.string().url().default("http://localhost:3000"),
 
     // CORS
     CORS_ORIGIN: z.string().default("*"),

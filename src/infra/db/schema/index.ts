@@ -5,4 +5,5 @@ export * from "./permissions";
 export * from "./relations";
 export * from "./role-permissions";
 export * from "./roles";
+export * from "./workspace-invites";
 export * from "./workspaces";

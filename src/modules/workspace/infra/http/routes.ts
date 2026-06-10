@@ -7,4 +7,7 @@ export const workspaceControllers = [
   InjectionTokens.Controllers.ListWorkspaceMembers,
   InjectionTokens.Controllers.RemoveWorkspaceMember,
   InjectionTokens.Controllers.UpdateWorkspaceMemberRole,
+  InjectionTokens.Controllers.InviteMember,
+  InjectionTokens.Controllers.ListWorkspaceInvites,
+  InjectionTokens.Controllers.RespondToInvite,
 ];

@@ -1,4 +1,4 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { inject, injectable } from "tsyringe";
 
 import { Pagination } from "@/core/entity/pagination";
@@ -59,6 +59,28 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
       .from(accountRoles)
       .innerJoin(roles, eq(accountRoles.roleId, roles.id))
       .where(eq(accountRoles.id, id))
+      .limit(1);
+
+    if (!row) return null;
+
+    return WorkspaceMemberMapper.toDomain(row);
+  }
+
+  public async findByAccountAndWorkspace(
+    accountId: string,
+    workspaceId: string,
+  ): Promise<WorkspaceMember | null> {
+    const [row] = await this.db.query
+      .select({
+        id: accountRoles.id,
+        accountId: accountRoles.accountId,
+        workspaceId: accountRoles.workspaceId,
+        roleName: roles.name,
+        createdAt: accountRoles.createdAt,
+      })
+      .from(accountRoles)
+      .innerJoin(roles, eq(accountRoles.roleId, roles.id))
+      .where(and(eq(accountRoles.accountId, accountId), eq(accountRoles.workspaceId, workspaceId)))
       .limit(1);
 
     if (!row) return null;

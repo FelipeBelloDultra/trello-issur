@@ -82,6 +82,8 @@ export class App {
       );
     }
 
+    // console.log(this.routes.router.stack.map((s) => s.route?.path));
+
     this.expressInstance.use("/api", this.routes.router);
   }
 

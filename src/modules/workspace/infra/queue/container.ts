@@ -1,8 +1,8 @@
 import { container, Lifecycle } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
-import { ConsumerRegistry } from "@/infra/queue/consumer-registry";
 
+import { WorkspaceInviteCreatedConsumer } from "./consumers/workspace-invite-created.consumer";
 import { WorkspacePersonalCreationRequestedConsumer } from "./consumers/workspace-personal-creation-requested.consumer";
 
 export function setupQueueWorkspaceContainer(): void {
@@ -12,10 +12,9 @@ export function setupQueueWorkspaceContainer(): void {
     { lifecycle: Lifecycle.Singleton },
   );
 
-  const registry = container.resolve<ConsumerRegistry>(InjectionTokens.Queue.ConsumerRegistry);
-  registry.register(
-    container.resolve<WorkspacePersonalCreationRequestedConsumer>(
-      InjectionTokens.Consumers.WorkspacePersonalCreationRequested,
-    ),
+  container.register<WorkspaceInviteCreatedConsumer>(
+    InjectionTokens.Consumers.WorkspaceInviteCreated,
+    { useClass: WorkspaceInviteCreatedConsumer },
+    { lifecycle: Lifecycle.Singleton },
   );
 }

@@ -36,6 +36,13 @@
       "when": 1780667003025,
       "tag": "0004_petite_joystick",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1781122692532,
+      "tag": "0005_peaceful_malice",
+      "breakpoints": true
     }
   ]
 }
