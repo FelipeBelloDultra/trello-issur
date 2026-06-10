@@ -41,7 +41,7 @@ export default defineConfig([
     rules: {
       complexity: ["warn", 10],
       "max-depth": ["warn", 4],
-      "max-lines-per-function": ["warn", { max: 50, skipBlankLines: true, skipComments: true }],
+      "max-lines-per-function": "off",
       "max-params": ["warn", 4],
       "no-else-return": "warn",
       "no-console": "warn",
