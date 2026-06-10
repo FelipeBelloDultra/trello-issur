@@ -10,13 +10,15 @@ import { WorkspaceInviteStatuses } from "@/modules/workspace/domain/value-object
 import { QueueEvents } from "@/shared/queue/application/events";
 import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
 
+import { AlreadyAMemberError } from "../../errors/already-a-member.error";
 import { InviteAlreadyPendingError } from "../../errors/invite-already-pending.error";
 import { TokenGeneratorGateway } from "../../gateways/token-generator.gateway";
 import { WorkspaceInviteRepository } from "../../repositories/workspace-invite.repository";
+import { WorkspaceMemberRepository } from "../../repositories/workspace-member.repository";
 
 import { InviteMemberCommand } from "./command";
 
-type OnError = InviteAlreadyPendingError;
+type OnError = InviteAlreadyPendingError | AlreadyAMemberError;
 type OnSuccess = { invite: WorkspaceInvite };
 type Output = Promise<Either<OnError, OnSuccess>>;
 
@@ -32,12 +34,23 @@ export class InviteMemberHandler implements CommandHandler<
     private readonly tokenGenerator: TokenGeneratorGateway,
     @inject(InjectionTokens.Queue.Publisher)
     private readonly publisher: QueuePublisherGateway,
+    @inject(InjectionTokens.Repositories.WorkspaceMember)
+    private readonly memberRepository: WorkspaceMemberRepository,
   ) {}
 
   public async execute(command: InviteMemberCommand): Output {
     const { workspaceId, invitedByAccountId, email, role } = command.props;
 
     const normalizedEmail = email.trim().toLowerCase();
+
+    const isMember = await this.memberRepository.existsByEmailAndWorkspace(
+      normalizedEmail,
+      workspaceId,
+    );
+
+    if (isMember) {
+      return left(new AlreadyAMemberError());
+    }
 
     const existing = await this.inviteRepository.findPendingByEmailAndWorkspace(
       normalizedEmail,
