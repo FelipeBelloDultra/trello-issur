@@ -1,4 +1,5 @@
 import { and, asc, eq, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { inject, injectable } from "tsyringe";
 
 import { Pagination } from "@/core/entity/pagination";
@@ -31,7 +32,7 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
     workspaceId,
     accountId,
     role,
-  }: CreateWorkspaceMemberOptions): Promise<void> {
+  }: CreateWorkspaceMemberOptions): Promise<boolean> {
     const [roleRow] = await this.db.query
       .select({ id: roles.id })
       .from(roles)
@@ -42,9 +43,29 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
       throw new Error(`role "${role}" not found`);
     }
 
-    await this.db.query.insert(accountRoles).values({ accountId, roleId: roleRow.id, workspaceId });
+    const inserted = await this.db.query
+      .insert(accountRoles)
+      .values({ accountId, roleId: roleRow.id, workspaceId })
+      .onConflictDoNothing()
+      .returning({ id: accountRoles.id });
+
+    if (inserted.length === 0) return false;
 
     await this.memberCache.invalidate(workspaceId);
+    return true;
+  }
+
+  public async existsByEmailAndWorkspace(email: string, workspaceId: string): Promise<boolean> {
+    const inviteeAccount = alias(accounts, "invitee_account");
+
+    const [row] = await this.db.query
+      .select({ id: accountRoles.id })
+      .from(accountRoles)
+      .innerJoin(inviteeAccount, eq(accountRoles.accountId, inviteeAccount.id))
+      .where(and(eq(inviteeAccount.email, email), eq(accountRoles.workspaceId, workspaceId)))
+      .limit(1);
+
+    return row !== undefined;
   }
 
   public async findById(id: string): Promise<WorkspaceMember | null> {

@@ -12,15 +12,26 @@ interface StoredMember {
   id: string;
   workspaceId: string;
   accountId: string;
+  accountEmail?: string;
   role: string;
 }
 
 export class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
   public readonly items: StoredMember[] = [];
 
-  public create({ workspaceId, accountId, role }: CreateWorkspaceMemberOptions): Promise<void> {
+  public create({ workspaceId, accountId, role }: CreateWorkspaceMemberOptions): Promise<boolean> {
+    const exists = this.items.some(
+      (m) => m.accountId === accountId && m.workspaceId === workspaceId,
+    );
+    if (exists) return Promise.resolve(false);
     this.items.push({ id: UniqueEntityID.create().toValue(), workspaceId, accountId, role });
-    return Promise.resolve();
+    return Promise.resolve(true);
+  }
+
+  public existsByEmailAndWorkspace(email: string, workspaceId: string): Promise<boolean> {
+    return Promise.resolve(
+      this.items.some((m) => m.accountEmail === email && m.workspaceId === workspaceId),
+    );
   }
 
   public findByAccountAndWorkspace(
