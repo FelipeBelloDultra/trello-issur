@@ -24,6 +24,6 @@ export class CreateNotificationHandler implements CommandHandler<
 
   public async execute(command: CreateNotificationCommand): Output {
     await this.notificationRepository.create(command.props);
-    return right();
+    return right(undefined);
   }
 }

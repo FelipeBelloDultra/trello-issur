@@ -31,6 +31,11 @@ export class MarkNotificationAsReadController implements Controller {
 
   public async handler(req: Request, res: Response): Promise<Response> {
     const { notificationId } = req.params;
+
+    if (!notificationId || Array.isArray(notificationId)) {
+      throw new HttpException({ statusCode: 404, message: HttpMessages.Notification.NotFound });
+    }
+
     const accountId = req.account!.sub;
 
     const result = await this.commandBus.dispatch<Either<OnError, void>>(

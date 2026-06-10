@@ -38,6 +38,6 @@ export class MarkNotificationAsReadHandler implements CommandHandler<
     notification.markAsRead();
     await this.notificationRepository.save(notification);
 
-    return right();
+    return right(undefined);
   }
 }

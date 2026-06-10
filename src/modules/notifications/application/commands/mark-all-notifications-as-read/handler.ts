@@ -24,6 +24,6 @@ export class MarkAllNotificationsAsReadHandler implements CommandHandler<
 
   public async execute(command: MarkAllNotificationsAsReadCommand): Output {
     await this.notificationRepository.markAllAsReadByAccount(command.accountId);
-    return right();
+    return right(undefined);
   }
 }
