@@ -12,8 +12,6 @@ import { RemoveWorkspaceMemberCommand } from "@/modules/workspace/application/co
 import { RemoveWorkspaceMemberHandler } from "@/modules/workspace/application/commands/remove-workspace-member/handler";
 import { RespondToInviteCommand } from "@/modules/workspace/application/commands/respond-to-invite/command";
 import { RespondToInviteHandler } from "@/modules/workspace/application/commands/respond-to-invite/handler";
-import { SendInviteEmailCommand } from "@/modules/workspace/application/commands/send-invite-email/command";
-import { SendInviteEmailHandler } from "@/modules/workspace/application/commands/send-invite-email/handler";
 import { UpdateWorkspaceAvatarCommand } from "@/modules/workspace/application/commands/update-workspace-avatar/command";
 import { UpdateWorkspaceAvatarHandler } from "@/modules/workspace/application/commands/update-workspace-avatar/handler";
 import { UpdateWorkspaceMemberRoleCommand } from "@/modules/workspace/application/commands/update-workspace-member-role/command";
@@ -28,7 +26,6 @@ import { ListWorkspaceMembersQuery } from "@/modules/workspace/application/queri
 import { setupCacheWorkspaceContainer } from "./cache/container";
 import { setupCryptoWorkspaceContainer } from "./crypto/container";
 import { setupDatabaseWorkspaceContainer } from "./db/container";
-import { setupEmailWorkspaceContainer } from "./email/container";
 import { setupHTTPWorkspaceContainer } from "./http/container";
 import { WorkspaceInviteCreatedConsumer } from "./queue/consumers/workspace-invite-created.consumer";
 import { WorkspacePersonalCreationRequestedConsumer } from "./queue/consumers/workspace-personal-creation-requested.consumer";
@@ -62,11 +59,6 @@ function wireWorkspaceBuses(): void {
     RespondToInviteCommand,
     container.resolve<RespondToInviteHandler>(InjectionTokens.Handlers.RespondToInvite),
   );
-  commandBus.register(
-    SendInviteEmailCommand,
-    container.resolve<SendInviteEmailHandler>(InjectionTokens.Handlers.SendInviteEmail),
-  );
-
   const queryBus = container.resolve<QueryBus>(InjectionTokens.Bus.Query);
   queryBus.register(
     GetWorkspaceQuery,
@@ -131,12 +123,6 @@ function registerWorkspaceHandlers(): void {
     { lifecycle: Lifecycle.Singleton },
   );
 
-  container.register<SendInviteEmailHandler>(
-    InjectionTokens.Handlers.SendInviteEmail,
-    { useClass: SendInviteEmailHandler },
-    { lifecycle: Lifecycle.Singleton },
-  );
-
   container.register<ListWorkspaceInvitesHandler>(
     InjectionTokens.Handlers.ListWorkspaceInvites,
     { useClass: ListWorkspaceInvitesHandler },
@@ -148,7 +134,6 @@ export function setupWorkspaceModule(): void {
   setupCacheWorkspaceContainer();
   setupDatabaseWorkspaceContainer();
   setupCryptoWorkspaceContainer();
-  setupEmailWorkspaceContainer();
 
   registerWorkspaceHandlers();
   wireWorkspaceBuses();

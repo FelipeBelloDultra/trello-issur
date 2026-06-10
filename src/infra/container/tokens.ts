@@ -35,7 +35,6 @@ export const InjectionTokens = {
     PasswordHasher: Symbol("PasswordHasherGateway"),
     SendWelcomeEmail: Symbol("SendWelcomeEmailGateway"),
     TokenGenerator: Symbol("TokenGeneratorGateway"),
-    SendInviteEmail: Symbol("SendInviteEmailGateway"),
   },
 
   Consumers: {
@@ -72,7 +71,6 @@ export const InjectionTokens = {
     UpdateWorkspaceMemberRole: Symbol("UpdateWorkspaceMemberRoleHandler"),
     InviteMember: Symbol("InviteMemberHandler"),
     RespondToInvite: Symbol("RespondToInviteHandler"),
-    SendInviteEmail: Symbol("SendInviteEmailHandler"),
     ListWorkspaceInvites: Symbol("ListWorkspaceInvitesHandler"),
   },
 
