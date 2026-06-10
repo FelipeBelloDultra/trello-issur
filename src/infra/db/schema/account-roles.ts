@@ -24,11 +24,7 @@ export const accountRoles = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
-    unique("account_roles_account_role_workspace_uniq").on(
-      table.accountId,
-      table.roleId,
-      table.workspaceId,
-    ),
+    unique("account_roles_account_workspace_uniq").on(table.accountId, table.workspaceId),
     index("account_roles_account_workspace_idx").on(table.accountId, table.workspaceId),
     index("account_roles_workspace_idx").on(table.workspaceId),
     index("account_roles_role_idx").on(table.roleId),
