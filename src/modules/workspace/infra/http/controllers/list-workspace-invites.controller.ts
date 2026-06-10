@@ -8,6 +8,7 @@ import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
 import { HttpMessages } from "@/infra/http/http-messages";
 import { AuthMiddleware } from "@/infra/http/middlewares/auth.middleware";
+import { AuthorizeMiddleware } from "@/infra/http/middlewares/authorize.middleware";
 import { PaginationMiddleware } from "@/infra/http/middlewares/pagination.middleware";
 import { ValidateWorkspaceMiddleware } from "@/infra/http/middlewares/validate-workspace.middleware";
 import { ListWorkspaceInvitesQuery } from "@/modules/workspace/application/queries/list-workspace-invites/query";
@@ -30,10 +31,17 @@ export class ListWorkspaceInvitesController implements Controller {
     private readonly auth: AuthMiddleware,
     @inject(InjectionTokens.Middlewares.ValidateWorkspace)
     private readonly validateWorkspace: ValidateWorkspaceMiddleware,
+    @inject(InjectionTokens.Middlewares.Authorize)
+    private readonly authorize: AuthorizeMiddleware,
     @inject(InjectionTokens.Middlewares.Pagination)
     private readonly paginationMiddleware: PaginationMiddleware,
   ) {
-    this.middlewares = [auth.handle(), validateWorkspace.handle(), paginationMiddleware.handle()];
+    this.middlewares = [
+      auth.handle(),
+      validateWorkspace.handle(),
+      authorize.handle(["workspace:manage"]),
+      paginationMiddleware.handle(),
+    ];
   }
 
   public async handler(req: Request, res: Response): Promise<Response> {
