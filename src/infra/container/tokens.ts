@@ -19,6 +19,7 @@ export const InjectionTokens = {
     Workspace: Symbol("WorkspaceRepository"),
     WorkspaceMember: Symbol("WorkspaceMemberRepository"),
     WorkspaceInvite: Symbol("WorkspaceInviteRepository"),
+    Notification: Symbol("NotificationRepository"),
   },
 
   Email: {
@@ -35,7 +36,6 @@ export const InjectionTokens = {
     PasswordHasher: Symbol("PasswordHasherGateway"),
     SendWelcomeEmail: Symbol("SendWelcomeEmailGateway"),
     TokenGenerator: Symbol("TokenGeneratorGateway"),
-    SendInviteEmail: Symbol("SendInviteEmailGateway"),
   },
 
   Consumers: {
@@ -72,8 +72,11 @@ export const InjectionTokens = {
     UpdateWorkspaceMemberRole: Symbol("UpdateWorkspaceMemberRoleHandler"),
     InviteMember: Symbol("InviteMemberHandler"),
     RespondToInvite: Symbol("RespondToInviteHandler"),
-    SendInviteEmail: Symbol("SendInviteEmailHandler"),
     ListWorkspaceInvites: Symbol("ListWorkspaceInvitesHandler"),
+    CreateNotification: Symbol("CreateNotificationHandler"),
+    MarkNotificationAsRead: Symbol("MarkNotificationAsReadHandler"),
+    MarkAllNotificationsAsRead: Symbol("MarkAllNotificationsAsReadHandler"),
+    ListNotifications: Symbol("ListNotificationsHandler"),
   },
 
   Controllers: {
@@ -91,6 +94,9 @@ export const InjectionTokens = {
     InviteMember: Symbol("InviteMemberController"),
     RespondToInvite: Symbol("RespondToInviteController"),
     ListWorkspaceInvites: Symbol("ListWorkspaceInvitesController"),
+    ListNotifications: Symbol("ListNotificationsController"),
+    MarkNotificationAsRead: Symbol("MarkNotificationAsReadController"),
+    MarkAllNotificationsAsRead: Symbol("MarkAllNotificationsAsReadController"),
   },
 
   Middlewares: {

@@ -3,6 +3,7 @@ import { container } from "tsyringe";
 
 import { accountControllers } from "@/modules/account/infra/http/routes";
 import { authControllers } from "@/modules/auth/infra/http/routes";
+import { notificationControllers } from "@/modules/notifications/infra/http/routes";
 import { workspaceControllers } from "@/modules/workspace/infra/http/routes";
 
 import { Controller } from "./contracts/controller";
@@ -16,6 +17,7 @@ export class Routes {
     ...accountControllers,
     ...authControllers,
     ...workspaceControllers,
+    ...notificationControllers,
   ];
 
   public readonly router = Router();
