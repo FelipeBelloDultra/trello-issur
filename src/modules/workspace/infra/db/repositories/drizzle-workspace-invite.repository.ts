@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, gt, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { inject, injectable } from "tsyringe";
 
@@ -65,6 +65,7 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
           eq(workspaceInvites.email, email),
           eq(workspaceInvites.workspaceId, workspaceId),
           eq(workspaceInvites.status, WorkspaceInviteStatuses.Pending),
+          gt(workspaceInvites.expiresAt, new Date()),
         ),
       )
       .limit(1);
