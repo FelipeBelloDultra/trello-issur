@@ -4,6 +4,7 @@ package-lock.json
 yarn.lock
 /uploads/*
 !/uploads/.gitkeep
+/grafana/dashboards/*.json
 
 # Created by https://www.gitignore.io/api/node,macos
 
