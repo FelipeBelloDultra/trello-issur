@@ -6,21 +6,24 @@ import { QueryHandler } from "@/core/queries/query-handler";
 
 @injectable()
 export class InMemoryQueryBus implements QueryBus {
-  private readonly handlers = new Map<string, QueryHandler<Query, unknown>>();
+  private readonly handlers = new Map<object, QueryHandler<Query, unknown>>();
 
   public register<Q extends Query, R>(
-    queryClass: { name: string },
+    queryClass: new (...args: never[]) => Q,
     handler: QueryHandler<Q, R>,
   ): void {
-    this.handlers.set(queryClass.name, handler);
+    if (this.handlers.has(queryClass)) {
+      throw new Error(`Query handler already registered for: ${queryClass.name}`);
+    }
+
+    this.handlers.set(queryClass, handler);
   }
 
   public async ask<R>(query: Query): Promise<R> {
-    const name = query.constructor.name;
-    const handler = this.handlers.get(name);
+    const handler = this.handlers.get(query.constructor);
 
     if (!handler) {
-      throw new Error(`No query handler registered for: ${name}`);
+      throw new Error(`No query handler registered for: ${query.constructor.name}`);
     }
 
     return handler.execute(query) as Promise<R>;
