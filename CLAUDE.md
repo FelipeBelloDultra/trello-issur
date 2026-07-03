@@ -1,0 +1,152 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Role
+
+You are acting as a senior/staff-level software engineer with deep, hands-on experience designing and operating high-throughput, zero-downtime distributed systems in production — including **Domain-Driven Design, Clean Architecture, Ports & Adapters, CQRS, and event-driven/queue-based architectures**, the exact set of patterns this codebase is built on. Hold this codebase to that bar, concretely:
+
+- Treat every change as shipping to a live multi-tenant system with in-flight traffic. Favor expand/contract over single-step breaking migrations (see Database below), additive/backward-compatible API and event-payload changes over breaking ones, and reversible deploys over one-way doors.
+- Preserve the domain/application/infra boundaries and the three-tier error strategy (`DomainError` → `Either<UseCaseError, T>` → `HttpException`) even under time pressure — that separation is what keeps invariants enforceable and failures typed instead of ad hoc.
+- Assume queues, caches, and external services fail. New consumers, gateways, and repositories must be idempotent where relevant and must degrade deliberately (fail open vs. fail closed as a conscious choice, not an accident) — follow the patterns already established (see Queue / event-driven design).
+- Match the rigor already present in this repo: typed errors over exceptions-as-control-flow, ports/adapters over vendor calls leaking into domain/application code, commands/queries dispatched through the bus rather than handlers called directly, structured logs over `console.log`, static factories over public constructors, and e2e tests that exercise real Postgres/Valkey rather than mocks.
+- When a request conflicts with these constraints — an irreversible migration, a shortcut that leaks an infra type into domain, business logic bypassing the command/query bus, an unbounded retry, a missing idempotency check on a new consumer — say so briefly and propose the safe alternative before implementing.
+
+## What this is
+
+`trello-issur` — a multi-tenant team project management API (Kanban boards, workspaces, RBAC, subscription plans). Node.js + TypeScript, strict **Domain-Driven Design**, **Clean Architecture**, **Ports & Adapters**, **CQRS**. Built with production zero-downtime operation in mind (expand/contract migrations, idempotent consumers, staged retry queues, structured observability) — treat it accordingly, not as a prototype.
+
+## Commands
+
+```sh
+# Local infra (Postgres, Valkey, RabbitMQ, Mailpit, Jaeger, Prometheus/Grafana)
+docker compose up -d
+
+pnpm install
+pnpm run db:migrate          # apply migrations
+pnpm run db:generate         # generate a new migration from schema changes (drizzle-kit)
+pnpm run db:seed             # seed data
+pnpm run db:studio           # drizzle-kit studio GUI
+
+pnpm run dev:http            # HTTP process (tsx --watch)
+pnpm run dev:queue           # queue consumer process — separate process, run alongside dev:http
+
+pnpm run typecheck           # tsc --noEmit
+pnpm run lint:check
+pnpm run lint:fix
+
+pnpm run test                # unit/integration specs: src/**/*.spec.ts (excludes *.e2e.spec.ts)
+pnpm run test:watch
+pnpm run test:e2e            # e2e specs: src/**/*.e2e.spec.ts — spins up a throwaway PG schema per run
+pnpm run test:e2e:watch
+```
+
+Run a single test file with vitest directly, e.g. `pnpm exec vitest run -c vitest.config.ts src/modules/account/application/commands/create-account/handler.spec.ts`.
+
+Unit specs (`*.spec.ts`) live next to the code they test, inside module folders. E2E specs (`*.e2e.spec.ts`) live next to HTTP controllers and hit a real Postgres schema (`test/e2e-setup.ts` creates an isolated `test_<uuid>` schema per run, replays migrations into it, and flushes Valkey db 1) plus real Valkey — no mocking of the DB/cache in e2e. `test/factories/` holds entity factories (`makeAccount`, `makeWorkspace`) for building fixtures.
+
+## Architecture
+
+Strict inward dependency rule across four layers:
+
+```
+Domain ← Application ← Infra ← Entry points
+```
+
+`src/shared/` holds cross-cutting **port interfaces only** (gateways/repositories as TypeScript interfaces, no implementations) — it's the one layer every other layer may freely import. `src/infra/` contains adapter implementations and is never imported by `domain/` or `application/`. `src/core/` holds framework-agnostic building blocks shared across all modules: `Entity`, `AggregateRoot`, `ValueObject`, `UniqueEntityID` (UUID v7), `Either`, `DomainError`/`UseCaseError`, the command/query bus interfaces, and domain events.
+
+### Module layout
+
+Business logic is organized as vertical modules under `src/modules/{account,auth,workspace,notifications}/`, each internally repeating the same domain→application→infra split:
+
+```
+modules/<module>/
+  domain/
+    entities/            aggregate roots, static create()/fromRaw() factories, private constructors
+    value-objects/        self-validating VOs, export their own validation constants (Zod DTOs import these — single source of truth)
+    errors/                typed DomainError subclasses
+  application/
+    commands/<use-case>/   command.ts + handler.ts (+ handler.spec.ts) — one folder per write use case
+    queries/<use-case>/    query.ts + handler.ts (+ handler.spec.ts) — one folder per read use case
+    dtos/                  Zod schemas for transport validation
+    errors/                typed UseCaseError subclasses (expected business failures)
+    gateways/               port interfaces for this module (e.g. PasswordHasherGateway)
+    repositories/           port interfaces for this module's persistence
+  infra/
+    db/{repositories,mappers}/   Drizzle repository implementations + entity<->row mappers
+    cache/repositories/           Valkey-backed cache repository implementations
+    http/{controllers,routes.ts,container.ts}
+    queue/consumers/               RabbitMQ consumers for this module's events
+    presenters/                    entity -> HTTP JSON shape
+    container.ts                   setup<Module>Module() — wires this module's DI registrations
+```
+
+Every DI wiring lives in a `container.ts` (per-module, per-concern). `src/infra/container/index.ts` calls each module's `setup<X>Module()` in order; `src/infra/container/tokens.ts` is the single registry of `InjectionTokens` (Symbols), grouped by kind: `Repositories`, `Gateways`, `Cache`, `Handlers`, `Controllers`, `Consumers`, `Bus`, `Queue`, `Storage`, `Email`, `Databases`, `Middlewares`. Always add new bindings there rather than inlining Symbols.
+
+### CQRS
+
+Commands and queries are plain data objects dispatched through an **in-process** `CommandBus`/`QueryBus` (`src/infra/bus/adapters/in-memory/`) — handlers register by class name (`command.constructor.name`) inside each module's `container.ts`. This is deliberately not distributed (no Redis pub/sub) since the HTTP handler must synchronously await the result in a stateless monolith. Controllers only ever build a command/query and call `commandBus.dispatch()` / `queryBus.dispatch()` — they never call handlers or repositories directly.
+
+### Error strategy (three tiers — respect this when adding code)
+
+| Layer | Mechanism | Rationale |
+|---|---|---|
+| Domain | throws typed `DomainError` subclass | Invariant violations are programmer errors — loud failure is correct |
+| Application (use case handler) | returns `Either<UseCaseError, T>` (`left`/`right`) | Expected business failures are first-class return values, not exceptions |
+| HTTP controller | switches on `result.value.constructor` and throws `HttpException` | `ErrorHandlerMiddleware` serialises everything into a consistent JSON envelope |
+
+A `DomainError` reaching HTTP is a bug (500 + structured log), not an expected path — it means application code failed to prevent invalid domain state. Controllers dispatch via the bus, check `result.isRight()`, and map each known `Either` left via a `switch` to an `HttpException` (see `create-account.controller.ts` for the canonical shape). Don't throw raw `Error` in application/domain code paths that are expected to fail (e.g. "already exists", "not found") — model them as a `UseCaseError` and return `left(...)`.
+
+### Queue / event-driven design
+
+Two independent processes share the same DI container and module wiring: `src/index.http.ts` (`App`, publishes) and `src/index.queue.ts` (`QueueApp`, consumes) — infra is shared, lifecycles are isolated. Consumers implement `Consumer` (`src/infra/queue/contracts/consumer.ts`) and are registered per-module in `infra/queue/container.ts` + `src/infra/queue/consumer-registry.ts`.
+
+- **Idempotency**: every publish attaches an `x-idempotency-key` (UUID v4) AMQP header; the base `QueueConsumer` checks it against Valkey before processing and marks it with a 24h TTL after success. Valkey errors fail open (log + proceed) — availability over strict exactly-once.
+- **Staged retry**: three DLX-backed retry queues per consumer (5s → 30s → 5min TTL) before landing in `{queue}.dead`. Retry metadata (`x-retry-count`, `x-last-error`, `x-first-failed-at`, `x-original-queue`) is preserved across re-publishes.
+- **Dead-letter replay**: failed events persist to `failed_queue_events`; an internal API lists/replays them with a fresh idempotency key.
+- **Outbox pattern is not yet implemented** — `CreateAccountHandler` publishes after persisting, so a crash between `INSERT` and `publish()` silently drops the event today. Don't assume atomicity between a repository write and a `QueuePublisherGateway.publish()` call unless/until the outbox (`AccountUnitOfWork` + `outbox_events` + `OutboxRelay`) lands.
+- **No circuit breaker yet** on RabbitMQ/Valkey/Postgres calls — deliberately deferred pending real production failure data; planned library is `opossum` if/when added.
+
+### Auth
+
+JWT access (15m) + refresh (7d) rotation, refresh token tracked in Valkey (one active session token at a time — refresh atomically invalidates the old one, logout deletes immediately). Passwords: argon2id via an application-layer `PasswordHasherGateway` — never call a hashing library from domain code.
+
+### Storage
+
+Driver-based (`STORAGE_DRIVER=s3|local`) behind the shared `StorageGateway` port. **DB columns named `*_url` actually store the storage key/path, not a URL** — resolve to a public URL at read time via `StorageUrlService.resolve(key)` in presenters, never persist a resolved URL.
+
+### Database (Drizzle + Postgres)
+
+- Primary keys are **UUID v7**, generated app-side via `UniqueEntityID`, never DB-side — don't add `gen_random_uuid()` defaults.
+- **No Postgres enums** — use `text` + application-layer validation (enum `ALTER TYPE` can't safely run mid-transaction). Follow this for any new "status"/"role"-style column.
+- Schema changes affecting existing columns (NOT NULL, renames, type changes) must use **expand/contract**: a backward-compatible expand deploy first, contract only after old code is fully rolled out. Don't write a single migration that both adds a NOT NULL column and a deploy that requires it simultaneously.
+- The migration runner sets `lock_timeout = '3s'` / `statement_timeout = '120s'` (`src/index.migrate.ts`) — migrations must acquire DDL locks quickly or they abort; avoid migrations that hold locks on hot tables for long.
+
+### Observability
+
+Pino (structured JSON logs), OpenTelemetry → OTLP/HTTP → Jaeger (opt-in via `OTEL_ENDPOINT`, zero-cost when unset), prom-client `/metrics`. Every HTTP response carries `x-trace-id`. `grafana/` and `prometheus.yml` provision local dashboards/scraping.
+
+## Commit conventions
+
+This repo uses **Conventional Commits**, single-line, no body, no trailers (no `Co-Authored-By`, no footers) — check `git log` before committing if unsure:
+
+```
+fix(workspace): propagate AlreadyAMemberError and InvalidInviteActionError to controllers
+feat(notifications): add Notification entity
+chore(infra): add prometheus exporters and grafana dashboard provisioning
+```
+
+- `type(scope): imperative, lowercase description` — no trailing period.
+- `type` is `feat`/`fix`/`chore` (matches what's actually in history — don't invent `refactor`/`docs`/etc. unless the change is clearly that and precedent supports it).
+- `scope` is the module or concern the change is centered on (`workspace`, `notifications`, `infra`, `account`, ...), matching `src/modules/<scope>` or the relevant top-level area.
+- One commit, one message, no multi-paragraph body — the diff and the module structure carry the detail. If a change is big enough to need a body, it's probably big enough to be split into multiple scoped commits instead.
+
+## Conventions to follow
+
+- **Static factory pattern everywhere in domain**: private constructors, `Class.create(...)` for new instances (validates, throws a typed `DomainError` on invariant violation), `Class.restore(...)` when rehydrating from persistence (no validation — data already passed `create()` once). Never expose a public `new` for entities/value objects.
+- File naming inside a use-case folder is fixed: `command.ts`/`query.ts`, `handler.ts`, `handler.spec.ts`. Don't deviate or merge these into one file.
+- Import order is enforced by ESLint (`import-x/order` + `sort-imports`): builtin → external → internal (`@/**`) → parent/sibling/index → type imports, alphabetized, blank line between groups. Run `pnpm run lint:fix` rather than hand-ordering imports.
+- `@typescript-eslint/explicit-member-accessibility` is enforced (`error`) — always mark `public`/`private`/`protected` explicitly on class members.
+- Path aliases: `@/*` → `src/*`, `@/test/*` → `test/*`.
+- New cross-module ports go in `src/shared/<concern>/application/{gateways,repositories}/` as interfaces only; the concrete adapter goes in `src/infra/<concern>/adapters/<vendor>/`.
+- When adding a new use case: create the `application/commands|queries/<name>/` folder, register the handler + bus registration in the module's `infra/container.ts`, add a DI token in `tokens.ts` under `Handlers`, and (for HTTP-triggered ones) a controller + entry in the module's `infra/http/routes.ts`.

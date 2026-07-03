@@ -111,6 +111,6 @@ typings/
 # Serverless directories
 .serverless
 
-# ClaudeIA configs
-.claude
-memory
+# Claude Code — keep project-shared config (CLAUDE.md, .claude/agents, .claude/commands,
+# .claude/skills, .claude/settings.json) tracked; ignore only personal/local overrides.
+.claude/settings.local.json
