@@ -5,6 +5,7 @@ yarn.lock
 /uploads/*
 !/uploads/.gitkeep
 /grafana/dashboards/*.json
+/bruno
 
 # Created by https://www.gitignore.io/api/node,macos
 
