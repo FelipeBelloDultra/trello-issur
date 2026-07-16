@@ -15,7 +15,9 @@ This repo has no CI configured yet, so the PR itself is the main gate — get it
 
 ## 2. Verify before pushing
 
-Run, and fix or report any failures — don't open a PR on top of a red build:
+Check which app(s) the diff touches — `git diff --name-only origin/main...HEAD`, looking for `apps/api/`, `apps/web/`, `packages/` prefixes. A `packages/*` change (shared eslint/prettier/typescript config) affects both apps, since both consume it — run both blocks below in that case. Fix or report any failures — don't open a PR on top of a red build, and don't run a suite for an app the diff doesn't touch:
+
+If `apps/api` (or `packages/*`) changed:
 
 ```sh
 pnpm --filter api run typecheck
@@ -24,6 +26,14 @@ pnpm --filter api run test
 ```
 
 Run `pnpm --filter api run test:e2e` too if the diff touches HTTP controllers, repositories/migrations, or queue consumers (it spins up a real PG schema + Valkey, so it's slower — skip it for pure docs/chore changes that don't touch those layers).
+
+If `apps/web` (or `packages/*`) changed:
+
+```sh
+pnpm --filter web run typecheck
+pnpm --filter web run lint:check
+pnpm --filter web run lint:fsd
+```
 
 ## 3. Understand the full diff
 
@@ -45,8 +55,8 @@ Single line, Conventional Commits, matching this repo's `git log` precedent (see
 type(scope): imperative, lowercase description
 ```
 
-- `type` ∈ `feat` / `fix` / `chore` — don't invent `refactor`/`docs`/etc.
-- `scope` matches `apps/api/src/modules/<scope>` or the relevant top-level area (`infra`, `bus`, ...).
+- `type` ∈ `feat` / `fix` / `bugfix` / `refactor` / `chore` / `lint` / `test` / `docs` / `perf` (see `CLAUDE.md` → Commit conventions for what each means — `bugfix` is reserved for critical/security/data-loss fixes only, everything else routine is `fix`). Don't invent others.
+- `scope` matches `apps/api/src/modules/<scope>`, an `apps/web` FSD slice (`entities/<x>`, `features/<x>`, `pages/<x>`), or the relevant top-level area (`infra`, `bus`, ...).
 - If the branch mixes unrelated concerns across multiple scopes, say so and suggest splitting into separate PRs rather than forcing one title over everything.
 
 ## 5. Fill the body from the template
@@ -55,7 +65,7 @@ type(scope): imperative, lowercase description
 
 - **Summary** — the why, not a restatement of the diff.
 - **Type of change** / **Scope** — check the boxes and name the module(s) that match the title.
-- **Checklist** — only check items you actually ran/confirmed this session (typecheck/lint/test results from step 2, e2e if applicable). Leave unchecked + explain if something wasn't verified.
+- **Checklist** — the template has separate `apps/api`/`apps/web` blocks; delete whichever block the diff doesn't touch (keep both if `packages/*` changed). Within the remaining block(s), only check items you actually ran/confirmed this session (typecheck/lint/test results from step 2, e2e if applicable). Leave unchecked + explain if something wasn't verified.
 - Pay particular attention to the architecture checklist items (domain/application/infra boundaries, three-tier error strategy, expand/contract migrations, idempotent consumers, backward-compatible event/API changes) — these encode real invariants from `CLAUDE.md`, not filler. If the diff violates one, flag it to the user before opening the PR, don't just check the box.
 - **Test plan** — concrete: which specs, which manual steps.
 
