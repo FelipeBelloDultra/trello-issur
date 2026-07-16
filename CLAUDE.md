@@ -16,32 +16,61 @@ You are acting as a senior/staff-level software engineer with deep, hands-on exp
 
 `trello-issur` — a multi-tenant team project management API (Kanban boards, workspaces, RBAC, subscription plans). Node.js + TypeScript, strict **Domain-Driven Design**, **Clean Architecture**, **Ports & Adapters**, **CQRS**. Built with production zero-downtime operation in mind (expand/contract migrations, idempotent consumers, staged retry queues, structured observability) — treat it accordingly, not as a prototype.
 
+## Repo layout
+
+This is a **pnpm-workspaces monorepo** (no Turborepo/Nx, kept plain on purpose):
+
+```
+apps/
+  api/        this backend — everything the rest of this file describes lives under apps/api/src/
+  web/        a companion React SPA study project (Vite + TanStack Router/Query + shadcn/ui,
+              Feature-Sliced Design) built against this API — not held to the same production
+              rigor as apps/api, see apps/web's own README for its scope
+packages/
+  eslint-config/       @trello-issur/eslint-config/{base,node,react} — subpath exports;
+                       apps compose `base` + whichever runtime block (`node` for apps/api,
+                       `react` for apps/web) their eslint.config.ts needs
+  prettier-config/     @trello-issur/prettier-config — shared Prettier options both apps extend
+  typescript-config/   @trello-issur/typescript-config/{base,node,react}.json — same subpath
+                       pattern; apps/api's tsconfig.json extends `node.json`, apps/web's
+                       tsconfig.app.json extends `react.json`
+infrastructure/        backing services + observability compose file (postgres, valkey,
+                       rabbitmq, mailpit, jaeger, minio, prometheus, grafana, exporters) —
+                       pulled into the root compose.yml via `include:`, not auto-discovered
+                       on its own. Don't confuse with `apps/api/src/infra/` (the DDD layer).
+```
+
+Everywhere below, a bare `src/...` path means `apps/api/src/...`. `compose.yml` (root, bootstraps `apps/api`'s http/queue + nginx) and `nginx.conf` stay at the true repo root; `apps/api/Dockerfile` lives with the app it builds (co-located, matching the monorepo convention — the build `context:` in `compose.yml` still points at the repo root, since a pnpm workspace install needs every workspace manifest visible). `.env`/`.env.example` live in `apps/api/` (dotenv loads from `process.cwd()`, and pnpm always runs a package's scripts with `cwd` set to that package) — always pass `--env-file apps/api/.env` to `docker compose` invocations, since Compose only auto-discovers a `.env` next to the compose file itself (true root), not the app-specific one.
+
 ## Commands
 
 ```sh
 # Local infra (Postgres, Valkey, RabbitMQ, Mailpit, Jaeger, Prometheus/Grafana)
-docker compose up -d
+docker compose --env-file apps/api/.env up -d
 
-pnpm install
-pnpm run db:migrate          # apply migrations
-pnpm run db:generate         # generate a new migration from schema changes (drizzle-kit)
-pnpm run db:seed             # seed data
-pnpm run db:studio           # drizzle-kit studio GUI
+pnpm install                              # once, from the repo root — installs the whole workspace
 
-pnpm run dev:http            # HTTP process (tsx --watch)
-pnpm run dev:queue           # queue consumer process — separate process, run alongside dev:http
+pnpm --filter api run db:migrate          # apply migrations
+pnpm --filter api run db:generate         # generate a new migration from schema changes (drizzle-kit)
+pnpm --filter api run db:seed             # seed data
+pnpm --filter api run db:studio           # drizzle-kit studio GUI
 
-pnpm run typecheck           # tsc --noEmit
-pnpm run lint:check
-pnpm run lint:fix
+pnpm --filter api run dev:http            # HTTP process (tsx --watch)
+pnpm --filter api run dev:queue           # queue consumer process — separate process, run alongside dev:http
 
-pnpm run test                # unit/integration specs: src/**/*.spec.ts (excludes *.e2e.spec.ts)
-pnpm run test:watch
-pnpm run test:e2e            # e2e specs: src/**/*.e2e.spec.ts — spins up a throwaway PG schema per run
-pnpm run test:e2e:watch
+pnpm --filter api run typecheck           # tsc --noEmit
+pnpm --filter api run lint:check
+pnpm --filter api run lint:fix
+
+pnpm --filter api run test                # unit/integration specs: src/**/*.spec.ts (excludes *.e2e.spec.ts)
+pnpm --filter api run test:watch
+pnpm --filter api run test:e2e            # e2e specs: src/**/*.e2e.spec.ts — spins up a throwaway PG schema per run
+pnpm --filter api run test:e2e:watch
+
+pnpm --filter web run dev                 # apps/web dev server (Vite) — separate frontend study project
 ```
 
-Run a single test file with vitest directly, e.g. `pnpm exec vitest run -c vitest.config.ts src/modules/account/application/commands/create-account/handler.spec.ts`.
+There are **no root-level convenience scripts** — each `apps/*`/`packages/*` project owns only its own scripts, invoked via `pnpm --filter <name> run <script>`, so two packages can define the same script name (`typecheck`, `lint:check`, `build`, …) without one silently shadowing the other. Run a single test file with vitest directly from `apps/api`, e.g. `cd apps/api && pnpm exec vitest run -c vitest.config.ts src/modules/account/application/commands/create-account/handler.spec.ts`.
 
 Unit specs (`*.spec.ts`) live next to the code they test, inside module folders. E2E specs (`*.e2e.spec.ts`) live next to HTTP controllers and hit a real Postgres schema (`test/e2e-setup.ts` creates an isolated `test_<uuid>` schema per run, replays migrations into it, and flushes Valkey db 1) plus real Valkey — no mocking of the DB/cache in e2e. `test/factories/` holds entity factories (`makeAccount`, `makeWorkspace`) for building fixtures.
 
@@ -124,7 +153,7 @@ Driver-based (`STORAGE_DRIVER=s3|local`) behind the shared `StorageGateway` port
 
 ### Observability
 
-Pino (structured JSON logs), OpenTelemetry → OTLP/HTTP → Jaeger (opt-in via `OTEL_ENDPOINT`, zero-cost when unset), prom-client `/metrics`. Every HTTP response carries `x-trace-id`. `grafana/` and `prometheus.yml` provision local dashboards/scraping.
+Pino (structured JSON logs), OpenTelemetry → OTLP/HTTP → Jaeger (opt-in via `OTEL_ENDPOINT`, zero-cost when unset), prom-client `/metrics`. Every HTTP response carries `x-trace-id`. `infrastructure/grafana/` and `infrastructure/prometheus.yml` provision local dashboards/scraping.
 
 ## Commit conventions
 
