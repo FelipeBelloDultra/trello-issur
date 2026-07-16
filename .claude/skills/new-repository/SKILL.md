@@ -9,7 +9,7 @@ Repositories are a **port** (interface in `application/repositories/`) implement
 
 ## Steps
 
-1. **Table schema**, if persisting a new entity — schema lives centrally in `src/infra/db/schema/<table>.ts` (not per-module):
+1. **Table schema**, if persisting a new entity — schema lives centrally in `apps/api/src/infra/db/schema/<table>.ts` (not per-module):
 
    ```ts
    import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
@@ -26,8 +26,8 @@ Repositories are a **port** (interface in `application/repositories/`) implement
    Rules (see `CLAUDE.md` → Database):
    - **No Postgres enums** — `text` + application-layer validation.
    - IDs are **UUID v7 generated app-side** via `UniqueEntityID`, not `gen_random_uuid()`.
-   - Export the table from `src/infra/db/schema/index.ts` and add any FK relations to `src/infra/db/schema/relations.ts` if applicable.
-   - Run `pnpm run db:generate` to produce the migration — read the `safe-migration` skill before applying anything that alters an existing table.
+   - Export the table from `apps/api/src/infra/db/schema/index.ts` and add any FK relations to `apps/api/src/infra/db/schema/relations.ts` if applicable.
+   - Run `pnpm --filter api run db:generate` to produce the migration — read the `safe-migration` skill before applying anything that alters an existing table.
 
 2. **Port interface** — `application/repositories/<entity>.repository.ts`:
 
@@ -98,7 +98,7 @@ Repositories are a **port** (interface in `application/repositories/`) implement
    }
    ```
 
-   If this entity is read frequently, add a cache-aside layer instead of querying Postgres on every read — see `src/modules/account/infra/cache/repositories/valkey-account-cache.repository.ts` and how `DrizzleAccountRepository` checks the cache before the DB and populates it after a miss. That's a separate `<Entity>CacheRepository` port injected into the Drizzle repository, not a change to the port interface consumers see.
+   If this entity is read frequently, add a cache-aside layer instead of querying Postgres on every read — see `apps/api/src/modules/account/infra/cache/repositories/valkey-account-cache.repository.ts` and how `DrizzleAccountRepository` checks the cache before the DB and populates it after a miss. That's a separate `<Entity>CacheRepository` port injected into the Drizzle repository, not a change to the port interface consumers see.
 
 5. **DI wiring** — add a token under `InjectionTokens.Repositories.<Entity>` in `tokens.ts`, then in the module's `infra/db/container.ts`:
 

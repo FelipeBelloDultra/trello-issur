@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Downloads community Grafana dashboards from grafana.com into grafana/dashboards/.
+# Downloads community Grafana dashboards from grafana.com into infrastructure/grafana/dashboards/.
 # Requires: curl, jq
 # Usage: ./scripts/download-dashboards.sh
 set -euo pipefail
 
-DASHBOARDS_DIR="$(cd "$(dirname "$0")/.." && pwd)/grafana/dashboards"
+DASHBOARDS_DIR="$(cd "$(dirname "$0")/.." && pwd)/infrastructure/grafana/dashboards"
 
 download_dashboard() {
   local id=$1

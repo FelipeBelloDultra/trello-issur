@@ -9,10 +9,10 @@ Scaffolds a consumer that follows this repo's established pattern: extends `Queu
 
 ## Steps
 
-1. **Confirm/add the event key.** Routing keys live in `src/shared/queue/application/events.ts` under `QueueEvents.<Domain>.<Event>`. Convention: `"kebab-domain.kebab-event"` (e.g. `"workspace-member.removed"`). Queue name == routing key by convention — don't invent a different queue name.
+1. **Confirm/add the event key.** Routing keys live in `apps/api/src/shared/queue/application/events.ts` under `QueueEvents.<Domain>.<Event>`. Convention: `"kebab-domain.kebab-event"` (e.g. `"workspace-member.removed"`). Queue name == routing key by convention — don't invent a different queue name.
    - If reacting to an event published by a *different* module, only import the shared `QueueEvents` key and define a local payload interface with the fields you actually need — never import another module's domain/application internals.
 
-2. **Create the consumer** at `src/modules/<module>/infra/queue/consumers/<event-name>.consumer.ts`:
+2. **Create the consumer** at `apps/api/src/modules/<module>/infra/queue/consumers/<event-name>.consumer.ts`:
 
    ```ts
    import { inject, injectable } from "tsyringe";
@@ -58,9 +58,9 @@ Scaffolds a consumer that follows this repo's established pattern: extends `Queu
    - Let `handle()` throw on failure — that's what drives the retry/DLX flow. Don't swallow errors inside `handle()`.
    - Never override `start()` or reimplement idempotency/retry/ack logic — `QueueConsumer` already handles idempotency (Valkey, 24h TTL, fail-open on cache errors), staged retries (DLX), and acking.
 
-3. **Add a DI token** in `src/infra/container/tokens.ts` under `Consumers`: `<Event>: Symbol("<Event>Consumer")`.
+3. **Add a DI token** in `apps/api/src/infra/container/tokens.ts` under `Consumers`: `<Event>: Symbol("<Event>Consumer")`.
 
-4. **Register the consumer** in the module's `infra/queue/container.ts` (create it if the module doesn't have one yet — copy the shape of `src/modules/account/infra/queue/container.ts`):
+4. **Register the consumer** in the module's `infra/queue/container.ts` (create it if the module doesn't have one yet — copy the shape of `apps/api/src/modules/account/infra/queue/container.ts`):
 
    ```ts
    container.register<<Event>Consumer>(
@@ -75,11 +75,11 @@ Scaffolds a consumer that follows this repo's established pattern: extends `Queu
 
    Then make sure the module's top-level `infra/container.ts` (`setup<Module>Module()`) calls `setupQueue<Module>Container()` alongside its other `setup*Container()` calls — same spot the other concerns (db, cache, http) are wired.
 
-5. **If this is a brand-new event** (not consuming an existing one), locate or add the publisher side: a command handler calling `this.publisher.publish(QueueEvents.<Domain>.<Event>, payload)` through `QueuePublisherGateway` (pattern: `src/modules/account/application/commands/create-account/handler.ts`). Confirm the payload shape matches what the consumer expects.
+5. **If this is a brand-new event** (not consuming an existing one), locate or add the publisher side: a command handler calling `this.publisher.publish(QueueEvents.<Domain>.<Event>, payload)` through `QueuePublisherGateway` (pattern: `apps/api/src/modules/account/application/commands/create-account/handler.ts`). Confirm the payload shape matches what the consumer expects.
 
-6. **Verify**: `pnpm run typecheck`, then `docker compose up -d` and `pnpm run dev:queue` in one terminal, trigger the publishing action, and confirm the consumer acks on success. Optionally force a handler failure to confirm the message lands in `<queue>.retry.1` and eventually `<queue>.dead` after exhausting retries.
+6. **Verify**: `pnpm --filter api run typecheck`, then `docker compose --env-file apps/api/.env up -d` and `pnpm --filter api run dev:queue` in one terminal, trigger the publishing action, and confirm the consumer acks on success. Optionally force a handler failure to confirm the message lands in `<queue>.retry.1` and eventually `<queue>.dead` after exhausting retries.
 
 ## Non-goals
 
-- Don't hand-roll idempotency keys, DLX topology, or manual ack/nack logic — all of it lives in `QueueConsumer` (`src/infra/queue/adapters/rabbitmq/consumer.ts`).
-- Don't add the consumer under `src/infra/queue/` — that directory is generic adapter/framework code shared by every consumer. Consumers are module-owned and live under `src/modules/<module>/infra/queue/consumers/`.
+- Don't hand-roll idempotency keys, DLX topology, or manual ack/nack logic — all of it lives in `QueueConsumer` (`apps/api/src/infra/queue/adapters/rabbitmq/consumer.ts`).
+- Don't add the consumer under `apps/api/src/infra/queue/` — that directory is generic adapter/framework code shared by every consumer. Consumers are module-owned and live under `apps/api/src/modules/<module>/infra/queue/consumers/`.

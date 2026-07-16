@@ -31,20 +31,20 @@ Never combine expand and contract in the same PR/migration unless the change is 
 
 ## 3. Generate the migration
 
-1. Edit the table definition in `src/infra/db/schema/<table>.ts` (see `new-repository` skill for the table-authoring conventions: `text` not enum, `uuid` PK with `UniqueEntityID.create()` default, no DB-side `gen_random_uuid()`).
-2. `pnpm run db:generate` (drizzle-kit) — produces a new numbered `.sql` file under `src/infra/db/migrations/` plus a `meta/_journal.json` entry. **Read the generated SQL** — drizzle-kit sometimes infers a destructive statement (e.g. drop+recreate a column on a "rename") that isn't actually what you want; edit the generated `.sql` by hand if so.
+1. Edit the table definition in `apps/api/src/infra/db/schema/<table>.ts` (see `new-repository` skill for the table-authoring conventions: `text` not enum, `uuid` PK with `UniqueEntityID.create()` default, no DB-side `gen_random_uuid()`).
+2. `pnpm --filter api run db:generate` (drizzle-kit) — produces a new numbered `.sql` file under `apps/api/src/infra/db/migrations/` plus a `meta/_journal.json` entry. **Read the generated SQL** — drizzle-kit sometimes infers a destructive statement (e.g. drop+recreate a column on a "rename") that isn't actually what you want; edit the generated `.sql` by hand if so.
 3. For an index on a large/hot table, add `CONCURRENTLY` by hand in the generated SQL (drizzle-kit doesn't emit it) and make sure the statement is not wrapped in a transaction block that would reject `CONCURRENTLY`.
 
 ## 4. Respect the runner's constraints
 
-`src/index.migrate.ts` runs every migration under `SET lock_timeout = '3s'` and `SET statement_timeout = '120s'`. A migration that can't acquire its DDL lock in 3s aborts — this is deliberate (fails fast instead of queueing behind a long-running transaction and blocking other queries). Implications:
+`apps/api/src/index.migrate.ts` runs every migration under `SET lock_timeout = '3s'` and `SET statement_timeout = '120s'`. A migration that can't acquire its DDL lock in 3s aborts — this is deliberate (fails fast instead of queueing behind a long-running transaction and blocking other queries). Implications:
 - Don't run a migration expected to hold an exclusive lock for a long time (e.g. adding a `NOT NULL` with a default on a huge existing table) without first backfilling in the contract-phase batches mentioned above.
 - If a migration might legitimately need more than 3s to acquire its lock (rare, e.g. off-peak-only heavy DDL), that's a signal to split it further or schedule it deliberately — don't just raise the timeout in the shared runner.
 
 ## 5. Verify
 
-- `pnpm run db:migrate` locally against the docker-compose Postgres.
-- Run `pnpm run test:e2e` — `test/e2e-setup.ts` replays every migration into a fresh isolated schema per run, so a broken migration fails the whole e2e suite immediately.
+- `pnpm --filter api run db:migrate` locally against the docker-compose Postgres.
+- Run `pnpm --filter api run test:e2e` — `apps/api/test/e2e-setup.ts` replays every migration into a fresh isolated schema per run, so a broken migration fails the whole e2e suite immediately.
 - Sanity-check the generated SQL is idempotent/safe to re-run if the migration runner is ever interrupted mid-way (Drizzle's migration table tracks applied migrations, but the SQL itself should not assume it's the first attempt).
 
 ## Non-goals

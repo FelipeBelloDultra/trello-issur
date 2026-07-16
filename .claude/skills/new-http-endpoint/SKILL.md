@@ -36,7 +36,7 @@ An endpoint in this repo is a thin `Controller` that validates input with Zod, d
 
    Reuse the module's existing presenter if one already maps this entity — don't create a second one.
 
-3. **HTTP message(s)**, if a new error needs a user-facing string — add to the relevant section of `src/infra/http/http-messages.ts` (`HttpMessages.<Module>.<Case>`). Don't inline error strings in the controller.
+3. **HTTP message(s)**, if a new error needs a user-facing string — add to the relevant section of `apps/api/src/infra/http/http-messages.ts` (`HttpMessages.<Module>.<Case>`). Don't inline error strings in the controller.
 
 4. **Controller** — `infra/http/controllers/<use-case>.controller.ts`:
 
@@ -89,14 +89,14 @@ An endpoint in this repo is a thin `Controller` that validates input with Zod, d
 
    Rules:
    - Every `Either` left the handler can return must have a `case` in the `switch` mapping it to an `HttpException` with the right status code. Leaving a case to fall through to `default: throw new Error()` turns an expected business failure into a 500 — don't do that for a known error.
-   - Auth/authorization goes in `middlewares`, not inline in `handler()` — check `src/infra/http/middlewares/` and other controllers in the module for the existing auth middleware to reuse.
+   - Auth/authorization goes in `middlewares`, not inline in `handler()` — check `apps/api/src/infra/http/middlewares/` and other controllers in the module for the existing auth middleware to reuse.
    - Zod throws on `.parse()` failure; the global `ErrorHandlerMiddleware` already turns that into a 400 — don't wrap it in try/catch yourself.
 
-5. **Route registration** — add the controller's DI token to the module's `infra/http/routes.ts` (e.g. `export const <module>Controllers = [..., InjectionTokens.Controllers.<UseCase>]`) and register the controller class in the module's `infra/http/container.ts` (`container.register<<UseCase>Controller>(InjectionTokens.Controllers.<UseCase>, { useClass: <UseCase>Controller }, { lifecycle: Lifecycle.Singleton })`). Add the new token under `InjectionTokens.Controllers` in `src/infra/container/tokens.ts`. Nothing else needs to change — `src/infra/http/routes.ts` (`Routes`) auto-mounts every token listed in each module's `<module>Controllers` array.
+5. **Route registration** — add the controller's DI token to the module's `infra/http/routes.ts` (e.g. `export const <module>Controllers = [..., InjectionTokens.Controllers.<UseCase>]`) and register the controller class in the module's `infra/http/container.ts` (`container.register<<UseCase>Controller>(InjectionTokens.Controllers.<UseCase>, { useClass: <UseCase>Controller }, { lifecycle: Lifecycle.Singleton })`). Add the new token under `InjectionTokens.Controllers` in `apps/api/src/infra/container/tokens.ts`. Nothing else needs to change — `apps/api/src/infra/http/routes.ts` (`Routes`) auto-mounts every token listed in each module's `<module>Controllers` array.
 
-6. **e2e spec** next to the controller: `<use-case>.controller.e2e.spec.ts` (pattern: `create-account.controller.e2e.spec.ts`) — hits the real HTTP app + real Postgres/Valkey via `test/e2e-setup.ts`, no mocking.
+6. **e2e spec** next to the controller: `<use-case>.controller.e2e.spec.ts` (pattern: `create-account.controller.e2e.spec.ts`) — hits the real HTTP app + real Postgres/Valkey via `apps/api/test/e2e-setup.ts`, no mocking.
 
-7. **Verify**: `pnpm run typecheck`, `pnpm run test:e2e -- <use-case>.controller.e2e`, then `pnpm run dev:http` and hit the endpoint manually if the change is non-trivial.
+7. **Verify**: `pnpm --filter api run typecheck`, `pnpm --filter api run test:e2e -- <use-case>.controller.e2e`, then `pnpm --filter api run dev:http` and hit the endpoint manually if the change is non-trivial.
 
 ## Non-goals
 
