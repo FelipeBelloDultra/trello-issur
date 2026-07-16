@@ -1,8 +1,6 @@
 {
-    "extends": "@tsconfig/node24/tsconfig.json",
+    "extends": "@trello-issur/typescript-config/node.json",
     "compilerOptions": {
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
         "jsx": "react-jsx",
         "outDir": "./dist",
         "types": ["@types/node", "vitest/globals"],

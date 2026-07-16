@@ -18,12 +18,12 @@ This repo has no CI configured yet, so the PR itself is the main gate — get it
 Run, and fix or report any failures — don't open a PR on top of a red build:
 
 ```sh
-pnpm run typecheck
-pnpm run lint:check
-pnpm run test
+pnpm --filter api run typecheck
+pnpm --filter api run lint:check
+pnpm --filter api run test
 ```
 
-Run `pnpm run test:e2e` too if the diff touches HTTP controllers, repositories/migrations, or queue consumers (it spins up a real PG schema + Valkey, so it's slower — skip it for pure docs/chore changes that don't touch those layers).
+Run `pnpm --filter api run test:e2e` too if the diff touches HTTP controllers, repositories/migrations, or queue consumers (it spins up a real PG schema + Valkey, so it's slower — skip it for pure docs/chore changes that don't touch those layers).
 
 ## 3. Understand the full diff
 
@@ -46,7 +46,7 @@ type(scope): imperative, lowercase description
 ```
 
 - `type` ∈ `feat` / `fix` / `chore` — don't invent `refactor`/`docs`/etc.
-- `scope` matches `src/modules/<scope>` or the relevant top-level area (`infra`, `bus`, ...).
+- `scope` matches `apps/api/src/modules/<scope>` or the relevant top-level area (`infra`, `bus`, ...).
 - If the branch mixes unrelated concerns across multiple scopes, say so and suggest splitting into separate PRs rather than forcing one title over everything.
 
 ## 5. Fill the body from the template

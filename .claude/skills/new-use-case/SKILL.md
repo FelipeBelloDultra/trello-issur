@@ -14,7 +14,7 @@ Every write in this codebase is a **command** dispatched through `CommandBus`; e
 
 ## Steps (command example — queries drop the `Either`/error parts)
 
-1. **Folder**: `src/modules/<module>/application/commands/<kebab-use-case-name>/`.
+1. **Folder**: `apps/api/src/modules/<module>/application/commands/<kebab-use-case-name>/`.
 
 2. **`command.ts`** — plain data holder:
 
@@ -80,12 +80,12 @@ Every write in this codebase is a **command** dispatched through `CommandBus`; e
    - Never `throw` an expected business failure from a handler — return `left(new SomeError(...))`. Only let `DomainError` (from entity/VO construction) propagate — that's an unexpected/programmer-error path by design.
    - Depend on repository/gateway **interfaces** from `application/repositories|gateways/`, injected via `InjectionTokens`, never on a concrete `infra/` class.
 
-5. **`handler.spec.ts`** next to the handler — unit test with fakes/mocks for repositories and gateways (see `create-account/handler.spec.ts` for shape). This is a unit spec (`src/**/*.spec.ts`), not an e2e spec — no real DB.
+5. **`handler.spec.ts`** next to the handler — unit test with fakes/mocks for repositories and gateways (see `create-account/handler.spec.ts` for shape). This is a unit spec (`apps/api/src/**/*.spec.ts`), not an e2e spec — no real DB.
 
 6. **DI wiring** in the module's `infra/container.ts`:
-   - Add a token under `InjectionTokens.Handlers.<UseCase>` in `src/infra/container/tokens.ts`.
+   - Add a token under `InjectionTokens.Handlers.<UseCase>` in `apps/api/src/infra/container/tokens.ts`.
    - `container.register<<UseCase>Handler>(InjectionTokens.Handlers.<UseCase>, { useClass: <UseCase>Handler }, { lifecycle: Lifecycle.Singleton })`.
-   - Register on the bus: `commandBus.register(<UseCase>Command, container.resolve(...))` (or `queryBus.register(...)` for a query) — see `wireWorkspaceBuses()` in `src/modules/workspace/infra/container.ts` for the pattern when a module has many use cases.
+   - Register on the bus: `commandBus.register(<UseCase>Command, container.resolve(...))` (or `queryBus.register(...)` for a query) — see `wireWorkspaceBuses()` in `apps/api/src/modules/workspace/infra/container.ts` for the pattern when a module has many use cases.
 
 7. If this use case is meant to be reachable over HTTP or from a queue consumer, that's a separate step — see the `new-http-endpoint` or `new-queue-consumer` skills.
 
