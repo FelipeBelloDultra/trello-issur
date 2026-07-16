@@ -1,0 +1,13 @@
+{
+    "name": "@trello-issur/typescript-config",
+    "version": "1.0.0",
+    "private": true,
+    "exports": {
+        "./base.json": "./base.json",
+        "./node.json": "./node.json",
+        "./react.json": "./react.json"
+    },
+    "dependencies": {
+        "@tsconfig/node24": "24.0.4"
+    }
+}
