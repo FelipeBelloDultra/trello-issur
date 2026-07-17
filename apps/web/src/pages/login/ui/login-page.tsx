@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 import { LoginForm } from "@/features/authenticate";
 
@@ -18,6 +18,13 @@ export function LoginPage() {
         </div>
 
         <LoginForm onSuccess={() => void navigate({ to: "/" })} />
+
+        <p className="text-muted-foreground text-sm">
+          Don&apos;t have an account?{" "}
+          <Link to="/signup" className="text-foreground font-medium hover:underline">
+            Sign up
+          </Link>
+        </p>
       </div>
     </div>
   );

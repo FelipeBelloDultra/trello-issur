@@ -12,6 +12,7 @@ import { HomePage } from "@/pages/home";
 import { LoginPage } from "@/pages/login";
 import { MembersPage } from "@/pages/members";
 import { OnboardingPage } from "@/pages/onboarding";
+import { SignupPage } from "@/pages/signup";
 
 import { DashboardLayout } from "./layouts/dashboard-layout";
 import { WorkspaceLayout } from "./layouts/workspace-layout";
@@ -100,12 +101,19 @@ const loginRoute = createRoute({
   component: LoginPage,
 });
 
+const signupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/signup",
+  component: SignupPage,
+});
+
 const routeTree = rootRoute.addChildren([
   dashboardLayoutRoute.addChildren([
     workspaceIndexRoute,
     workspaceLayoutRoute.addChildren([workspaceHomeRoute, membersRoute]),
   ]),
   loginRoute,
+  signupRoute,
 ]);
 
 export const router = createRouter({ routeTree, context: { queryClient } });
