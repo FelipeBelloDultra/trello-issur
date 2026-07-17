@@ -63,7 +63,7 @@ export function SignupPage() {
 
   return (
     <div className="flex min-h-svh items-center justify-center p-4">
-      <div className="flex w-full max-w-[340px] flex-col items-center gap-8">
+      <div className="flex w-full max-w-[400px] flex-col items-center gap-8">
         <div className="bg-primary text-primary-foreground flex size-9 items-center justify-center rounded-lg text-sm font-semibold">
           TI
         </div>
