@@ -41,11 +41,15 @@ export function UserMenu({ name, email, onSignOut }: UserMenuProps) {
                 <Avatar className="size-6">
                   <AvatarFallback className="text-xs">{initialsFor(name)}</AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{name ?? "..."}</span>
-                  <span className="text-muted-foreground truncate text-xs">{email ?? ""}</span>
+                {/* Hidden (not just clipped) when collapsed to icon mode — see
+                    the matching comment in workspace-switcher.tsx. */}
+                <div className="flex flex-1 items-center gap-2 overflow-hidden group-data-[collapsible=icon]:hidden">
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{name ?? "..."}</span>
+                    <span className="text-muted-foreground truncate text-xs">{email ?? ""}</span>
+                  </div>
+                  <ChevronsUpDown className="ml-auto size-4" />
                 </div>
-                <ChevronsUpDown className="ml-auto size-4" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" className="w-56">

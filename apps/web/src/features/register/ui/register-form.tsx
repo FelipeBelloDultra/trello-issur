@@ -136,7 +136,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={(e) => void onSubmit(e)} className="space-y-4">
+      <form onSubmit={(e) => void onSubmit(e)} className="w-full space-y-4">
         <FormField
           control={form.control}
           name="name"

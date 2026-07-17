@@ -86,7 +86,7 @@ export function WorkspaceNav({ workspaceId, role, permissions }: WorkspaceNavPro
                 <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.to)}>
                   <Link to={item.to}>
                     <item.icon />
-                    <span>{item.title}</span>
+                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -110,8 +110,8 @@ export function WorkspaceNav({ workspaceId, role, permissions }: WorkspaceNavPro
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton tooltip={item.title}>
                         <item.icon />
-                        <span>{item.title}</span>
-                        <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                        <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                        <ChevronRight className="ml-auto transition-transform group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
@@ -132,7 +132,7 @@ export function WorkspaceNav({ workspaceId, role, permissions }: WorkspaceNavPro
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton tooltip={item.title} disabled>
                     <item.icon />
-                    <span>{item.title}</span>
+                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ),
