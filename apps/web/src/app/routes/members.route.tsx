@@ -1,6 +1,8 @@
 import { createRoute, lazyRouteComponent } from "@tanstack/react-router";
 
-import { MembersPageSkeleton } from "@/pages/members";
+// Deliberately deep-imported, not via the pages/members public API — see the
+// matching comment in workspace-home.route.tsx.
+import { MembersPageSkeleton } from "@/pages/members/ui/members-page-skeleton";
 
 import { workspaceLayoutRoute } from "./workspace-layout.route";
 

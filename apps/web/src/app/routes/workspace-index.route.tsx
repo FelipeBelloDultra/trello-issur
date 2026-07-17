@@ -1,7 +1,9 @@
 import { createRoute, lazyRouteComponent, redirect } from "@tanstack/react-router";
 
 import { workspacesQueryOptions } from "@/entities/workspace";
-import { OnboardingPageSkeleton } from "@/pages/onboarding";
+// Deliberately deep-imported, not via the pages/onboarding public API — see
+// the matching comment in workspace-home.route.tsx.
+import { OnboardingPageSkeleton } from "@/pages/onboarding/ui/onboarding-page-skeleton";
 
 import { dashboardLayoutRoute } from "./dashboard-layout.route";
 

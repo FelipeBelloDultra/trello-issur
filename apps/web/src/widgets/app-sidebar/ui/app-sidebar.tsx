@@ -24,7 +24,11 @@ export function AppSidebar() {
         currentWorkspace={currentWorkspace}
         onSwitch={handleSwitchWorkspace}
       />
-      <WorkspaceNav workspaceId={workspaceId} role={membership?.role} />
+      <WorkspaceNav
+        workspaceId={workspaceId}
+        role={membership?.role}
+        permissions={membership?.permissions}
+      />
       <UserMenu
         name={account?.name}
         email={account?.email}
