@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { ApiError } from "@/shared/api";
 import { Button } from "@/shared/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
@@ -29,12 +28,14 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
+    // Errors surface via the global mutation-error toast (see
+    // app/query-client.ts) with the API's own message (e.g. "invalid
+    // credentials") — no need to duplicate/guess it here.
     try {
       await authenticate.mutateAsync(values);
       onSuccess?.();
-    } catch (error) {
-      const message = error instanceof ApiError ? error.message : "Invalid email or password";
-      form.setError("root", { message });
+    } catch {
+      // handled by the toast; just stop the flow from continuing.
     }
   });
 
@@ -67,9 +68,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             </FormItem>
           )}
         />
-        {form.formState.errors.root ? (
-          <p className="text-destructive text-sm">{form.formState.errors.root.message}</p>
-        ) : null}
         <Button type="submit" className="w-full" disabled={authenticate.isPending}>
           {authenticate.isPending ? "Signing in..." : "Sign in"}
         </Button>

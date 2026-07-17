@@ -3,7 +3,6 @@ import { Check, X } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
-import { ApiError } from "@/shared/api";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
@@ -118,6 +117,9 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   const confirmPassword = useWatch({ control: form.control, name: "confirm_password" });
 
   const onSubmit = form.handleSubmit(async (values) => {
+    // Errors surface via the global mutation-error toast (see
+    // app/query-client.ts) with the API's own message (e.g. "email already
+    // taken") — no need to duplicate/guess it here.
     try {
       // confirm_password only exists to validate a match client-side — the
       // API doesn't accept it.
@@ -128,9 +130,8 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         create_workspace: values.create_workspace,
       });
       onSuccess?.(values);
-    } catch (error) {
-      const message = error instanceof ApiError ? error.message : "Could not create your account";
-      form.setError("root", { message });
+    } catch {
+      // handled by the toast; just stop the flow from continuing.
     }
   });
 
@@ -211,9 +212,6 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             </FormItem>
           )}
         />
-        {form.formState.errors.root ? (
-          <p className="text-destructive text-sm">{form.formState.errors.root.message}</p>
-        ) : null}
         <Button type="submit" className="w-full" disabled={register.isPending}>
           {register.isPending ? "Creating account..." : "Create account"}
         </Button>

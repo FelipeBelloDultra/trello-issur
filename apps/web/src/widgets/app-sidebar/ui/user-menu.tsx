@@ -37,7 +37,7 @@ export function UserMenu({ name, email, onSignOut }: UserMenuProps) {
         <SidebarMenuItem>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarMenuButton size="lg">
+              <SidebarMenuButton size="lg" className="flex items-center justify-center">
                 <Avatar className="size-6">
                   <AvatarFallback className="text-xs">{initialsFor(name)}</AvatarFallback>
                 </Avatar>

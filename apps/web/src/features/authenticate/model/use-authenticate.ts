@@ -9,9 +9,6 @@ export function useAuthenticate() {
 
   return useMutation({
     mutationFn: (input: AuthenticateInput) => authenticate(input),
-    // LoginForm/SignupPage already surface this error inline — skip the
-    // global toast to avoid showing the same failure twice.
-    meta: { suppressErrorToast: true },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["account", "me"] });
       await queryClient.invalidateQueries({ queryKey: ["workspaces"] });

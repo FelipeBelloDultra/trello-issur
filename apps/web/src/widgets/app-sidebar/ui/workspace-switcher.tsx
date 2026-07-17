@@ -42,7 +42,11 @@ export function WorkspaceSwitcher({
         <SidebarMenuItem>
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-              <SidebarMenuButton size="lg" aria-expanded={open}>
+              <SidebarMenuButton
+                size="lg"
+                aria-expanded={open}
+                className="flex items-center justify-center"
+              >
                 <div className="bg-primary text-primary-foreground flex size-6 shrink-0 items-center justify-center rounded-md text-xs font-semibold">
                   {currentWorkspace ? currentWorkspace.name.slice(0, 2).toUpperCase() : "TI"}
                 </div>
