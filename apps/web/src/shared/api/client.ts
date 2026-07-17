@@ -1,5 +1,4 @@
 import { env } from "@/shared/config";
-import { useAuthStore } from "@/shared/lib/auth-store";
 
 export interface ApiFieldError {
   field: string;
@@ -34,19 +33,33 @@ interface RequestOptions {
   body?: unknown;
 }
 
-export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body } = options;
-  const { accessToken } = useAuthStore.getState();
+const AUTH_PATHS_WITHOUT_RETRY = new Set(["/auth/refresh", "/auth/authenticate", "/auth/logout"]);
 
-  const response = await fetch(`${env.apiUrl}${path}`, {
+function rawFetch(path: string, options: RequestOptions): Promise<Response> {
+  const { method = "GET", body } = options;
+
+  return fetch(`${env.apiUrl}${path}`, {
     method,
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    },
+    headers: { "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined,
   });
+}
+
+async function refreshSession(): Promise<boolean> {
+  const response = await rawFetch("/auth/refresh", { method: "POST" });
+  return response.ok;
+}
+
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  let response = await rawFetch(path, options);
+
+  if (response.status === 401 && !AUTH_PATHS_WITHOUT_RETRY.has(path)) {
+    const refreshed = await refreshSession();
+    if (refreshed) {
+      response = await rawFetch(path, options);
+    }
+  }
 
   if (response.status === 204) {
     return undefined as T;
