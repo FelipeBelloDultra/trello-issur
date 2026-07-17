@@ -5,7 +5,15 @@ import { z } from "zod";
 import { ApiError } from "@/shared/api";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 
 import { useRegister } from "../model/use-register";
@@ -99,11 +107,20 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           control={form.control}
           name="create_workspace"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center gap-2 space-y-0">
+            <FormItem className="flex flex-row items-start gap-2 space-y-0">
               <FormControl>
-                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  className="mt-0.5"
+                />
               </FormControl>
-              <FormLabel className="font-normal">Create a workspace for me</FormLabel>
+              <div className="space-y-1 leading-none">
+                <FormLabel className="font-normal">Create a workspace for me</FormLabel>
+                <FormDescription>
+                  Otherwise you&apos;ll name and create your own right after signing up.
+                </FormDescription>
+              </div>
             </FormItem>
           )}
         />
