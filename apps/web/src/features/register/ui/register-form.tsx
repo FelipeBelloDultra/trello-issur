@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { ApiError } from "@/shared/api";
 import { Button } from "@/shared/ui/button";
+import { Checkbox } from "@/shared/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 
@@ -26,6 +27,7 @@ const registerSchema = z.object({
     ),
   email: z.email(),
   password: z.string().min(8, "password must be at least 8 characters"),
+  create_workspace: z.boolean(),
 });
 
 type RegisterSchema = z.infer<typeof registerSchema>;
@@ -38,7 +40,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   const register = useRegister();
   const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    defaultValues: { name: "", email: "", password: "", create_workspace: true },
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
@@ -90,6 +92,18 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                 <Input type="password" autoComplete="new-password" {...field} />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="create_workspace"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center gap-2 space-y-0">
+              <FormControl>
+                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+              </FormControl>
+              <FormLabel className="font-normal">Create a workspace for me</FormLabel>
             </FormItem>
           )}
         />

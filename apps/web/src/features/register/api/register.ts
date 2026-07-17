@@ -4,6 +4,7 @@ export interface RegisterInput {
   name: string;
   email: string;
   password: string;
+  create_workspace: boolean;
 }
 
 interface RegisterResponse {
