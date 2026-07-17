@@ -3,8 +3,10 @@ import { container, Lifecycle } from "tsyringe";
 import { InjectionTokens } from "@/infra/container/tokens";
 
 import { CreateWorkspaceController } from "./controllers/create-workspace.controller";
+import { GetMyWorkspaceMembershipController } from "./controllers/get-my-workspace-membership.controller";
 import { GetWorkspaceController } from "./controllers/get-workspace.controller";
 import { InviteMemberController } from "./controllers/invite-member.controller";
+import { ListMyWorkspacesController } from "./controllers/list-my-workspaces.controller";
 import { ListWorkspaceInvitesController } from "./controllers/list-workspace-invites.controller";
 import { ListWorkspaceMembersController } from "./controllers/list-workspace-members.controller";
 import { RemoveWorkspaceMemberController } from "./controllers/remove-workspace-member.controller";
@@ -64,6 +66,18 @@ export function setupHTTPWorkspaceContainer(): void {
   container.register<ListWorkspaceInvitesController>(
     InjectionTokens.Controllers.ListWorkspaceInvites,
     { useClass: ListWorkspaceInvitesController },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register<ListMyWorkspacesController>(
+    InjectionTokens.Controllers.ListMyWorkspaces,
+    { useClass: ListMyWorkspacesController },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register<GetMyWorkspaceMembershipController>(
+    InjectionTokens.Controllers.GetMyWorkspaceMembership,
+    { useClass: GetMyWorkspaceMembershipController },
     { lifecycle: Lifecycle.Singleton },
   );
 }

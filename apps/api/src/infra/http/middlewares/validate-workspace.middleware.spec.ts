@@ -5,7 +5,7 @@ import { InMemoryAccountRoleRepository } from "@/test/repositories/in-memory-acc
 
 import { ValidateWorkspaceMiddleware } from "./validate-workspace.middleware";
 
-const WORKSPACE_ID = "workspace-abc";
+const WORKSPACE_ID = "018f2c8e-6b8b-7c3e-8a2e-3f6b1e9d2c4a";
 
 function makeClaims(accountId = "account-123") {
   return TokenClaims.create(accountId, "user@test.com");
@@ -45,6 +45,12 @@ describe("ValidateWorkspaceMiddleware", () => {
 
   it("throws 404 when workspaceId is missing from route params", async () => {
     const handler = sut.handle()(makeReq({ workspaceId: "" }), {} as Response, vi.fn());
+
+    await expect(handler).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it("throws 404 when workspaceId is not a valid uuid", async () => {
+    const handler = sut.handle()(makeReq({ workspaceId: "not-a-uuid" }), {} as Response, vi.fn());
 
     await expect(handler).rejects.toMatchObject({ statusCode: 404 });
   });

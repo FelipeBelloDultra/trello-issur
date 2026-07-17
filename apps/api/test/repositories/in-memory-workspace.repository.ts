@@ -23,4 +23,8 @@ export class InMemoryWorkspaceRepository implements WorkspaceRepository {
     const workspace = this.items.find((w) => w.slug.toString() === slug);
     return Promise.resolve(workspace ?? null);
   }
+
+  public async findAllByAccountId(accountId: string): Promise<Workspace[]> {
+    return Promise.resolve(this.items.filter((w) => w.ownerId.toValue() === accountId));
+  }
 }

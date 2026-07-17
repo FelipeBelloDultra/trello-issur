@@ -10,6 +10,7 @@ import { HttpMessages } from "@/infra/http/http-messages";
 import { LogoutCommand } from "@/modules/auth/application/commands/logout/command";
 import { InvalidTokenError } from "@/modules/auth/application/errors/invalid-token.error";
 
+import { ACCESS_TOKEN_COOKIE, accessTokenCookieOptions } from "../access-token-cookie";
 import { REFRESH_TOKEN_COOKIE, refreshTokenCookieOptions } from "../refresh-token-cookie";
 
 @injectable()
@@ -39,6 +40,7 @@ export class LogoutController implements Controller {
     }
 
     res.clearCookie(REFRESH_TOKEN_COOKIE, refreshTokenCookieOptions);
+    res.clearCookie(ACCESS_TOKEN_COOKIE, accessTokenCookieOptions);
     return res.status(204).send();
   }
 }

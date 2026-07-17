@@ -3,6 +3,7 @@ import { faker } from "@faker-js/faker";
 import { makeAccount } from "@/test/factories/make-account";
 import { InMemoryCryptographGateway } from "@/test/gateways/in-memory-cryptograph.gateway";
 import { InMemoryPasswordHasherGateway } from "@/test/gateways/in-memory-password-hasher.gateway";
+import { InMemoryAccessTokenRepository } from "@/test/repositories/in-memory-access-token.repository";
 import { InMemoryAccountRepository } from "@/test/repositories/in-memory-account.repository";
 import { InMemoryTokenRepository } from "@/test/repositories/in-memory-token.repository";
 
@@ -22,6 +23,7 @@ function makeInput(overrides?: Partial<{ email: string; password: string }>) {
 describe("AuthenticateHandler", () => {
   let accountRepository: InMemoryAccountRepository;
   let tokenRepository: InMemoryTokenRepository;
+  let accessTokenRepository: InMemoryAccessTokenRepository;
   let cryptographGateway: InMemoryCryptographGateway;
   let passwordHasher: InMemoryPasswordHasherGateway;
   let sut: AuthenticateHandler;
@@ -29,6 +31,7 @@ describe("AuthenticateHandler", () => {
   beforeEach(() => {
     accountRepository = new InMemoryAccountRepository();
     tokenRepository = new InMemoryTokenRepository();
+    accessTokenRepository = new InMemoryAccessTokenRepository();
     cryptographGateway = new InMemoryCryptographGateway();
     passwordHasher = new InMemoryPasswordHasherGateway();
     sut = new AuthenticateHandler(
@@ -36,10 +39,11 @@ describe("AuthenticateHandler", () => {
       cryptographGateway,
       passwordHasher,
       tokenRepository,
+      accessTokenRepository,
     );
   });
 
-  it("returns right and stores the refresh token on valid credentials", async () => {
+  it("returns right and stores the refresh + access token on valid credentials", async () => {
     const plainPassword = faker.internet.password({ length: 12 });
     const account = makeAccount({ passwordHash: `hashed:${plainPassword}` });
     accountRepository.items.push(account);
@@ -50,6 +54,7 @@ describe("AuthenticateHandler", () => {
 
     expect(result.isRight()).toBe(true);
     expect(tokenRepository.items.has(account.id.toValue())).toBe(true);
+    expect(accessTokenRepository.items.has(account.id.toValue())).toBe(true);
   });
 
   it("returns left with InvalidCredentialsError when account does not exist", async () => {

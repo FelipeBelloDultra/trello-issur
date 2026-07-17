@@ -53,4 +53,22 @@ export class DrizzleAccountRoleRepository implements AccountRoleRepository {
 
     return perms;
   }
+
+  public async findRole(accountId: string, workspaceId: string): Promise<string | null> {
+    const cached = await this.accountRoleCache.getRole(accountId, workspaceId);
+    if (cached !== null) return cached;
+
+    const [row] = await this.db.query
+      .select({ name: roles.name })
+      .from(accountRoles)
+      .innerJoin(roles, eq(accountRoles.roleId, roles.id))
+      .where(and(eq(accountRoles.accountId, accountId), eq(accountRoles.workspaceId, workspaceId)))
+      .limit(1);
+
+    if (!row) return null;
+
+    await this.accountRoleCache.setRole(accountId, workspaceId, row.name);
+
+    return row.name;
+  }
 }

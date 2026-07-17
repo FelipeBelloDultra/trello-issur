@@ -45,10 +45,19 @@ export class ValkeyAccountRoleCacheRepository implements AccountRoleCacheReposit
     );
   }
 
+  public async getRole(accountId: string, workspaceId: string): Promise<string | null> {
+    return this.cache.get(this.roleKey(accountId, workspaceId));
+  }
+
+  public async setRole(accountId: string, workspaceId: string, role: string): Promise<void> {
+    await this.cache.set(this.roleKey(accountId, workspaceId), role, TTL);
+  }
+
   public async invalidate(accountId: string, workspaceId: string): Promise<void> {
     await Promise.all([
       this.cache.delete(this.membershipKey(accountId, workspaceId)),
       this.cache.delete(this.permissionsKey(accountId, workspaceId)),
+      this.cache.delete(this.roleKey(accountId, workspaceId)),
     ]);
   }
 
@@ -58,5 +67,9 @@ export class ValkeyAccountRoleCacheRepository implements AccountRoleCacheReposit
 
   private permissionsKey(accountId: string, workspaceId: string): string {
     return this.cache.createKey(["permissions", accountId, workspaceId]);
+  }
+
+  private roleKey(accountId: string, workspaceId: string): string {
+    return this.cache.createKey(["role", accountId, workspaceId]);
   }
 }

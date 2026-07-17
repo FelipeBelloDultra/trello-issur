@@ -5,4 +5,5 @@ export interface WorkspaceRepository {
   save(workspace: Workspace): Promise<void>;
   findById(id: string): Promise<Workspace | null>;
   findBySlug(slug: string): Promise<Workspace | null>;
+  findAllByAccountId(accountId: string): Promise<Workspace[]>;
 }

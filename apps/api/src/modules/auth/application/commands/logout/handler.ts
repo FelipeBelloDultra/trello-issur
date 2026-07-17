@@ -6,6 +6,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 
 import { InvalidTokenError } from "../../errors/invalid-token.error";
 import { CryptographGateway } from "../../gateways/cryptograph.gateway";
+import { AccessTokenRepository } from "../../repositories/access-token.repository";
 import { TokenRepository } from "../../repositories/token.repository";
 
 import { LogoutCommand } from "./command";
@@ -21,6 +22,8 @@ export class LogoutHandler implements CommandHandler<LogoutCommand, Either<OnErr
     private readonly cryptographGateway: CryptographGateway,
     @inject(InjectionTokens.Repositories.Token)
     private readonly tokenRepository: TokenRepository,
+    @inject(InjectionTokens.Repositories.AccessToken)
+    private readonly accessTokenRepository: AccessTokenRepository,
   ) {}
 
   public async execute(command: LogoutCommand): Output {
@@ -29,6 +32,7 @@ export class LogoutHandler implements CommandHandler<LogoutCommand, Either<OnErr
     if (!claims) return left(new InvalidTokenError());
 
     await this.tokenRepository.delete(claims.sub);
+    await this.accessTokenRepository.delete(claims.sub);
 
     return right(undefined);
   }

@@ -3,4 +3,5 @@ import { RawPermissionKey } from "@/modules/auth/domain/value-objects/permission
 export interface AccountRoleRepository {
   isMember(accountId: string, workspaceId: string): Promise<boolean>;
   findPermissions(accountId: string, workspaceId: string): Promise<RawPermissionKey[]>;
+  findRole(accountId: string, workspaceId: string): Promise<string | null>;
 }
