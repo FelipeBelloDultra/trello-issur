@@ -1,28 +1,26 @@
-import { useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { Kanban } from "lucide-react";
 
 import { useAccountQuery } from "@/entities/account";
-import { useAuthStore } from "@/shared/lib/auth-store";
 
 export function HomePage() {
-  const navigate = useNavigate();
-  const accessToken = useAuthStore((state) => state.accessToken);
   const { data: account, isLoading } = useAccountQuery();
 
-  useEffect(() => {
-    if (accessToken === null) {
-      void navigate({ to: "/login" });
-    }
-  }, [accessToken, navigate]);
-
-  if (accessToken === null || isLoading) {
+  if (isLoading) {
     return null;
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-2 p-4">
-      <h1 className="text-2xl font-semibold">Welcome, {account?.name}</h1>
-      <p className="text-muted-foreground">{account?.email}</p>
+    <div className="flex flex-1 flex-col gap-1 p-6">
+      <h1 className="text-lg font-semibold">Welcome back, {account?.name}</h1>
+      <p className="text-muted-foreground text-sm">{account?.email}</p>
+
+      <div className="border-border mt-6 flex flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-24">
+        <Kanban className="text-muted-foreground size-6" />
+        <p className="text-sm font-medium">No boards yet</p>
+        <p className="text-muted-foreground max-w-xs text-center text-sm">
+          Boards, workspaces, and everything else in the sidebar is left for you to build.
+        </p>
+      </div>
     </div>
   );
 }

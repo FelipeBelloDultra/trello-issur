@@ -1,21 +1,24 @@
 import { useNavigate } from "@tanstack/react-router";
 
 import { LoginForm } from "@/features/authenticate";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 
 export function LoginPage() {
   const navigate = useNavigate();
 
   return (
     <div className="flex min-h-svh items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Sign in</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <LoginForm onSuccess={() => void navigate({ to: "/" })} />
-        </CardContent>
-      </Card>
+      <div className="flex w-full max-w-[340px] flex-col items-center gap-8">
+        <div className="bg-primary text-primary-foreground flex size-9 items-center justify-center rounded-lg text-sm font-semibold">
+          TI
+        </div>
+
+        <div className="flex w-full flex-col gap-1 text-center">
+          <h1 className="text-xl font-medium">Sign in to Trello Issur</h1>
+          <p className="text-muted-foreground text-sm">Welcome back, enter your credentials.</p>
+        </div>
+
+        <LoginForm onSuccess={() => void navigate({ to: "/" })} />
+      </div>
     </div>
   );
 }
