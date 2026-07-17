@@ -3,6 +3,7 @@ import { inject, injectable } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
 import { DatabaseClient } from "@/infra/db/client";
+import { accountRoles } from "@/infra/db/schema/account-roles";
 import { workspaces } from "@/infra/db/schema/workspaces";
 import { WorkspaceRepository } from "@/modules/workspace/application/repositories/workspace.repository";
 import { Workspace } from "@/modules/workspace/domain/entities/workspace";
@@ -47,5 +48,15 @@ export class DrizzleWorkspaceRepository implements WorkspaceRepository {
       .limit(1);
 
     return row ? WorkspaceMapper.toDomain(row) : null;
+  }
+
+  public async findAllByAccountId(accountId: string): Promise<Workspace[]> {
+    const rows = await this.db.query
+      .select({ workspace: workspaces })
+      .from(workspaces)
+      .innerJoin(accountRoles, eq(accountRoles.workspaceId, workspaces.id))
+      .where(eq(accountRoles.accountId, accountId));
+
+    return rows.map((r) => WorkspaceMapper.toDomain(r.workspace));
   }
 }

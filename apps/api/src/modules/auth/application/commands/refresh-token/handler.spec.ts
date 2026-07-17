@@ -3,6 +3,7 @@ import { faker } from "@faker-js/faker";
 import { TokenClaims } from "@/modules/auth/domain/value-objects/token-claims";
 import { makeAccount } from "@/test/factories/make-account";
 import { InMemoryCryptographGateway } from "@/test/gateways/in-memory-cryptograph.gateway";
+import { InMemoryAccessTokenRepository } from "@/test/repositories/in-memory-access-token.repository";
 import { InMemoryTokenRepository } from "@/test/repositories/in-memory-token.repository";
 
 import { InvalidTokenError } from "../../errors/invalid-token.error";
@@ -12,13 +13,15 @@ import { RefreshTokenHandler } from "./handler";
 
 describe("RefreshTokenHandler", () => {
   let tokenRepository: InMemoryTokenRepository;
+  let accessTokenRepository: InMemoryAccessTokenRepository;
   let cryptographGateway: InMemoryCryptographGateway;
   let sut: RefreshTokenHandler;
 
   beforeEach(() => {
     tokenRepository = new InMemoryTokenRepository();
+    accessTokenRepository = new InMemoryAccessTokenRepository();
     cryptographGateway = new InMemoryCryptographGateway();
-    sut = new RefreshTokenHandler(cryptographGateway, tokenRepository);
+    sut = new RefreshTokenHandler(cryptographGateway, tokenRepository, accessTokenRepository);
   });
 
   async function seedStoredToken(accountId: string, email: string) {
@@ -28,7 +31,7 @@ describe("RefreshTokenHandler", () => {
     return pair;
   }
 
-  it("returns right and rotates the stored refresh token on success", async () => {
+  it("returns right and rotates the stored refresh + access token on success", async () => {
     const account = makeAccount();
     const oldPair = await seedStoredToken(account.id.toValue(), account.email);
 
@@ -39,6 +42,7 @@ describe("RefreshTokenHandler", () => {
     const stored = await tokenRepository.find(account.id.toValue());
     expect(result.isRight()).toBe(true);
     expect(stored).not.toBe(oldPair.refreshToken);
+    expect(accessTokenRepository.items.has(account.id.toValue())).toBe(true);
   });
 
   it("returns left with InvalidTokenError when the token is malformed", async () => {

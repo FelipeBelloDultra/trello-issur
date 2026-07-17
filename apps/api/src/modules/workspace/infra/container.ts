@@ -16,8 +16,12 @@ import { UpdateWorkspaceAvatarCommand } from "@/modules/workspace/application/co
 import { UpdateWorkspaceAvatarHandler } from "@/modules/workspace/application/commands/update-workspace-avatar/handler";
 import { UpdateWorkspaceMemberRoleCommand } from "@/modules/workspace/application/commands/update-workspace-member-role/command";
 import { UpdateWorkspaceMemberRoleHandler } from "@/modules/workspace/application/commands/update-workspace-member-role/handler";
+import { GetMyMembershipHandler } from "@/modules/workspace/application/queries/get-my-membership/handler";
+import { GetMyMembershipQuery } from "@/modules/workspace/application/queries/get-my-membership/query";
 import { GetWorkspaceHandler } from "@/modules/workspace/application/queries/get-workspace/handler";
 import { GetWorkspaceQuery } from "@/modules/workspace/application/queries/get-workspace/query";
+import { ListMyWorkspacesHandler } from "@/modules/workspace/application/queries/list-my-workspaces/handler";
+import { ListMyWorkspacesQuery } from "@/modules/workspace/application/queries/list-my-workspaces/query";
 import { ListWorkspaceInvitesHandler } from "@/modules/workspace/application/queries/list-workspace-invites/handler";
 import { ListWorkspaceInvitesQuery } from "@/modules/workspace/application/queries/list-workspace-invites/query";
 import { ListWorkspaceMembersHandler } from "@/modules/workspace/application/queries/list-workspace-members/handler";
@@ -71,6 +75,14 @@ function wireWorkspaceBuses(): void {
   queryBus.register(
     ListWorkspaceInvitesQuery,
     container.resolve<ListWorkspaceInvitesHandler>(InjectionTokens.Handlers.ListWorkspaceInvites),
+  );
+  queryBus.register(
+    ListMyWorkspacesQuery,
+    container.resolve<ListMyWorkspacesHandler>(InjectionTokens.Handlers.ListMyWorkspaces),
+  );
+  queryBus.register(
+    GetMyMembershipQuery,
+    container.resolve<GetMyMembershipHandler>(InjectionTokens.Handlers.GetMyMembership),
   );
 }
 
@@ -126,6 +138,18 @@ function registerWorkspaceHandlers(): void {
   container.register<ListWorkspaceInvitesHandler>(
     InjectionTokens.Handlers.ListWorkspaceInvites,
     { useClass: ListWorkspaceInvitesHandler },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register<ListMyWorkspacesHandler>(
+    InjectionTokens.Handlers.ListMyWorkspaces,
+    { useClass: ListMyWorkspacesHandler },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register<GetMyMembershipHandler>(
+    InjectionTokens.Handlers.GetMyMembership,
+    { useClass: GetMyMembershipHandler },
     { lifecycle: Lifecycle.Singleton },
   );
 }

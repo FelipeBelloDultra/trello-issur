@@ -6,7 +6,7 @@ export interface AuthenticateInput {
 }
 
 interface AuthenticateResponse {
-  access_token: string;
+  authenticated: true;
 }
 
 export function authenticate(input: AuthenticateInput): Promise<AuthenticateResponse> {

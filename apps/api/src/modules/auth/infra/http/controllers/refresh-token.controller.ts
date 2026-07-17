@@ -12,6 +12,7 @@ import { RefreshTokenCommand } from "@/modules/auth/application/commands/refresh
 import { InvalidTokenError } from "@/modules/auth/application/errors/invalid-token.error";
 import { TokenPair } from "@/modules/auth/domain/value-objects/token-pair";
 
+import { ACCESS_TOKEN_COOKIE, accessTokenCookieOptions } from "../access-token-cookie";
 import { REFRESH_TOKEN_COOKIE, refreshTokenCookieOptions } from "../refresh-token-cookie";
 
 @injectable()
@@ -46,6 +47,7 @@ export class RefreshTokenController implements Controller {
 
     const pair = result.value;
     res.cookie(REFRESH_TOKEN_COOKIE, pair.refreshToken, refreshTokenCookieOptions);
-    return res.status(200).json({ data: { access_token: pair.accessToken } });
+    res.cookie(ACCESS_TOKEN_COOKIE, pair.accessToken, accessTokenCookieOptions);
+    return res.status(200).json({ data: { authenticated: true } });
   }
 }

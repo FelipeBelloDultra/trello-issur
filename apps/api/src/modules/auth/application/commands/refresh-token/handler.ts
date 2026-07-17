@@ -9,6 +9,7 @@ import { TokenPair } from "@/modules/auth/domain/value-objects/token-pair";
 
 import { InvalidTokenError } from "../../errors/invalid-token.error";
 import { CryptographGateway } from "../../gateways/cryptograph.gateway";
+import { AccessTokenRepository } from "../../repositories/access-token.repository";
 import { TokenRepository } from "../../repositories/token.repository";
 
 import { RefreshTokenCommand } from "./command";
@@ -27,6 +28,8 @@ export class RefreshTokenHandler implements CommandHandler<
     private readonly cryptographGateway: CryptographGateway,
     @inject(InjectionTokens.Repositories.Token)
     private readonly tokenRepository: TokenRepository,
+    @inject(InjectionTokens.Repositories.AccessToken)
+    private readonly accessTokenRepository: AccessTokenRepository,
   ) {}
 
   public async execute(command: RefreshTokenCommand): Output {
@@ -40,11 +43,16 @@ export class RefreshTokenHandler implements CommandHandler<
 
     const pair = await this.cryptographGateway.generatePair(claims);
 
-    const ttl = parseDurationToSeconds(env.JWT_REFRESH_EXPIRES);
     await this.tokenRepository.save({
       accountId: claims.sub,
       refreshToken: pair.refreshToken,
-      ttlSeconds: ttl,
+      ttlSeconds: parseDurationToSeconds(env.JWT_REFRESH_EXPIRES),
+    });
+
+    await this.accessTokenRepository.save({
+      accountId: claims.sub,
+      accessToken: pair.accessToken,
+      ttlSeconds: parseDurationToSeconds(env.JWT_ACCESS_EXPIRES),
     });
 
     return right(pair);

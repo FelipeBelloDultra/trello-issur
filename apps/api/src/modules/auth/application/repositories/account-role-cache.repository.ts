@@ -9,5 +9,7 @@ export interface AccountRoleCacheRepository {
     workspaceId: string,
     permissions: RawPermissionKey[],
   ): Promise<void>;
+  getRole(accountId: string, workspaceId: string): Promise<string | null>;
+  setRole(accountId: string, workspaceId: string, role: string): Promise<void>;
   invalidate(accountId: string, workspaceId: string): Promise<void>;
 }

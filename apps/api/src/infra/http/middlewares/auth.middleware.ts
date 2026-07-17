@@ -3,6 +3,8 @@ import { inject, injectable } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
 import { CryptographGateway } from "@/modules/auth/application/gateways/cryptograph.gateway";
+import { AccessTokenRepository } from "@/modules/auth/application/repositories/access-token.repository";
+import { ACCESS_TOKEN_COOKIE } from "@/modules/auth/infra/http/access-token-cookie";
 
 import { Middleware } from "../contracts/middleware";
 import { HttpException } from "../http-exception";
@@ -12,20 +14,27 @@ export class AuthMiddleware implements Middleware {
   public constructor(
     @inject(InjectionTokens.Gateways.Cryptograph)
     private readonly cryptograph: CryptographGateway,
+    @inject(InjectionTokens.Repositories.AccessToken)
+    private readonly accessTokenRepository: AccessTokenRepository,
   ) {}
 
   public handle() {
     return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
-      const authHeader = req.headers.authorization;
+      const token = req.cookies[ACCESS_TOKEN_COOKIE] as string | undefined;
 
-      if (!authHeader?.startsWith("Bearer ")) {
+      if (!token) {
         throw new HttpException({ statusCode: 401, message: "Missing access token" });
       }
 
-      const token = authHeader.slice(7);
       const claims = await this.cryptograph.verify(token);
 
       if (!claims) {
+        throw new HttpException({ statusCode: 401, message: "Invalid or expired access token" });
+      }
+
+      const cachedToken = await this.accessTokenRepository.find(claims.sub);
+
+      if (cachedToken !== token) {
         throw new HttpException({ statusCode: 401, message: "Invalid or expired access token" });
       }
 

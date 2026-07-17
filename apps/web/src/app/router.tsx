@@ -1,27 +1,13 @@
-import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
+import { createRouter, lazyRouteComponent } from "@tanstack/react-router";
 
-import { HomePage } from "@/pages/home";
-import { LoginPage } from "@/pages/login";
+import { queryClient } from "./query-client";
+import { routeTree } from "./routes";
 
-const rootRoute = createRootRoute({
-  component: () => <Outlet />,
+export const router = createRouter({
+  routeTree,
+  context: { queryClient },
+  defaultNotFoundComponent: lazyRouteComponent(() => import("@/pages/not-found"), "NotFoundPage"),
 });
-
-const homeRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/",
-  component: HomePage,
-});
-
-const loginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/login",
-  component: LoginPage,
-});
-
-const routeTree = rootRoute.addChildren([homeRoute, loginRoute]);
-
-export const router = createRouter({ routeTree });
 
 declare module "@tanstack/react-router" {
   interface Register {

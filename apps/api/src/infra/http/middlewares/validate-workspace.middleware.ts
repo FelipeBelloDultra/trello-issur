@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
+import { z } from "zod";
 
 import { InjectionTokens } from "@/infra/container/tokens";
 import { AccountRoleRepository } from "@/modules/auth/application/repositories/account-role.repository";
@@ -7,6 +8,8 @@ import { AccountRoleRepository } from "@/modules/auth/application/repositories/a
 import { Middleware } from "../contracts/middleware";
 import { HttpException } from "../http-exception";
 import { HttpMessages } from "../http-messages";
+
+const workspaceIdSchema = z.uuid();
 
 @injectable()
 export class ValidateWorkspaceMiddleware implements Middleware {
@@ -25,7 +28,11 @@ export class ValidateWorkspaceMiddleware implements Middleware {
 
       const workspaceId = req.params.workspaceId;
 
-      if (!workspaceId || Array.isArray(workspaceId)) {
+      if (
+        !workspaceId ||
+        Array.isArray(workspaceId) ||
+        !workspaceIdSchema.safeParse(workspaceId).success
+      ) {
         throw new HttpException({ statusCode: 404, message: HttpMessages.Workspace.NotFound });
       }
 

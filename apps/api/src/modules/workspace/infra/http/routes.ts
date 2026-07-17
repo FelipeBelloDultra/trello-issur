@@ -5,6 +5,8 @@ export const workspaceControllers = [
   InjectionTokens.Controllers.GetWorkspace,
   InjectionTokens.Controllers.UpdateWorkspaceAvatar,
   InjectionTokens.Controllers.ListWorkspaceMembers,
+  InjectionTokens.Controllers.ListMyWorkspaces,
+  InjectionTokens.Controllers.GetMyWorkspaceMembership,
   InjectionTokens.Controllers.RemoveWorkspaceMember,
   InjectionTokens.Controllers.UpdateWorkspaceMemberRole,
   InjectionTokens.Controllers.InviteMember,
