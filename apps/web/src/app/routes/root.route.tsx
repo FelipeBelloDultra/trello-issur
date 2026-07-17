@@ -1,5 +1,7 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 
+import { RouteProgressBar } from "@/shared/ui/route-progress-bar";
+
 import type { QueryClient } from "@tanstack/react-query";
 
 export interface RouterContext {
@@ -7,5 +9,10 @@ export interface RouterContext {
 }
 
 export const rootRoute = createRootRouteWithContext<RouterContext>()({
-  component: () => <Outlet />,
+  component: () => (
+    <>
+      <RouteProgressBar />
+      <Outlet />
+    </>
+  ),
 });

@@ -1,6 +1,4 @@
-import { createRoute } from "@tanstack/react-router";
-
-import { LoginPage } from "@/pages/login";
+import { createRoute, lazyRouteComponent } from "@tanstack/react-router";
 
 import { redirectIfAuthenticated } from "./guest-guard";
 import { rootRoute } from "./root.route";
@@ -9,5 +7,5 @@ export const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
   beforeLoad: ({ context }) => redirectIfAuthenticated(context.queryClient),
-  component: LoginPage,
+  component: lazyRouteComponent(() => import("@/pages/login"), "LoginPage"),
 });

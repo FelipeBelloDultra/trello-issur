@@ -1,7 +1,7 @@
-import { createRoute, redirect } from "@tanstack/react-router";
+import { createRoute, lazyRouteComponent, redirect } from "@tanstack/react-router";
 
 import { workspacesQueryOptions } from "@/entities/workspace";
-import { OnboardingPage } from "@/pages/onboarding";
+import { OnboardingPageSkeleton } from "@/pages/onboarding";
 
 import { dashboardLayoutRoute } from "./dashboard-layout.route";
 
@@ -18,5 +18,6 @@ export const workspaceIndexRoute = createRoute({
       throw redirect({ to: "/w/$workspaceId", params: { workspaceId: first.id } });
     }
   },
-  component: OnboardingPage,
+  component: lazyRouteComponent(() => import("@/pages/onboarding"), "OnboardingPage"),
+  pendingComponent: OnboardingPageSkeleton,
 });

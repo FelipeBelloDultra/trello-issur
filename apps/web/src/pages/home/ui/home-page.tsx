@@ -2,11 +2,13 @@ import { Kanban } from "lucide-react";
 
 import { useAccountQuery } from "@/entities/account";
 
+import { HomePageSkeleton } from "./home-page-skeleton";
+
 export function HomePage() {
   const { data: account, isLoading } = useAccountQuery();
 
   if (isLoading) {
-    return null;
+    return <HomePageSkeleton />;
   }
 
   return (

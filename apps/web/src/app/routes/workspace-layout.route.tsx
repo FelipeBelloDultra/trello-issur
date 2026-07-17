@@ -3,6 +3,7 @@ import { createRoute, redirect } from "@tanstack/react-router";
 import { workspaceMembershipQueryOptions } from "@/entities/workspace";
 
 import { WorkspaceLayout } from "../layouts/workspace-layout";
+import { WorkspaceLayoutSkeleton } from "../layouts/workspace-layout-skeleton";
 
 import { dashboardLayoutRoute } from "./dashboard-layout.route";
 
@@ -26,4 +27,5 @@ export const workspaceLayoutRoute = createRoute({
     }
   },
   component: WorkspaceLayout,
+  pendingComponent: WorkspaceLayoutSkeleton,
 });

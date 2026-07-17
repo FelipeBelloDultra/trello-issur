@@ -1,11 +1,12 @@
-import { createRoute } from "@tanstack/react-router";
+import { createRoute, lazyRouteComponent } from "@tanstack/react-router";
 
-import { MembersPage } from "@/pages/members";
+import { MembersPageSkeleton } from "@/pages/members";
 
 import { workspaceLayoutRoute } from "./workspace-layout.route";
 
 export const membersRoute = createRoute({
   getParentRoute: () => workspaceLayoutRoute,
   path: "/members",
-  component: MembersPage,
+  component: lazyRouteComponent(() => import("@/pages/members"), "MembersPage"),
+  pendingComponent: MembersPageSkeleton,
 });
