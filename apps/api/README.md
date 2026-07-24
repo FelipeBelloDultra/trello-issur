@@ -93,18 +93,50 @@ Driver-based: `STORAGE_DRIVER=s3` routes to `S3StorageGateway` (AWS SDK v3, MinI
 
 Every HTTP response carries an `x-trace-id` header. Tracing is zero-cost when `OTEL_ENDPOINT` is unset.
 
-### Outbox pattern *(deferred)*
+### Outbox pattern
 
-Currently, `CreateAccountHandler` calls `QueuePublisherGateway.publish()` after persisting the account. If the process crashes between the `INSERT` and the `publish()`, the event is silently lost — the account exists in the database but no downstream consumers are notified.
+`CreateAccountHandler` used to call `QueuePublisherGateway.publish()` right after persisting the
+account — a crash between the `INSERT` and the `publish()` would silently drop the event. Fixed via
+a transactional outbox:
 
-The planned fix is **Option A — full atomicity via Unit of Work**:
+1. `outbox_events` (`routing_key`, `payload` jsonb, `published_at` nullable) lives in the same
+   database as everything else.
+2. A single **shared** `UnitOfWork` port (`src/shared/database/application/repositories/unit-of-work.ts`)
+   — not one per module — wraps a Drizzle transaction and hands the caller a `TransactionScope`
+   to resolve repositories from: `unitOfWork.execute(async (scope) => { const accounts =
+   scope.get<AccountRepository>(...); const outbox = scope.get<OutboxRepository>(...); ... })`.
+   `accounts.create()` and `outbox.save()` commit atomically — either both land or neither does.
+3. The Drizzle adapter (`src/infra/db/unit-of-work.ts`) implements this by opening a transaction and
+   creating a **tsyringe child container** that overrides just the `DrizzleExecutor` token with the
+   active `tx`; any repository resolved through that scope — from any module, as long as its Drizzle
+   adapter is built against `DrizzleExecutor` rather than `DatabaseClient` directly — transparently
+   runs inside the transaction. This is how the pattern scales to more than one module without a
+   `UnitOfWork` type per module-pair, or a single interface in `shared/` enumerating every
+   repository across every module (which would invert the dependency direction `shared/` → `modules/*`).
+4. `OutboxRelay` (`src/infra/queue/outbox-relay.ts`) polls every `OUTBOX_RELAY_INTERVAL_MS` (default
+   5s) through the same `UnitOfWork`, publishes each pending event with a **deterministic idempotency
+   key = the outbox row's own id** (not a fresh random one per attempt — see
+   `QueuePublisherGateway.publish`'s optional third argument), and marks it `published_at`. A retried
+   publish after a crash replays under the same key instead of minting a new one the consumer's
+   dedup check has never seen. `findPending` uses `FOR UPDATE SKIP LOCKED` so two relay instances
+   (if `QueueApp` ever runs more than one replica) don't race the same row.
+5. The relay runs inside `QueueApp` (`index.queue.ts`) via `setInterval`, started/stopped alongside
+   the other queue services.
 
-1. A new `outbox_events` table (`routing_key`, `payload` jsonb, `published_at` nullable) lives in the same database.
-2. `AccountUnitOfWork` wraps a Drizzle transaction: `accounts.create()` and `outbox.save()` commit atomically — either both land or neither does.
-3. An `OutboxRelay` process polls `findPending()` every 5 seconds, publishes each event to RabbitMQ, and marks it `published_at`. If publishing fails, the event stays pending and is retried on the next tick.
-4. The relay runs inside `QueueApp` (`index.queue.ts`) via `setInterval`.
+**On using a shared `UnitOfWork` instead of one per module**: resolving repositories by token inside
+`execute()`'s callback is Service Locator — every other port in this codebase is constructor-injected,
+where dependencies show up in the class's public signature; here they're only visible inside the
+method body. Accepted deliberately, only for this narrow case, because the alternative (a
+`UnitOfWork` per module) doesn't scale once two modules need to write inside the same transaction.
+Per DDD, a transaction should still stay scoped to one aggregate — `outbox_events` isn't a domain
+aggregate, it's a delivery-reliability mechanism for an event the aggregate already raised correctly,
+so account + its own outbox row isn't crossing an aggregate boundary. Don't reach for the shared
+`UnitOfWork` to force atomicity across two different aggregates/modules (e.g. `accounts` +
+`workspaces`) just because the mechanism allows it — that's a signal to reconsider the module
+boundary, or use eventual consistency via this same outbox pattern, not forced atomicity.
 
-This eliminates the publish/persist race without distributed transactions. `DrizzleAccountRepository` will be refactored to accept `NodePgDatabase<typeof schema>` directly so both the DI container (via factory) and the Unit of Work (passing `tx`) can construct it.
+Only `CreateAccountHandler` has been migrated so far — other publish-after-write handlers
+(workspace invites, etc.) are follow-up work, one at a time, not bundled into one PR.
 
 ### Circuit breaker
 
