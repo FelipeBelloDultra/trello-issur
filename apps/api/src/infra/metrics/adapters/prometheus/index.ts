@@ -22,6 +22,20 @@ export const httpRequestDurationSeconds = new Histogram({
   registers: [registry],
 });
 
+export const circuitBreakerStateGauge = new Gauge({
+  name: "circuit_breaker_state",
+  help: "Circuit breaker state: 0=closed, 0.5=half-open, 1=open",
+  labelNames: ["breaker"] as const,
+  registers: [registry],
+});
+
+export const circuitBreakerTripsTotal = new Counter({
+  name: "circuit_breaker_trips_total",
+  help: "Total number of times a circuit breaker has opened",
+  labelNames: ["breaker"] as const,
+  registers: [registry],
+});
+
 export function setupDbPoolMetrics(pool: Pool): void {
   new Gauge({
     name: "db_pool_connections_total",

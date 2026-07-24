@@ -25,6 +25,13 @@ export const env = z
     JWT_ACCESS_EXPIRES: z.string().default("15m"),
     JWT_REFRESH_EXPIRES: z.string().default("7d"),
 
+    // Circuit breaker (Valkey + Postgres) — provisional defaults, no production
+    // failure data to calibrate against yet; revisit once there is some.
+    CIRCUIT_BREAKER_TIMEOUT_MS: z.coerce.number().min(1).default(3000),
+    CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE: z.coerce.number().min(1).max(100).default(50),
+    CIRCUIT_BREAKER_RESET_TIMEOUT_MS: z.coerce.number().min(1).default(10_000),
+    CIRCUIT_BREAKER_VOLUME_THRESHOLD: z.coerce.number().min(1).default(10),
+
     // Valkey
     VALKEY_URL: z.string().url().default("redis://localhost:6379"),
 

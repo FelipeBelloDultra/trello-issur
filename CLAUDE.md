@@ -134,7 +134,7 @@ Two independent processes share the same DI container and module wiring: `src/in
 - **Staged retry**: three DLX-backed retry queues per consumer (5s → 30s → 5min TTL) before landing in `{queue}.dead`. Retry metadata (`x-retry-count`, `x-last-error`, `x-first-failed-at`, `x-original-queue`) is preserved across re-publishes.
 - **Dead-letter replay**: failed events persist to `failed_queue_events`; an internal API lists/replays them with a fresh idempotency key.
 - **Outbox pattern is not yet implemented** — `CreateAccountHandler` publishes after persisting, so a crash between `INSERT` and `publish()` silently drops the event today. Don't assume atomicity between a repository write and a `QueuePublisherGateway.publish()` call unless/until the outbox (`AccountUnitOfWork` + `outbox_events` + `OutboxRelay`) lands.
-- **No circuit breaker yet** on RabbitMQ/Valkey/Postgres calls — deliberately deferred pending real production failure data; planned library is `opossum` if/when added.
+- **Circuit breaker on Valkey and Postgres** (`opossum`, `src/infra/resilience/circuit-breaker.ts`) — `ValkeyClient` and `DatabaseClient` fail fast once the respective downstream is unhealthy, instead of piling up slow/timing-out calls. Thresholds (`CIRCUIT_BREAKER_*` env vars) are conservative provisional defaults, not calibrated against real production failure data yet. RabbitMQ is **not** covered the same way — `RabbitMQPublisher.publish()` is synchronous (amqplib doesn't return a Promise or throw on a down broker), so a request/response breaker doesn't apply; publish-time resilience belongs to the outbox pattern above, not a circuit breaker.
 
 ### Auth
 
