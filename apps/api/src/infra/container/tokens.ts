@@ -1,7 +1,9 @@
 export const InjectionTokens = {
   Databases: {
     Drizzle: Symbol("Database"),
+    DrizzleExecutor: Symbol("DrizzleExecutor"),
     Valkey: Symbol("ValkeyClient"),
+    UnitOfWork: Symbol("UnitOfWork"),
   },
 
   Cache: {
@@ -21,6 +23,7 @@ export const InjectionTokens = {
     WorkspaceMember: Symbol("WorkspaceMemberRepository"),
     WorkspaceInvite: Symbol("WorkspaceInviteRepository"),
     Notification: Symbol("NotificationRepository"),
+    Outbox: Symbol("OutboxRepository"),
   },
 
   Email: {
