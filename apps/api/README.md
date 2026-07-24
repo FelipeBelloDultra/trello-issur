@@ -95,9 +95,19 @@ Every HTTP response carries an `x-trace-id` header. Tracing is zero-cost when `O
 
 ### Outbox pattern
 
-`CreateAccountHandler` used to call `QueuePublisherGateway.publish()` right after persisting the
-account — a crash between the `INSERT` and the `publish()` would silently drop the event. Fixed via
-a transactional outbox:
+**The problem**: `CreateAccountHandler` used to call `QueuePublisherGateway.publish()` right after
+persisting the account — two writes to two different systems (Postgres, RabbitMQ) with no way to
+make them atomic together (a real distributed transaction across both is expensive and RabbitMQ
+doesn't support it reliably anyway). A crash between the `INSERT` and the `publish()` silently
+dropped the event: the account existed, but no downstream consumer was ever notified, no personal
+workspace got created, no welcome email went out — with no error, no log, nothing to signal it
+happened. This is the classic **dual-write problem**.
+
+**The fix**: stop writing to two systems. Write the event to a table in the *same* database as the
+business write, inside the *same* transaction — Postgres already gives that atomicity for free. A
+separate process then reads that table and does the actual publish, retrying safely if it fails,
+since the event is durably persisted the moment the business transaction commits, regardless of
+what happens afterward.
 
 1. `outbox_events` (`routing_key`, `payload` jsonb, `published_at` nullable) lives in the same
    database as everything else.
@@ -135,8 +145,41 @@ so account + its own outbox row isn't crossing an aggregate boundary. Don't reac
 `workspaces`) just because the mechanism allows it — that's a signal to reconsider the module
 boundary, or use eventual consistency via this same outbox pattern, not forced atomicity.
 
+**DI registration gotcha — read before adding a repository to a `UnitOfWork` flow**: a repository
+built against `DrizzleExecutor` must be registered **without** `Lifecycle.Singleton`
+(`DrizzleAccountRepository`, `DrizzleOutboxRepository`). Normally a singleton is constructed once
+and cached forever — fine for stateless things. But this repository sometimes needs to point at the
+pooled connection (normal request handling) and sometimes at an active transaction (inside a
+`UnitOfWork`), depending on *which container resolved it* — same class, two different underlying
+connections. tsyringe child containers don't copy the parent's registrations, they look them up
+*through* the parent, so a cached singleton instance is shared by reference across the parent/child
+boundary: whichever container resolves it first "wins" and that instance sticks for every later
+resolve, from any scope. Concretely, if a transactional resolve happened to be the very first one,
+every later *normal* request would silently reuse an instance still bound to that transaction (in a
+real deployment, after the transaction had already committed and its connection been returned to
+the pool) — most likely surfacing as a connection error that no obvious log points back to a
+lifecycle setting in a `container.ts` file. Removing `Lifecycle.Singleton` (falling back to the default,
+transient — a fresh instance per resolve) fixes it, and costs nothing: the repository is a thin
+stateless wrapper. **The rule for any future repository joining a `UnitOfWork` flow: switch its
+constructor to `DrizzleExecutor`, and drop `Lifecycle.Singleton` from its registration — both, not
+just one.**
+
 Only `CreateAccountHandler` has been migrated so far — other publish-after-write handlers
 (workspace invites, etc.) are follow-up work, one at a time, not bundled into one PR.
+
+**Scale considerations, going forward:**
+
+- **Latency, not instant**: events now go out within `OUTBOX_RELAY_INTERVAL_MS` (5s default) instead
+  of immediately. Invisible for things like personal-workspace creation or a welcome email; if some
+  future event genuinely needs sub-second delivery, the relay can poll more often, or move from
+  polling to Postgres `LISTEN`/`NOTIFY` to wake up on write instead of a fixed interval — not needed
+  today, so not built.
+- **No retention/cleanup yet**: `outbox_events` only grows — published rows are never deleted or
+  archived. Fine at current volume; needs a cleanup job (delete/archive rows with `published_at`
+  older than N days) before this becomes a real table-bloat problem.
+- **Rollout is incremental by design**: every other publish-after-write handler still has the
+  original crash-window bug until it's individually migrated to this pattern. That's deliberate —
+  each migration is small and independently reviewable, not a rewrite.
 
 ### Circuit breaker
 
