@@ -11,6 +11,7 @@ import { RabbitMQClient } from "./adapters/rabbitmq/client";
 import { DeadLetterConsumer } from "./adapters/rabbitmq/dead-letter.consumer";
 import { RabbitMQPublisher } from "./adapters/rabbitmq/publisher";
 import { ConsumerRegistry } from "./consumer-registry";
+import { OutboxRelay } from "./outbox-relay";
 
 export function setupQueueContainer(): void {
   container.register<RabbitMQClient>(
@@ -54,6 +55,12 @@ export function setupQueueContainer(): void {
   container.register<DeadLetterConsumer>(
     InjectionTokens.Queue.DeadLetterConsumer,
     { useClass: DeadLetterConsumer },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register<OutboxRelay>(
+    InjectionTokens.Queue.OutboxRelay,
+    { useClass: OutboxRelay },
     { lifecycle: Lifecycle.Singleton },
   );
 

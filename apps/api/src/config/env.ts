@@ -48,6 +48,7 @@ export const env = z
     // Queue (RabbitMQ)
     RABBITMQ_URL: z.string().url().default("amqp://guest:guest@localhost:5672"),
     RABBITMQ_PREFETCH: z.coerce.number().min(1).default(10),
+    OUTBOX_RELAY_INTERVAL_MS: z.coerce.number().min(1).default(5000),
 
     // Email (SMTP)
     SMTP_HOST: z.string().min(1).default("localhost"),

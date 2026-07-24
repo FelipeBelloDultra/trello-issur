@@ -2,6 +2,7 @@ import "@/infra/container";
 
 import { container } from "tsyringe";
 
+import { env } from "@/config/env";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { DatabaseClient } from "@/infra/db/client";
 import { logger } from "@/infra/logger";
@@ -12,6 +13,7 @@ import { StorageLifecycle } from "../storage/contracts/storage-lifecycle";
 
 import { RabbitMQClient } from "./adapters/rabbitmq/client";
 import { ConsumerRegistry } from "./consumer-registry";
+import { OutboxRelay } from "./outbox-relay";
 
 export class QueueApp {
   private readonly drizzleConnection = container.resolve<DatabaseClient>(
@@ -24,6 +26,7 @@ export class QueueApp {
   private readonly consumerRegistry = container.resolve<ConsumerRegistry>(
     InjectionTokens.Queue.ConsumerRegistry,
   );
+  private readonly outboxRelay = container.resolve<OutboxRelay>(InjectionTokens.Queue.OutboxRelay);
 
   public async startServices(): Promise<void> {
     this.drizzleConnection.connect();
@@ -38,10 +41,13 @@ export class QueueApp {
       await consumer.start(channel);
     }
 
+    this.outboxRelay.start(env.OUTBOX_RELAY_INTERVAL_MS);
+
     logger.info({ consumers: consumers.length }, "queue process started");
   }
 
   public async stopServices(): Promise<void> {
+    this.outboxRelay.stop();
     await this.rabbitMQClient.disconnect();
     await this.drizzleConnection.disconnect();
     await this.valkeyConnection.disconnect();
