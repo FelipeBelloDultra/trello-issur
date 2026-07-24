@@ -57,6 +57,13 @@
       "when": 1781129159522,
       "tag": "0007_loose_moondragon",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784858866056,
+      "tag": "0008_wakeful_annihilus",
+      "breakpoints": true
     }
   ]
 }

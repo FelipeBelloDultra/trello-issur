@@ -2,6 +2,7 @@ export * from "./account-roles";
 export * from "./accounts";
 export * from "./failed-queue-events";
 export * from "./notifications";
+export * from "./outbox-events";
 export * from "./permissions";
 export * from "./relations";
 export * from "./role-permissions";
