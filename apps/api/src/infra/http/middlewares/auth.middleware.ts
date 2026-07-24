@@ -32,9 +32,9 @@ export class AuthMiddleware implements Middleware {
         throw new HttpException({ statusCode: 401, message: "Invalid or expired access token" });
       }
 
-      const cachedToken = await this.accessTokenRepository.find(claims.sub);
+      const isValid = await this.accessTokenRepository.matches(claims.sub, token);
 
-      if (cachedToken !== token) {
+      if (!isValid) {
         throw new HttpException({ statusCode: 401, message: "Invalid or expired access token" });
       }
 
