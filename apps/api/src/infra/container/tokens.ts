@@ -1,7 +1,9 @@
 export const InjectionTokens = {
   Databases: {
     Drizzle: Symbol("Database"),
+    DrizzleExecutor: Symbol("DrizzleExecutor"),
     Valkey: Symbol("ValkeyClient"),
+    UnitOfWork: Symbol("UnitOfWork"),
   },
 
   Cache: {
@@ -56,6 +58,8 @@ export const InjectionTokens = {
     ConsumerRegistry: Symbol("ConsumerRegistry"),
     DeadLetterConsumer: Symbol("DeadLetterConsumer"),
     DeadLetterRepository: Symbol("DeadLetterRepository"),
+    OutboxRepository: Symbol("OutboxRepository"),
+    OutboxRelay: Symbol("OutboxRelay"),
   },
 
   Handlers: {

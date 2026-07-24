@@ -93,18 +93,93 @@ Driver-based: `STORAGE_DRIVER=s3` routes to `S3StorageGateway` (AWS SDK v3, MinI
 
 Every HTTP response carries an `x-trace-id` header. Tracing is zero-cost when `OTEL_ENDPOINT` is unset.
 
-### Outbox pattern *(deferred)*
+### Outbox pattern
 
-Currently, `CreateAccountHandler` calls `QueuePublisherGateway.publish()` after persisting the account. If the process crashes between the `INSERT` and the `publish()`, the event is silently lost — the account exists in the database but no downstream consumers are notified.
+**The problem**: `CreateAccountHandler` used to call `QueuePublisherGateway.publish()` right after
+persisting the account — two writes to two different systems (Postgres, RabbitMQ) with no way to
+make them atomic together (a real distributed transaction across both is expensive and RabbitMQ
+doesn't support it reliably anyway). A crash between the `INSERT` and the `publish()` silently
+dropped the event: the account existed, but no downstream consumer was ever notified, no personal
+workspace got created, no welcome email went out — with no error, no log, nothing to signal it
+happened. This is the classic **dual-write problem**.
 
-The planned fix is **Option A — full atomicity via Unit of Work**:
+**The fix**: stop writing to two systems. Write the event to a table in the *same* database as the
+business write, inside the *same* transaction — Postgres already gives that atomicity for free. A
+separate process then reads that table and does the actual publish, retrying safely if it fails,
+since the event is durably persisted the moment the business transaction commits, regardless of
+what happens afterward.
 
-1. A new `outbox_events` table (`routing_key`, `payload` jsonb, `published_at` nullable) lives in the same database.
-2. `AccountUnitOfWork` wraps a Drizzle transaction: `accounts.create()` and `outbox.save()` commit atomically — either both land or neither does.
-3. An `OutboxRelay` process polls `findPending()` every 5 seconds, publishes each event to RabbitMQ, and marks it `published_at`. If publishing fails, the event stays pending and is retried on the next tick.
-4. The relay runs inside `QueueApp` (`index.queue.ts`) via `setInterval`.
+1. `outbox_events` (`routing_key`, `payload` jsonb, `published_at` nullable) lives in the same
+   database as everything else.
+2. A single **shared** `UnitOfWork` port (`src/shared/database/application/repositories/unit-of-work.ts`)
+   — not one per module — wraps a Drizzle transaction and hands the caller a `TransactionScope`
+   to resolve repositories from: `unitOfWork.execute(async (scope) => { const accounts =
+   scope.get<AccountRepository>(...); const outbox = scope.get<OutboxRepository>(...); ... })`.
+   `accounts.create()` and `outbox.save()` commit atomically — either both land or neither does.
+3. The Drizzle adapter (`src/infra/db/unit-of-work.ts`) implements this by opening a transaction and
+   creating a **tsyringe child container** that overrides just the `DrizzleExecutor` token with the
+   active `tx`; any repository resolved through that scope — from any module, as long as its Drizzle
+   adapter is built against `DrizzleExecutor` rather than `DatabaseClient` directly — transparently
+   runs inside the transaction. This is how the pattern scales to more than one module without a
+   `UnitOfWork` type per module-pair, or a single interface in `shared/` enumerating every
+   repository across every module (which would invert the dependency direction `shared/` → `modules/*`).
+4. `OutboxRelay` (`src/infra/queue/outbox-relay.ts`) polls every `OUTBOX_RELAY_INTERVAL_MS` (default
+   5s) through the same `UnitOfWork`, publishes each pending event with a **deterministic idempotency
+   key = the outbox row's own id** (not a fresh random one per attempt — see
+   `QueuePublisherGateway.publish`'s optional third argument), and marks it `published_at`. A retried
+   publish after a crash replays under the same key instead of minting a new one the consumer's
+   dedup check has never seen. `findPending` uses `FOR UPDATE SKIP LOCKED` so two relay instances
+   (if `QueueApp` ever runs more than one replica) don't race the same row.
+5. The relay runs inside `QueueApp` (`index.queue.ts`) via `setInterval`, started/stopped alongside
+   the other queue services.
 
-This eliminates the publish/persist race without distributed transactions. `DrizzleAccountRepository` will be refactored to accept `NodePgDatabase<typeof schema>` directly so both the DI container (via factory) and the Unit of Work (passing `tx`) can construct it.
+**On using a shared `UnitOfWork` instead of one per module**: resolving repositories by token inside
+`execute()`'s callback is Service Locator — every other port in this codebase is constructor-injected,
+where dependencies show up in the class's public signature; here they're only visible inside the
+method body. Accepted deliberately, only for this narrow case, because the alternative (a
+`UnitOfWork` per module) doesn't scale once two modules need to write inside the same transaction.
+Per DDD, a transaction should still stay scoped to one aggregate — `outbox_events` isn't a domain
+aggregate, it's a delivery-reliability mechanism for an event the aggregate already raised correctly,
+so account + its own outbox row isn't crossing an aggregate boundary. Don't reach for the shared
+`UnitOfWork` to force atomicity across two different aggregates/modules (e.g. `accounts` +
+`workspaces`) just because the mechanism allows it — that's a signal to reconsider the module
+boundary, or use eventual consistency via this same outbox pattern, not forced atomicity.
+
+**DI registration gotcha — read before adding a repository to a `UnitOfWork` flow**: a repository
+built against `DrizzleExecutor` must be registered **without** `Lifecycle.Singleton`
+(`DrizzleAccountRepository`, `DrizzleOutboxRepository`). Normally a singleton is constructed once
+and cached forever — fine for stateless things. But this repository sometimes needs to point at the
+pooled connection (normal request handling) and sometimes at an active transaction (inside a
+`UnitOfWork`), depending on *which container resolved it* — same class, two different underlying
+connections. tsyringe child containers don't copy the parent's registrations, they look them up
+*through* the parent, so a cached singleton instance is shared by reference across the parent/child
+boundary: whichever container resolves it first "wins" and that instance sticks for every later
+resolve, from any scope. Concretely, if a transactional resolve happened to be the very first one,
+every later *normal* request would silently reuse an instance still bound to that transaction (in a
+real deployment, after the transaction had already committed and its connection been returned to
+the pool) — most likely surfacing as a connection error that no obvious log points back to a
+lifecycle setting in a `container.ts` file. Removing `Lifecycle.Singleton` (falling back to the default,
+transient — a fresh instance per resolve) fixes it, and costs nothing: the repository is a thin
+stateless wrapper. **The rule for any future repository joining a `UnitOfWork` flow: switch its
+constructor to `DrizzleExecutor`, and drop `Lifecycle.Singleton` from its registration — both, not
+just one.**
+
+Only `CreateAccountHandler` has been migrated so far — other publish-after-write handlers
+(workspace invites, etc.) are follow-up work, one at a time, not bundled into one PR.
+
+**Scale considerations, going forward:**
+
+- **Latency, not instant**: events now go out within `OUTBOX_RELAY_INTERVAL_MS` (5s default) instead
+  of immediately. Invisible for things like personal-workspace creation or a welcome email; if some
+  future event genuinely needs sub-second delivery, the relay can poll more often, or move from
+  polling to Postgres `LISTEN`/`NOTIFY` to wake up on write instead of a fixed interval — not needed
+  today, so not built.
+- **No retention/cleanup yet**: `outbox_events` only grows — published rows are never deleted or
+  archived. Fine at current volume; needs a cleanup job (delete/archive rows with `published_at`
+  older than N days) before this becomes a real table-bloat problem.
+- **Rollout is incremental by design**: every other publish-after-write handler still has the
+  original crash-window bug until it's individually migrated to this pattern. That's deliberate —
+  each migration is small and independently reviewable, not a rewrite.
 
 ### Circuit breaker
 

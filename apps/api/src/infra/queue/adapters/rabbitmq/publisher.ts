@@ -15,11 +15,11 @@ export class RabbitMQPublisher implements QueuePublisherGateway {
     private readonly client: RabbitMQClient,
   ) {}
 
-  public publish<TPayload>(routingKey: string, payload: TPayload): void {
+  public publish<TPayload>(routingKey: string, payload: TPayload, idempotencyKey?: string): void {
     this.client.channel.publish(Exchanges.Main, routingKey, Buffer.from(JSON.stringify(payload)), {
       persistent: true,
       contentType: "application/json",
-      headers: { "x-idempotency-key": randomUUID() },
+      headers: { "x-idempotency-key": idempotencyKey ?? randomUUID() },
     });
   }
 }
