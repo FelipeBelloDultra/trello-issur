@@ -31,8 +31,10 @@ export class LogoutHandler implements CommandHandler<LogoutCommand, Either<OnErr
 
     if (!claims) return left(new InvalidTokenError());
 
-    await this.tokenRepository.delete(claims.sub);
-    await this.accessTokenRepository.delete(claims.sub);
+    await Promise.all([
+      this.tokenRepository.delete(claims.sub),
+      this.accessTokenRepository.delete(claims.sub),
+    ]);
 
     return right(undefined);
   }

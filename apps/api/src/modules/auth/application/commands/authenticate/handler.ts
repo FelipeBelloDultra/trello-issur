@@ -51,17 +51,18 @@ export class AuthenticateHandler implements CommandHandler<
     const claims = TokenClaims.create(account.id.toValue(), account.email);
     const pair = await this.cryptographGateway.generatePair(claims);
 
-    await this.tokenRepository.save({
-      accountId: account.id.toValue(),
-      refreshToken: pair.refreshToken,
-      ttlSeconds: parseDurationToSeconds(env.JWT_REFRESH_EXPIRES),
-    });
-
-    await this.accessTokenRepository.save({
-      accountId: account.id.toValue(),
-      accessToken: pair.accessToken,
-      ttlSeconds: parseDurationToSeconds(env.JWT_ACCESS_EXPIRES),
-    });
+    await Promise.all([
+      this.tokenRepository.save({
+        accountId: account.id.toValue(),
+        refreshToken: pair.refreshToken,
+        ttlSeconds: parseDurationToSeconds(env.JWT_REFRESH_EXPIRES),
+      }),
+      this.accessTokenRepository.save({
+        accountId: account.id.toValue(),
+        accessToken: pair.accessToken,
+        ttlSeconds: parseDurationToSeconds(env.JWT_ACCESS_EXPIRES),
+      }),
+    ]);
 
     return right(pair);
   }
