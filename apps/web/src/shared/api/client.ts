@@ -46,9 +46,16 @@ function rawFetch(path: string, options: RequestOptions): Promise<Response> {
   });
 }
 
-async function refreshSession(): Promise<boolean> {
-  const response = await rawFetch("/auth/refresh", { method: "POST" });
-  return response.ok;
+let refreshPromise: Promise<boolean> | null = null;
+
+function refreshSession(): Promise<boolean> {
+  refreshPromise ??= rawFetch("/auth/refresh", { method: "POST" })
+    .then((response) => response.ok)
+    .finally(() => {
+      refreshPromise = null;
+    });
+
+  return refreshPromise;
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
