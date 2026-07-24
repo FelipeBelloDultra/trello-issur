@@ -106,11 +106,11 @@ The planned fix is **Option A — full atomicity via Unit of Work**:
 
 This eliminates the publish/persist race without distributed transactions. `DrizzleAccountRepository` will be refactored to accept `NodePgDatabase<typeof schema>` directly so both the DI container (via factory) and the Unit of Work (passing `tx`) can construct it.
 
-### Circuit breaker *(deferred)*
+### Circuit breaker
 
-Outbound calls to RabbitMQ, Valkey, and PostgreSQL have no circuit breaker today. Under sustained downstream failure, the thread pool saturates and latency spikes propagate upstream.
+Valkey and Postgres calls are guarded by an **opossum**-based circuit breaker (`src/infra/resilience/circuit-breaker.ts`): `ValkeyClient` guards the commands it directly issues (`get`/`set`/`del`/`incr`/`expire`/`ttl`/`keys`), `DatabaseClient` guards `pool.query` — the one primitive Drizzle's node-postgres driver calls under the hood for every statement, so this covers all query-builder usage without wrapping the whole pool. Both fail fast once the downstream is unhealthy instead of letting slow/timing-out calls pile up. Thresholds (`CIRCUIT_BREAKER_TIMEOUT_MS`, `CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE`, `CIRCUIT_BREAKER_RESET_TIMEOUT_MS`, `CIRCUIT_BREAKER_VOLUME_THRESHOLD`) are conservative provisional defaults — still no real production failure data to calibrate against, so treat them as a starting point.
 
-Deferred until after the first production deploy — no real traffic yet means no realistic failure data to calibrate thresholds. When added, **opossum** is the preferred library: battle-tested, maintained by the Node.js org, minimal API, and ships its own TypeScript types.
+RabbitMQ isn't covered the same way. `RabbitMQPublisher.publish()` calls amqplib's `channel.publish()`, which is synchronous — it doesn't return a Promise or throw when the broker is down; failures surface as connection/channel events, not per-call rejections. A request/response circuit breaker doesn't map onto that shape. Making publish resilient to a down/unhealthy channel — persisting the event instead of firing it into a channel that might drop it — is the outbox pattern's job (see above), not a circuit breaker's.
 
 ---
 
