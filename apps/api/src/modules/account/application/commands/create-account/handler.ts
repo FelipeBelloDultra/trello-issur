@@ -7,8 +7,9 @@ import { PasswordHasherGateway } from "@/modules/account/application/gateways/pa
 import { Account } from "@/modules/account/domain/entities/account";
 import { AccountName } from "@/modules/account/domain/value-objects/account-name";
 import { Email } from "@/modules/account/domain/value-objects/email";
+import { UnitOfWork } from "@/shared/database/application/repositories/unit-of-work";
 import { QueueEvents } from "@/shared/queue/application/events";
-import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
+import { OutboxRepository } from "@/shared/queue/application/repositories/outbox.repository";
 
 import { EmailAlreadyTakenError } from "../../errors/email-already-taken.error";
 import { AccountRepository } from "../../repositories/account.repository";
@@ -29,8 +30,8 @@ export class CreateAccountHandler implements CommandHandler<
     private readonly accountRepository: AccountRepository,
     @inject(InjectionTokens.Gateways.PasswordHasher)
     private readonly passwordHasher: PasswordHasherGateway,
-    @inject(InjectionTokens.Queue.Publisher)
-    private readonly publisher: QueuePublisherGateway,
+    @inject(InjectionTokens.Databases.UnitOfWork)
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   public async execute(command: CreateAccountCommand): Output {
@@ -50,20 +51,27 @@ export class CreateAccountHandler implements CommandHandler<
       updatedAt: new Date(),
     });
 
-    await this.accountRepository.create(account);
+    // Account + its own domain events land in one transaction — the outbox
+    // relay publishes them afterward, so a crash right after commit can
+    // delay the event but never lose it silently (see OutboxRelay).
+    await this.unitOfWork.execute(async (scope) => {
+      const accounts = scope.get<AccountRepository>(InjectionTokens.Repositories.Account);
+      const outbox = scope.get<OutboxRepository>(InjectionTokens.Queue.OutboxRepository);
 
-    this.publisher.publish(QueueEvents.Account.Created, {
-      accountId: account.id.toValue(),
-      name: account.name,
-      email: account.email,
-    });
+      await accounts.create(account);
 
-    if (command.props.createWorkspace) {
-      this.publisher.publish(QueueEvents.Workspace.PersonalCreationRequested, {
-        accountId: account.id.toValue(),
-        accountName: account.name,
+      await outbox.save({
+        routingKey: QueueEvents.Account.Created,
+        payload: { accountId: account.id.toValue(), name: account.name, email: account.email },
       });
-    }
+
+      if (command.props.createWorkspace) {
+        await outbox.save({
+          routingKey: QueueEvents.Workspace.PersonalCreationRequested,
+          payload: { accountId: account.id.toValue(), accountName: account.name },
+        });
+      }
+    });
 
     return right({ account });
   }

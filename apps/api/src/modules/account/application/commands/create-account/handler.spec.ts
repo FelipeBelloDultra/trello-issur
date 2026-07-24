@@ -1,11 +1,13 @@
 import { faker } from "@faker-js/faker";
 
+import { InjectionTokens } from "@/infra/container/tokens";
 import { Email } from "@/modules/account/domain/value-objects/email";
 import { QueueEvents } from "@/shared/queue/application/events";
 import { makeAccount } from "@/test/factories/make-account";
 import { InMemoryPasswordHasherGateway } from "@/test/gateways/in-memory-password-hasher.gateway";
-import { InMemoryQueuePublisher } from "@/test/queue/in-memory-queue-publisher";
 import { InMemoryAccountRepository } from "@/test/repositories/in-memory-account.repository";
+import { InMemoryOutboxRepository } from "@/test/repositories/in-memory-outbox.repository";
+import { InMemoryUnitOfWork } from "@/test/repositories/in-memory-unit-of-work";
 
 import { EmailAlreadyTakenError } from "../../errors/email-already-taken.error";
 
@@ -26,18 +28,25 @@ function makeInput(
 
 describe("CreateAccountHandler", () => {
   let accountRepository: InMemoryAccountRepository;
+  let outboxRepository: InMemoryOutboxRepository;
   let passwordHasher: InMemoryPasswordHasherGateway;
-  let publisher: InMemoryQueuePublisher;
+  let unitOfWork: InMemoryUnitOfWork;
   let sut: CreateAccountHandler;
 
   beforeEach(() => {
     accountRepository = new InMemoryAccountRepository();
+    outboxRepository = new InMemoryOutboxRepository();
     passwordHasher = new InMemoryPasswordHasherGateway();
-    publisher = new InMemoryQueuePublisher();
-    sut = new CreateAccountHandler(accountRepository, passwordHasher, publisher);
+    unitOfWork = new InMemoryUnitOfWork(
+      new Map<symbol, unknown>([
+        [InjectionTokens.Repositories.Account, accountRepository],
+        [InjectionTokens.Queue.OutboxRepository, outboxRepository],
+      ]),
+    );
+    sut = new CreateAccountHandler(accountRepository, passwordHasher, unitOfWork);
   });
 
-  it("creates and persists the account and publishes the created event on success", async () => {
+  it("creates and persists the account and enqueues the created event on success", async () => {
     const input = makeInput();
 
     const result = await sut.execute(
@@ -46,11 +55,11 @@ describe("CreateAccountHandler", () => {
 
     expect(result.isRight()).toBe(true);
     expect(accountRepository.items).toHaveLength(1);
-    expect(publisher.events).toHaveLength(1);
-    expect(publisher.events[0].routingKey).toBe(QueueEvents.Account.Created);
+    expect(outboxRepository.items).toHaveLength(1);
+    expect(outboxRepository.items[0].routingKey).toBe(QueueEvents.Account.Created);
   });
 
-  it("also publishes workspace personal creation event when createWorkspace is true", async () => {
+  it("also enqueues the workspace personal creation event when createWorkspace is true", async () => {
     const input = makeInput({ createWorkspace: true });
 
     const result = await sut.execute(
@@ -63,8 +72,10 @@ describe("CreateAccountHandler", () => {
     );
 
     expect(result.isRight()).toBe(true);
-    expect(publisher.events).toHaveLength(2);
-    expect(publisher.events[1].routingKey).toBe(QueueEvents.Workspace.PersonalCreationRequested);
+    expect(outboxRepository.items).toHaveLength(2);
+    expect(outboxRepository.items[1].routingKey).toBe(
+      QueueEvents.Workspace.PersonalCreationRequested,
+    );
   });
 
   it("returns left with EmailAlreadyTakenError when the email is already registered", async () => {
