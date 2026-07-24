@@ -24,3 +24,22 @@ export function withTransaction<T>(
 ): Promise<T> {
   return db.query.transaction(work);
 }
+
+// Defers touching `db.query` (which throws until DatabaseClient.connect()
+// has run) until something actually calls a method on the returned value —
+// handlers in this codebase are resolved eagerly at module setup time (to
+// register on the command/query bus), which happens before connect() does
+// in the real boot sequence, so DrizzleExecutor's default DI registration
+// can't just read `db.query` immediately at resolution time.
+export function lazyPooledExecutor(db: DatabaseClient): DrizzleExecutor {
+  return new Proxy({} as DrizzleExecutor, {
+    get(_target, prop) {
+      const query = db.query;
+      const value: unknown = Reflect.get(query, prop, query);
+
+      if (typeof value !== "function") return value;
+
+      return (value as (...args: unknown[]) => unknown).bind(query);
+    },
+  });
+}

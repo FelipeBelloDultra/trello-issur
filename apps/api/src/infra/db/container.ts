@@ -4,7 +4,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 import { UnitOfWork } from "@/shared/database/application/repositories/unit-of-work";
 
 import { DatabaseClient } from "./client";
-import { DrizzleExecutor } from "./transaction";
+import { DrizzleExecutor, lazyPooledExecutor } from "./transaction";
 import { DrizzleUnitOfWork } from "./unit-of-work";
 
 export function setupDatabaseContainer(): void {
@@ -19,7 +19,8 @@ export function setupDatabaseContainer(): void {
   // UnitOfWork's transaction scope, a child container overrides this same
   // token with the active `tx` (see DrizzleUnitOfWork).
   container.register<DrizzleExecutor>(InjectionTokens.Databases.DrizzleExecutor, {
-    useFactory: (c) => c.resolve<DatabaseClient>(InjectionTokens.Databases.Drizzle).query,
+    useFactory: (c) =>
+      lazyPooledExecutor(c.resolve<DatabaseClient>(InjectionTokens.Databases.Drizzle)),
   });
 
   container.register<UnitOfWork>(
