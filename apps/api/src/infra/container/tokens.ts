@@ -23,7 +23,6 @@ export const InjectionTokens = {
     WorkspaceMember: Symbol("WorkspaceMemberRepository"),
     WorkspaceInvite: Symbol("WorkspaceInviteRepository"),
     Notification: Symbol("NotificationRepository"),
-    Outbox: Symbol("OutboxRepository"),
   },
 
   Email: {
@@ -59,6 +58,8 @@ export const InjectionTokens = {
     ConsumerRegistry: Symbol("ConsumerRegistry"),
     DeadLetterConsumer: Symbol("DeadLetterConsumer"),
     DeadLetterRepository: Symbol("DeadLetterRepository"),
+    OutboxRepository: Symbol("OutboxRepository"),
+    OutboxRelay: Symbol("OutboxRelay"),
   },
 
   Handlers: {
