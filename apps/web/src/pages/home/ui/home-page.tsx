@@ -1,15 +1,9 @@
 import { Kanban } from "lucide-react";
 
-import { useAccountQuery } from "@/entities/account";
-
-import { HomePageSkeleton } from "./home-page-skeleton";
+import { useAuthStore } from "@/entities/session";
 
 export function HomePage() {
-  const { data: account, isLoading } = useAccountQuery();
-
-  if (isLoading) {
-    return <HomePageSkeleton />;
-  }
+  const account = useAuthStore((state) => state.user);
 
   return (
     <div className="flex flex-1 flex-col gap-1 p-6">

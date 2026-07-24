@@ -39,7 +39,7 @@ describe("RefreshTokenHandler", () => {
       new RefreshTokenCommand({ refreshToken: oldPair.refreshToken }),
     );
 
-    const stored = await tokenRepository.find(account.id.toValue());
+    const stored = tokenRepository.items.get(account.id.toValue());
     expect(result.isRight()).toBe(true);
     expect(stored).not.toBe(oldPair.refreshToken);
     expect(accessTokenRepository.items.has(account.id.toValue())).toBe(true);
@@ -51,6 +51,22 @@ describe("RefreshTokenHandler", () => {
     );
 
     expect(result.value).toBeInstanceOf(InvalidTokenError);
+  });
+
+  it("returns left with InvalidTokenError when reusing a refresh token after it has already been rotated", async () => {
+    const account = makeAccount();
+    const oldPair = await seedStoredToken(account.id.toValue(), account.email);
+
+    const first = await sut.execute(
+      new RefreshTokenCommand({ refreshToken: oldPair.refreshToken }),
+    );
+    expect(first.isRight()).toBe(true);
+
+    const replay = await sut.execute(
+      new RefreshTokenCommand({ refreshToken: oldPair.refreshToken }),
+    );
+
+    expect(replay.value).toBeInstanceOf(InvalidTokenError);
   });
 
   it("returns left with InvalidTokenError when the stored token does not match", async () => {

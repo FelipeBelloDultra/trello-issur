@@ -11,8 +11,8 @@ export class InMemoryAccessTokenRepository implements AccessTokenRepository {
     return Promise.resolve();
   }
 
-  public find(accountId: string): Promise<string | null> {
-    return Promise.resolve(this.items.get(accountId) ?? null);
+  public matches(accountId: string, accessToken: string): Promise<boolean> {
+    return Promise.resolve(this.items.get(accountId) === accessToken);
   }
 
   public delete(accountId: string): Promise<void> {

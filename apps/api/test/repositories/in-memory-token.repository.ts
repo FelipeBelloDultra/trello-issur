@@ -11,8 +11,8 @@ export class InMemoryTokenRepository implements TokenRepository {
     return Promise.resolve();
   }
 
-  public find(accountId: string): Promise<string | null> {
-    return Promise.resolve(this.items.get(accountId) ?? null);
+  public matches(accountId: string, refreshToken: string): Promise<boolean> {
+    return Promise.resolve(this.items.get(accountId) === refreshToken);
   }
 
   public delete(accountId: string): Promise<void> {

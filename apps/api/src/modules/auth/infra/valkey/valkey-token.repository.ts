@@ -1,5 +1,6 @@
 import { inject, injectable } from "tsyringe";
 
+import { safeEqualHex, sha256Hex } from "@/core/utils/hash";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { ValkeyClient } from "@/infra/valkey/client";
 
@@ -15,11 +16,15 @@ export class ValkeyTokenRepository implements TokenRepository {
   ) {}
 
   public async save({ accountId, refreshToken, ttlSeconds }: SaveTokenOptions): Promise<void> {
-    await this.valkey.client.set(keyFor(accountId), refreshToken, "EX", ttlSeconds);
+    await this.valkey.client.set(keyFor(accountId), sha256Hex(refreshToken), "EX", ttlSeconds);
   }
 
-  public async find(accountId: string): Promise<string | null> {
-    return this.valkey.client.get(keyFor(accountId));
+  public async matches(accountId: string, refreshToken: string): Promise<boolean> {
+    const stored = await this.valkey.client.get(keyFor(accountId));
+
+    if (!stored) return false;
+
+    return safeEqualHex(stored, sha256Hex(refreshToken));
   }
 
   public async delete(accountId: string): Promise<void> {

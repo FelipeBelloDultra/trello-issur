@@ -6,6 +6,6 @@ export type SaveAccessTokenOptions = {
 
 export interface AccessTokenRepository {
   save(options: SaveAccessTokenOptions): Promise<void>;
-  find(accountId: string): Promise<string | null>;
+  matches(accountId: string, accessToken: string): Promise<boolean>;
   delete(accountId: string): Promise<void>;
 }

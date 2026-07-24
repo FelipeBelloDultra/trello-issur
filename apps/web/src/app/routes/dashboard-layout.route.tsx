@@ -1,24 +1,22 @@
 import { createRoute, redirect } from "@tanstack/react-router";
 
-import { accountMeQueryOptions } from "@/entities/account";
+import { useAuthStore } from "@/entities/session";
 
 import { DashboardLayout } from "../layouts/dashboard-layout";
 
 import { rootRoute } from "./root.route";
 
-// Pathless layout route: guards every authenticated page by confirming the
-// httpOnly session cookie is valid (no client-held token to check anymore —
-// this is a real server round-trip, not a decorative client check).
+// Pathless layout route: guards every authenticated page by reading the Auth
+// Store (rootRoute's beforeLoad already resolved it against the real httpOnly
+// session cookie — this never fires its own /me or /refresh call).
 export const dashboardLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "dashboard-layout",
-  beforeLoad: async ({ context }) => {
-    try {
-      await context.queryClient.ensureQueryData(accountMeQueryOptions());
-    } catch {
-      // eslint-disable-next-line @typescript-eslint/only-throw-error -- TanStack Router's documented throw-a-redirect pattern
-      throw redirect({ to: "/login" });
-    }
+  beforeLoad: () => {
+    if (useAuthStore.getState().status === "authenticated") return;
+
+    // eslint-disable-next-line @typescript-eslint/only-throw-error -- TanStack Router's documented throw-a-redirect pattern
+    throw redirect({ to: "/login" });
   },
   component: DashboardLayout,
 });

@@ -37,23 +37,24 @@ export class RefreshTokenHandler implements CommandHandler<
 
     if (!claims) return left(new InvalidTokenError());
 
-    const stored = await this.tokenRepository.find(claims.sub);
+    const isValid = await this.tokenRepository.matches(claims.sub, command.props.refreshToken);
 
-    if (stored !== command.props.refreshToken) return left(new InvalidTokenError());
+    if (!isValid) return left(new InvalidTokenError());
 
     const pair = await this.cryptographGateway.generatePair(claims);
 
-    await this.tokenRepository.save({
-      accountId: claims.sub,
-      refreshToken: pair.refreshToken,
-      ttlSeconds: parseDurationToSeconds(env.JWT_REFRESH_EXPIRES),
-    });
-
-    await this.accessTokenRepository.save({
-      accountId: claims.sub,
-      accessToken: pair.accessToken,
-      ttlSeconds: parseDurationToSeconds(env.JWT_ACCESS_EXPIRES),
-    });
+    await Promise.all([
+      this.tokenRepository.save({
+        accountId: claims.sub,
+        refreshToken: pair.refreshToken,
+        ttlSeconds: parseDurationToSeconds(env.JWT_REFRESH_EXPIRES),
+      }),
+      this.accessTokenRepository.save({
+        accountId: claims.sub,
+        accessToken: pair.accessToken,
+        ttlSeconds: parseDurationToSeconds(env.JWT_ACCESS_EXPIRES),
+      }),
+    ]);
 
     return right(pair);
   }

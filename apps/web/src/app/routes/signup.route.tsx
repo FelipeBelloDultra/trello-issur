@@ -6,6 +6,6 @@ import { rootRoute } from "./root.route";
 export const signupRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/signup",
-  beforeLoad: ({ context }) => redirectIfAuthenticated(context.queryClient),
+  beforeLoad: redirectIfAuthenticated,
   component: lazyRouteComponent(() => import("@/pages/signup"), "SignupPage"),
 });

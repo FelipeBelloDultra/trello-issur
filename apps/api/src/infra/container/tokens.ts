@@ -112,6 +112,7 @@ export const InjectionTokens = {
     FileUpload: Symbol("FileUploadMiddleware"),
     Pagination: Symbol("PaginationMiddleware"),
     RateLimit: Symbol("RateLimitMiddleware"),
+    Idempotency: Symbol("IdempotencyMiddleware"),
     Logger: Symbol("LoggerMiddleware"),
     Tracing: Symbol("TracingMiddleware"),
     Metrics: Symbol("MetricsMiddleware"),

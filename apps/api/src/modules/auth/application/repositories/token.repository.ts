@@ -6,6 +6,6 @@ export type SaveTokenOptions = {
 
 export interface TokenRepository {
   save(options: SaveTokenOptions): Promise<void>;
-  find(accountId: string): Promise<string | null>;
+  matches(accountId: string, refreshToken: string): Promise<boolean>;
   delete(accountId: string): Promise<void>;
 }

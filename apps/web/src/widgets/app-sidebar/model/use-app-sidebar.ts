@@ -1,6 +1,6 @@
 import { useNavigate, useParams, useRouteContext } from "@tanstack/react-router";
 
-import { useAccountQuery } from "@/entities/account";
+import { useAuthStore } from "@/entities/session";
 import { useWorkspacesQuery } from "@/entities/workspace";
 import { useLogout } from "@/features/authenticate";
 
@@ -16,7 +16,7 @@ export function useAppSidebar() {
   // AuthorizeMiddleware/ValidateWorkspaceMiddleware on the server — this never
   // substitutes for that, it only avoids showing dead links.
   const membership: Membership | undefined = useRouteContext({ strict: false });
-  const { data: account } = useAccountQuery();
+  const account = useAuthStore((state) => state.user);
   const { data: workspaces } = useWorkspacesQuery();
   const logout = useLogout();
 
