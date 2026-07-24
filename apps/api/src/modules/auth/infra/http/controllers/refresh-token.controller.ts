@@ -7,6 +7,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 import { Controller, HttpMethod } from "@/infra/http/contracts/controller";
 import { HttpException } from "@/infra/http/http-exception";
 import { HttpMessages } from "@/infra/http/http-messages";
+import { IdempotencyMiddleware } from "@/infra/http/middlewares/idempotency.middleware";
 import { RateLimitMiddleware } from "@/infra/http/middlewares/rate-limit.middleware";
 import { RefreshTokenCommand } from "@/modules/auth/application/commands/refresh-token/command";
 import { InvalidTokenError } from "@/modules/auth/application/errors/invalid-token.error";
@@ -26,8 +27,13 @@ export class RefreshTokenController implements Controller {
     private readonly commandBus: CommandBus,
     @inject(InjectionTokens.Middlewares.RateLimit)
     private readonly rateLimit: RateLimitMiddleware,
+    @inject(InjectionTokens.Middlewares.Idempotency)
+    private readonly idempotency: IdempotencyMiddleware,
   ) {
-    this.middlewares = [rateLimit.handle({ max: 20, windowMs: 60_000 })];
+    this.middlewares = [
+      rateLimit.handle({ max: 20, windowMs: 60_000 }),
+      idempotency.handle({ ttlSeconds: 30 }),
+    ];
   }
 
   public async handler(req: Request, res: Response): Promise<Response> {

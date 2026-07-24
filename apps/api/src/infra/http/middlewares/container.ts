@@ -6,6 +6,7 @@ import { AuthMiddleware } from "./auth.middleware";
 import { AuthorizeMiddleware } from "./authorize.middleware";
 import { ErrorHandlerMiddleware } from "./error-handler.middleware";
 import { FileUploadMiddleware } from "./file-upload.middleware";
+import { IdempotencyMiddleware } from "./idempotency.middleware";
 import { LoggerMiddleware } from "./logger.middleware";
 import { MetricsMiddleware } from "./metrics.middleware";
 import { PaginationMiddleware } from "./pagination.middleware";
@@ -73,6 +74,12 @@ export function setupMiddlewaresContainer(): void {
   container.register(
     InjectionTokens.Middlewares.RateLimit,
     { useClass: RateLimitMiddleware },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register(
+    InjectionTokens.Middlewares.Idempotency,
+    { useClass: IdempotencyMiddleware },
     { lifecycle: Lifecycle.Singleton },
   );
 
