@@ -51,8 +51,11 @@ export function createCircuitBreaker(
 
 // Proxies only the named methods through the breaker; everything else
 // (event emitter methods, sync helpers, chainable builders like
-// ioredis' pipeline()) passes through untouched. A blanket "wrap every
-// function" proxy would silently break any sync/non-fire-and-await method.
+// ioredis' pipeline()) passes through untouched — but still bound to the
+// real target, not the proxy. A method invoked as `wrapped.method()` would
+// otherwise run with `this` set to the proxy itself (standard JS method-call
+// semantics), which breaks any implementation that relies on `this` being
+// the literal original instance (event emitter internals, private state).
 export function wrapWithCircuitBreaker<T extends object>(
   target: T,
   breaker: CircuitBreaker<[AnyAsyncFn, ...unknown[]], unknown>,
@@ -61,13 +64,17 @@ export function wrapWithCircuitBreaker<T extends object>(
   const guarded = new Set<unknown>(methodNames);
 
   return new Proxy(target, {
-    get(obj, prop, receiver) {
-      const value = Reflect.get(obj, prop, receiver);
+    get(obj, prop) {
+      // `obj` (not the receiver) as the getter's `this` too, for the same reason.
+      const value = Reflect.get(obj, prop, obj);
 
-      if (!guarded.has(prop) || typeof value !== "function") return value;
+      if (typeof value !== "function") return value;
 
-      const bound = (value as AnyAsyncFn).bind(obj);
-      return (...args: unknown[]) => breaker.fire(bound, ...args);
+      const bound = (value as (...args: unknown[]) => unknown).bind(obj);
+
+      if (!guarded.has(prop)) return bound;
+
+      return (...args: unknown[]) => breaker.fire(bound as AnyAsyncFn, ...args);
     },
   });
 }
