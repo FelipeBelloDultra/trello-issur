@@ -46,8 +46,13 @@ describe("createCircuitBreaker", () => {
       resetTimeout: 100_000,
     });
     const failing = vi.fn(() => Promise.reject(new Error("boom")));
+    // opossum flips `opened` from its own internal listener on the fired
+    // promise, not synchronously when fire() rejects — waiting on the
+    // 'open' event itself avoids a race against that internal bookkeeping.
+    const opened = new Promise<void>((resolve) => breaker.once("open", resolve));
 
     await expect(breaker.fire(failing)).rejects.toThrow("boom");
+    await opened;
 
     expect(breaker.opened).toBe(true);
   });
@@ -59,8 +64,10 @@ describe("createCircuitBreaker", () => {
       resetTimeout: 100_000,
     });
     const failing = vi.fn(() => Promise.reject(new Error("boom")));
+    const opened = new Promise<void>((resolve) => breaker.once("open", resolve));
 
     await expect(breaker.fire(failing)).rejects.toThrow("boom");
+    await opened;
     failing.mockClear();
 
     await expect(breaker.fire(failing)).rejects.toThrow();
