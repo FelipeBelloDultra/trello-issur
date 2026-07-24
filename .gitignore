@@ -7,6 +7,10 @@ yarn.lock
 /infrastructure/grafana/dashboards/*.json
 /bruno
 
+# personal scratch notes, not meant to be tracked — see apps/api/README.md
+# and apps/web/README.md for the actual project docs
+**/technical_debt.md
+
 # Created by https://www.gitignore.io/api/node,macos
 
 ### macOS ###

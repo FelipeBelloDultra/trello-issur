@@ -61,11 +61,12 @@ Each retry queue has `x-dead-letter-exchange` pointing back to the main exchange
 
 ### Authentication
 
-JWT-based with stateful refresh token rotation:
+JWT-based with stateful, single-session token tracking:
 
-1. Login issues an `access_token` (15 min) and a `refresh_token` (7 days), storing the refresh token in Valkey with a matching TTL.
-2. Refresh verifies signature and Valkey presence, issues a new pair, and atomically invalidates the old token — one active token per session at all times.
-3. Logout deletes the Valkey entry immediately, revoking the token before its natural expiry.
+1. Login issues an `access_token` (15 min) and a `refresh_token` (7 days). Both are tracked in Valkey, keyed by account — as a SHA-256 hash of the token, not the raw value, so a Valkey compromise (dump, backup leak, misconfigured exporter) doesn't hand over a directly usable session.
+2. Refresh verifies the signature and the hash match, issues a new pair, and atomically rotates both tokens — the previous access **and** refresh token stop matching immediately, not just at their natural expiry.
+3. Logout deletes both Valkey entries immediately, revoking the session before its natural expiry.
+4. `/auth/refresh` accepts an optional `x-idempotency-key` header (`IdempotencyMiddleware`). A retried request with the same key replays the original response instead of re-running the rotation — without it, a client retry after a dropped response would fail against an already-rotated (now stale) token even though the first attempt already succeeded server-side.
 
 Passwords are hashed with **argon2id** (memory-hard, GPU-resistant). Hash verification is kept out of the domain layer — it lives in an application-layer `PasswordHasher` gateway so the domain stays pure and the hashing algorithm is swappable without touching business logic.
 
