@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
 
 import type { Account } from "./types";
 
@@ -11,9 +12,22 @@ interface AuthState {
   setUnauthenticated: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  status: "loading",
-  user: null,
-  setAuthenticated: (user) => set({ status: "authenticated", user }),
-  setUnauthenticated: () => set({ status: "unauthenticated", user: null }),
-}));
+// immer middleware wired in ahead of need — this store is flat today, but
+// it's the pattern future stores with nested state should follow, so it's
+// set up once here rather than retrofitted later under pressure.
+export const useAuthStore = create<AuthState>()(
+  immer((set) => ({
+    status: "loading",
+    user: null,
+    setAuthenticated: (user) =>
+      set((state) => {
+        state.status = "authenticated";
+        state.user = user;
+      }),
+    setUnauthenticated: () =>
+      set((state) => {
+        state.status = "unauthenticated";
+        state.user = null;
+      }),
+  })),
+);
