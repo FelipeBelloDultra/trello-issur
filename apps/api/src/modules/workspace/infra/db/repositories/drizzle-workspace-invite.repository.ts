@@ -4,10 +4,10 @@ import { inject, injectable } from "tsyringe";
 
 import { Pagination } from "@/core/entity/pagination";
 import { InjectionTokens } from "@/infra/container/tokens";
-import { DatabaseClient } from "@/infra/db/client";
 import { accounts } from "@/infra/db/schema/accounts";
 import { workspaceInvites } from "@/infra/db/schema/workspace-invites";
 import { workspaces } from "@/infra/db/schema/workspaces";
+import { DrizzleExecutor } from "@/infra/db/transaction";
 import { WorkspaceInviteCacheRepository } from "@/modules/workspace/application/repositories/workspace-invite-cache.repository";
 import {
   MyWorkspaceInviteView,
@@ -23,27 +23,25 @@ import { WorkspaceInviteMapper } from "../mappers/workspace-invite.mapper";
 @injectable()
 export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteRepository {
   public constructor(
-    @inject(InjectionTokens.Databases.Drizzle)
-    private readonly db: DatabaseClient,
+    @inject(InjectionTokens.Databases.DrizzleExecutor)
+    private readonly db: DrizzleExecutor,
     @inject(InjectionTokens.Cache.WorkspaceInvite)
     private readonly inviteCache: WorkspaceInviteCacheRepository,
   ) {}
 
   public async create(invite: WorkspaceInvite): Promise<void> {
-    await this.db.query
-      .insert(workspaceInvites)
-      .values(WorkspaceInviteMapper.toPersistence(invite));
+    await this.db.insert(workspaceInvites).values(WorkspaceInviteMapper.toPersistence(invite));
     await this.inviteCache.invalidate(invite.workspaceId.toValue());
   }
 
   public async save(invite: WorkspaceInvite): Promise<void> {
     const { id, ...data } = WorkspaceInviteMapper.toPersistence(invite);
-    await this.db.query.update(workspaceInvites).set(data).where(eq(workspaceInvites.id, id));
+    await this.db.update(workspaceInvites).set(data).where(eq(workspaceInvites.id, id));
     await this.inviteCache.invalidate(invite.workspaceId.toValue());
   }
 
   public async findByToken(token: string): Promise<WorkspaceInvite | null> {
-    const [row] = await this.db.query
+    const [row] = await this.db
       .select()
       .from(workspaceInvites)
       .where(eq(workspaceInvites.token, token))
@@ -58,7 +56,7 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
     email: string,
     workspaceId: string,
   ): Promise<WorkspaceInvite | null> {
-    const [row] = await this.db.query
+    const [row] = await this.db
       .select()
       .from(workspaceInvites)
       .where(
@@ -80,7 +78,7 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
     const invitedByAccount = alias(accounts, "invited_by_account");
     const inviteeAccount = alias(accounts, "invitee_account");
 
-    const [row] = await this.db.query
+    const [row] = await this.db
       .select({
         id: workspaceInvites.id,
         email: workspaceInvites.email,
@@ -116,7 +114,7 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
     if (cached) return cached;
 
     const [invites, countResult] = await Promise.all([
-      this.db.query
+      this.db
         .select({
           id: workspaceInvites.id,
           email: workspaceInvites.email,
@@ -132,7 +130,7 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
         .orderBy(asc(workspaceInvites.createdAt))
         .limit(pagination.take)
         .offset(pagination.skip),
-      this.db.query
+      this.db
         .select({ count: sql<number>`count(*)::int` })
         .from(workspaceInvites)
         .where(eq(workspaceInvites.workspaceId, workspaceId)),
@@ -164,7 +162,7 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
     );
 
     const [invites, countResult] = await Promise.all([
-      this.db.query
+      this.db
         .select({
           id: workspaceInvites.id,
           token: workspaceInvites.token,
@@ -182,7 +180,7 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
         .orderBy(asc(workspaceInvites.createdAt))
         .limit(pagination.take)
         .offset(pagination.skip),
-      this.db.query
+      this.db
         .select({ count: sql<number>`count(*)::int` })
         .from(workspaceInvites)
         .where(conditions),

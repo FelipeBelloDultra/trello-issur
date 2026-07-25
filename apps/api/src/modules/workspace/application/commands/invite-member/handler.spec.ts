@@ -1,10 +1,12 @@
 import { faker } from "@faker-js/faker";
 
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
+import { InjectionTokens } from "@/infra/container/tokens";
 import { WorkspaceMemberRoles } from "@/modules/workspace/domain/value-objects/workspace-member-role";
 import { QueueEvents } from "@/shared/queue/application/events";
 import { InMemoryTokenGeneratorGateway } from "@/test/gateways/in-memory-token-generator.gateway";
-import { InMemoryQueuePublisher } from "@/test/queue/in-memory-queue-publisher";
+import { InMemoryOutboxRepository } from "@/test/repositories/in-memory-outbox.repository";
+import { InMemoryUnitOfWork } from "@/test/repositories/in-memory-unit-of-work";
 import { InMemoryWorkspaceInviteRepository } from "@/test/repositories/in-memory-workspace-invite.repository";
 import { InMemoryWorkspaceMemberRepository } from "@/test/repositories/in-memory-workspace-member.repository";
 
@@ -17,16 +19,23 @@ import { InviteMemberHandler } from "./handler";
 describe("InviteMemberHandler", () => {
   let inviteRepository: InMemoryWorkspaceInviteRepository;
   let tokenGenerator: InMemoryTokenGeneratorGateway;
-  let publisher: InMemoryQueuePublisher;
   let memberRepository: InMemoryWorkspaceMemberRepository;
+  let outboxRepository: InMemoryOutboxRepository;
+  let unitOfWork: InMemoryUnitOfWork;
   let sut: InviteMemberHandler;
 
   beforeEach(() => {
     inviteRepository = new InMemoryWorkspaceInviteRepository();
     tokenGenerator = new InMemoryTokenGeneratorGateway();
-    publisher = new InMemoryQueuePublisher();
     memberRepository = new InMemoryWorkspaceMemberRepository();
-    sut = new InviteMemberHandler(inviteRepository, tokenGenerator, publisher, memberRepository);
+    outboxRepository = new InMemoryOutboxRepository();
+    unitOfWork = new InMemoryUnitOfWork(
+      new Map<symbol, unknown>([
+        [InjectionTokens.Repositories.WorkspaceInvite, inviteRepository],
+        [InjectionTokens.Queue.OutboxRepository, outboxRepository],
+      ]),
+    );
+    sut = new InviteMemberHandler(inviteRepository, tokenGenerator, memberRepository, unitOfWork);
   });
 
   function makeCommand(overrides?: Partial<InviteMemberCommand["props"]>) {
@@ -39,7 +48,7 @@ describe("InviteMemberHandler", () => {
     });
   }
 
-  it("creates a pending invite and publishes WorkspaceInvite.Created on success", async () => {
+  it("creates a pending invite and enqueues WorkspaceInvite.Created in the outbox on success", async () => {
     const command = makeCommand();
 
     const result = await sut.execute(command);
@@ -47,9 +56,9 @@ describe("InviteMemberHandler", () => {
     expect(result.isRight()).toBe(true);
     expect(inviteRepository.items).toHaveLength(1);
     expect(inviteRepository.items[0]?.status).toBe("pending");
-    expect(publisher.events).toHaveLength(1);
-    expect(publisher.events[0]?.routingKey).toBe(QueueEvents.WorkspaceInvite.Created);
-    expect(publisher.events[0]?.payload).toEqual({
+    expect(outboxRepository.items).toHaveLength(1);
+    expect(outboxRepository.items[0]?.routingKey).toBe(QueueEvents.WorkspaceInvite.Created);
+    expect(outboxRepository.items[0]?.payload).toEqual({
       inviteId: inviteRepository.items[0]?.id.toValue(),
     });
   });
@@ -78,7 +87,7 @@ describe("InviteMemberHandler", () => {
 
     expect(result.value).toBeInstanceOf(AlreadyAMemberError);
     expect(inviteRepository.items).toHaveLength(0);
-    expect(publisher.events).toHaveLength(0);
+    expect(outboxRepository.items).toHaveLength(0);
   });
 
   it("returns InviteAlreadyPendingError when a pending invite already exists for the email in this workspace", async () => {
@@ -90,6 +99,6 @@ describe("InviteMemberHandler", () => {
 
     expect(result.value).toBeInstanceOf(InviteAlreadyPendingError);
     expect(inviteRepository.items).toHaveLength(1);
-    expect(publisher.events).toHaveLength(1);
+    expect(outboxRepository.items).toHaveLength(1);
   });
 });

@@ -7,8 +7,9 @@ import { InjectionTokens } from "@/infra/container/tokens";
 import { WorkspaceInvite } from "@/modules/workspace/domain/entities/workspace-invite";
 import { InviteExpiry } from "@/modules/workspace/domain/value-objects/invite-expiry";
 import { WorkspaceInviteStatuses } from "@/modules/workspace/domain/value-objects/workspace-invite-status";
+import { UnitOfWork } from "@/shared/database/application/repositories/unit-of-work";
 import { QueueEvents } from "@/shared/queue/application/events";
-import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
+import { OutboxRepository } from "@/shared/queue/application/repositories/outbox.repository";
 
 import { AlreadyAMemberError } from "../../errors/already-a-member.error";
 import { InviteAlreadyPendingError } from "../../errors/invite-already-pending.error";
@@ -32,10 +33,10 @@ export class InviteMemberHandler implements CommandHandler<
     private readonly inviteRepository: WorkspaceInviteRepository,
     @inject(InjectionTokens.Gateways.TokenGenerator)
     private readonly tokenGenerator: TokenGeneratorGateway,
-    @inject(InjectionTokens.Queue.Publisher)
-    private readonly publisher: QueuePublisherGateway,
     @inject(InjectionTokens.Repositories.WorkspaceMember)
     private readonly memberRepository: WorkspaceMemberRepository,
+    @inject(InjectionTokens.Databases.UnitOfWork)
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   public async execute(command: InviteMemberCommand): Output {
@@ -73,10 +74,22 @@ export class InviteMemberHandler implements CommandHandler<
       updatedAt: new Date(),
     });
 
-    await this.inviteRepository.create(invite);
+    // Invite row + its own outbox event land in one transaction — the
+    // outbox relay publishes it afterward, so a crash right after commit
+    // can delay the invitee's notification but never lose it silently
+    // (see OutboxRelay).
+    await this.unitOfWork.execute(async (scope) => {
+      const invites = scope.get<WorkspaceInviteRepository>(
+        InjectionTokens.Repositories.WorkspaceInvite,
+      );
+      const outbox = scope.get<OutboxRepository>(InjectionTokens.Queue.OutboxRepository);
 
-    this.publisher.publish(QueueEvents.WorkspaceInvite.Created, {
-      inviteId: invite.id.toValue(),
+      await invites.create(invite);
+
+      await outbox.save({
+        routingKey: QueueEvents.WorkspaceInvite.Created,
+        payload: { inviteId: invite.id.toValue() },
+      });
     });
 
     return right({ invite });
