@@ -29,7 +29,7 @@ export class DrizzleAccountRepository implements AccountRepository {
     const account = AccountMapper.toDomain(row);
     await this.accountCache.store(account);
 
-    return account;
+    return account.withoutPasswordHash();
   }
 
   public async findByEmail(email: string): Promise<Account | null> {
@@ -47,7 +47,19 @@ export class DrizzleAccountRepository implements AccountRepository {
     const account = AccountMapper.toDomain(row);
     await this.accountCache.store(account);
 
-    return account;
+    return account.withoutPasswordHash();
+  }
+
+  public async findCredentialsByEmail(email: string): Promise<Account | null> {
+    const normalized = email.trim().toLowerCase();
+    const [row] = await this.db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.email, normalized))
+      .limit(1);
+    if (!row) return null;
+
+    return AccountMapper.toDomain(row);
   }
 
   public async create(account: Account): Promise<void> {

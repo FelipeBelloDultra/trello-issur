@@ -12,7 +12,6 @@ interface AccountPayload {
   id: string;
   name: string;
   email: string;
-  passwordHash: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,19 +62,19 @@ export class ValkeyAccountCacheRepository implements AccountCacheRepository {
       id: account.id.toValue(),
       name: account.name,
       email: account.email,
-      passwordHash: account.passwordHash,
       createdAt: account.createdAt.toISOString(),
       updatedAt: account.updatedAt.toISOString(),
     } satisfies AccountPayload);
   }
 
+  // passwordHash is never cached — see AccountRepository.findCredentialsByEmail.
   private deserialize(raw: string): Account {
     const payload = JSON.parse(raw) as AccountPayload;
     return Account.create(
       {
         name: AccountName.restore(payload.name),
         email: Email.restore(payload.email),
-        passwordHash: payload.passwordHash,
+        passwordHash: "",
         createdAt: new Date(payload.createdAt),
         updatedAt: new Date(payload.updatedAt),
       },

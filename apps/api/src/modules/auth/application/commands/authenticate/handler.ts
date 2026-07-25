@@ -40,7 +40,7 @@ export class AuthenticateHandler implements CommandHandler<
   ) {}
 
   public async execute(command: AuthenticateCommand): Output {
-    const account = await this.accountRepository.findByEmail(command.props.email);
+    const account = await this.accountRepository.findCredentialsByEmail(command.props.email);
 
     if (!account) return left(new InvalidCredentialsError());
 

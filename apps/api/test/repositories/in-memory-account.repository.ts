@@ -15,6 +15,10 @@ export class InMemoryAccountRepository implements AccountRepository {
     return Promise.resolve(account ?? null);
   }
 
+  public async findCredentialsByEmail(email: string): Promise<Account | null> {
+    return this.findByEmail(email);
+  }
+
   public async create(account: Account): Promise<void> {
     await Promise.resolve(this.items.push(account));
   }

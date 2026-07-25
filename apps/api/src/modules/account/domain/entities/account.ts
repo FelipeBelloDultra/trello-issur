@@ -40,4 +40,9 @@ export class Account extends Entity<AccountProps> {
   public static create(props: AccountProps, id?: UniqueEntityID): Account {
     return new Account(props, id);
   }
+
+  // Cache/generic lookups must never carry the real credential hash — see findCredentialsByEmail.
+  public withoutPasswordHash(): Account {
+    return new Account({ ...this.props, passwordHash: "" }, this.id);
+  }
 }
