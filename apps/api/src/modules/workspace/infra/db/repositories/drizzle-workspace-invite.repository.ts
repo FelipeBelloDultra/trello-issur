@@ -11,6 +11,7 @@ import { DrizzleExecutor } from "@/infra/db/transaction";
 import { WorkspaceInviteCacheRepository } from "@/modules/workspace/application/repositories/workspace-invite-cache.repository";
 import {
   MyWorkspaceInviteView,
+  WorkspaceInviteAcceptanceDetails,
   WorkspaceInviteDetails,
   WorkspaceInviteRepository,
   WorkspaceInviteView,
@@ -187,5 +188,26 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
     ]);
 
     return { invites: invites as MyWorkspaceInviteView[], total: countResult[0]?.count ?? 0 };
+  }
+
+  public async findAcceptanceDetails(
+    inviteId: string,
+    accepterAccountId: string,
+  ): Promise<WorkspaceInviteAcceptanceDetails | null> {
+    const [row] = await this.db
+      .select({
+        invitedByAccountId: workspaceInvites.invitedByAccountId,
+        workspaceName: workspaces.name,
+        accepterName: accounts.name,
+      })
+      .from(workspaceInvites)
+      .innerJoin(workspaces, eq(workspaceInvites.workspaceId, workspaces.id))
+      .innerJoin(accounts, eq(accounts.id, accepterAccountId))
+      .where(eq(workspaceInvites.id, inviteId))
+      .limit(1);
+
+    if (!row) return null;
+
+    return row;
   }
 }

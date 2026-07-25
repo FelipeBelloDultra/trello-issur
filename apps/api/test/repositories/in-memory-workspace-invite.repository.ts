@@ -1,6 +1,7 @@
 import { Pagination } from "@/core/entity/pagination";
 import {
   MyWorkspaceInviteView,
+  WorkspaceInviteAcceptanceDetails,
   WorkspaceInviteDetails,
   WorkspaceInviteRepository,
   WorkspaceInviteView,
@@ -87,5 +88,19 @@ export class InMemoryWorkspaceInviteRepository implements WorkspaceInviteReposit
     }));
 
     return Promise.resolve({ invites, total: all.length });
+  }
+
+  public findAcceptanceDetails(
+    inviteId: string,
+    _accepterAccountId: string,
+  ): Promise<WorkspaceInviteAcceptanceDetails | null> {
+    const invite = this.items.find((i) => i.id.toValue() === inviteId);
+    if (!invite) return Promise.resolve(null);
+
+    return Promise.resolve({
+      invitedByAccountId: invite.invitedByAccountId.toValue(),
+      workspaceName: "",
+      accepterName: "",
+    });
   }
 }

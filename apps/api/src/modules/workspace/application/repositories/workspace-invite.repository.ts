@@ -38,6 +38,12 @@ export type MyWorkspaceInviteView = {
   createdAt: Date;
 };
 
+export type WorkspaceInviteAcceptanceDetails = {
+  invitedByAccountId: string;
+  workspaceName: string;
+  accepterName: string;
+};
+
 export interface WorkspaceInviteRepository {
   create(invite: WorkspaceInvite): Promise<void>;
   save(invite: WorkspaceInvite): Promise<void>;
@@ -55,4 +61,8 @@ export interface WorkspaceInviteRepository {
     email: string,
     pagination: Pagination,
   ): Promise<{ invites: MyWorkspaceInviteView[]; total: number }>;
+  findAcceptanceDetails(
+    inviteId: string,
+    accepterAccountId: string,
+  ): Promise<WorkspaceInviteAcceptanceDetails | null>;
 }

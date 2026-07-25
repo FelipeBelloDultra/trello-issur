@@ -95,7 +95,7 @@ export class RespondToInviteHandler implements CommandHandler<
     await this.inviteRepository.save(invite);
 
     this.publisher.publish(QueueEvents.WorkspaceInvite.Accepted, {
-      workspaceId: invite.workspaceId.toValue(),
+      inviteId: invite.id.toValue(),
       accountId,
     });
 

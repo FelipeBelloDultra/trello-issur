@@ -33,6 +33,7 @@ import { setupCacheWorkspaceContainer } from "./cache/container";
 import { setupCryptoWorkspaceContainer } from "./crypto/container";
 import { setupDatabaseWorkspaceContainer } from "./db/container";
 import { setupHTTPWorkspaceContainer } from "./http/container";
+import { WorkspaceInviteAcceptedConsumer } from "./queue/consumers/workspace-invite-accepted.consumer";
 import { WorkspaceInviteCreatedConsumer } from "./queue/consumers/workspace-invite-created.consumer";
 import { WorkspacePersonalCreationRequestedConsumer } from "./queue/consumers/workspace-personal-creation-requested.consumer";
 import { setupQueueWorkspaceContainer } from "./queue/container";
@@ -186,6 +187,11 @@ export function setupWorkspaceModule(): void {
   registry.register(
     container.resolve<WorkspaceInviteCreatedConsumer>(
       InjectionTokens.Consumers.WorkspaceInviteCreated,
+    ),
+  );
+  registry.register(
+    container.resolve<WorkspaceInviteAcceptedConsumer>(
+      InjectionTokens.Consumers.WorkspaceInviteAccepted,
     ),
   );
 }
