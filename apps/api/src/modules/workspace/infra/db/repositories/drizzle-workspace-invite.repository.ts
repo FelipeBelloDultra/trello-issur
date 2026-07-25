@@ -10,6 +10,7 @@ import { workspaceInvites } from "@/infra/db/schema/workspace-invites";
 import { workspaces } from "@/infra/db/schema/workspaces";
 import { WorkspaceInviteCacheRepository } from "@/modules/workspace/application/repositories/workspace-invite-cache.repository";
 import {
+  MyWorkspaceInviteView,
   WorkspaceInviteDetails,
   WorkspaceInviteRepository,
   WorkspaceInviteView,
@@ -150,5 +151,43 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
     });
 
     return result;
+  }
+
+  public async findPendingByEmail(
+    email: string,
+    pagination: Pagination,
+  ): Promise<{ invites: MyWorkspaceInviteView[]; total: number }> {
+    const conditions = and(
+      eq(workspaceInvites.email, email),
+      eq(workspaceInvites.status, WorkspaceInviteStatuses.Pending),
+      gt(workspaceInvites.expiresAt, new Date()),
+    );
+
+    const [invites, countResult] = await Promise.all([
+      this.db.query
+        .select({
+          id: workspaceInvites.id,
+          token: workspaceInvites.token,
+          workspaceId: workspaceInvites.workspaceId,
+          workspaceName: workspaces.name,
+          role: workspaceInvites.role,
+          invitedByName: accounts.name,
+          expiresAt: workspaceInvites.expiresAt,
+          createdAt: workspaceInvites.createdAt,
+        })
+        .from(workspaceInvites)
+        .innerJoin(workspaces, eq(workspaceInvites.workspaceId, workspaces.id))
+        .innerJoin(accounts, eq(workspaceInvites.invitedByAccountId, accounts.id))
+        .where(conditions)
+        .orderBy(asc(workspaceInvites.createdAt))
+        .limit(pagination.take)
+        .offset(pagination.skip),
+      this.db.query
+        .select({ count: sql<number>`count(*)::int` })
+        .from(workspaceInvites)
+        .where(conditions),
+    ]);
+
+    return { invites: invites as MyWorkspaceInviteView[], total: countResult[0]?.count ?? 0 };
   }
 }

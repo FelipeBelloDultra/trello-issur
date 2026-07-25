@@ -6,6 +6,7 @@ import { CreateWorkspaceController } from "./controllers/create-workspace.contro
 import { GetMyWorkspaceMembershipController } from "./controllers/get-my-workspace-membership.controller";
 import { GetWorkspaceController } from "./controllers/get-workspace.controller";
 import { InviteMemberController } from "./controllers/invite-member.controller";
+import { ListMyInvitesController } from "./controllers/list-my-invites.controller";
 import { ListMyWorkspacesController } from "./controllers/list-my-workspaces.controller";
 import { ListWorkspaceInvitesController } from "./controllers/list-workspace-invites.controller";
 import { ListWorkspaceMembersController } from "./controllers/list-workspace-members.controller";
@@ -66,6 +67,12 @@ export function setupHTTPWorkspaceContainer(): void {
   container.register<ListWorkspaceInvitesController>(
     InjectionTokens.Controllers.ListWorkspaceInvites,
     { useClass: ListWorkspaceInvitesController },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register<ListMyInvitesController>(
+    InjectionTokens.Controllers.ListMyInvites,
+    { useClass: ListMyInvitesController },
     { lifecycle: Lifecycle.Singleton },
   );
 

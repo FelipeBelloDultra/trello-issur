@@ -20,6 +20,8 @@ import { GetMyMembershipHandler } from "@/modules/workspace/application/queries/
 import { GetMyMembershipQuery } from "@/modules/workspace/application/queries/get-my-membership/query";
 import { GetWorkspaceHandler } from "@/modules/workspace/application/queries/get-workspace/handler";
 import { GetWorkspaceQuery } from "@/modules/workspace/application/queries/get-workspace/query";
+import { ListMyInvitesHandler } from "@/modules/workspace/application/queries/list-my-invites/handler";
+import { ListMyInvitesQuery } from "@/modules/workspace/application/queries/list-my-invites/query";
 import { ListMyWorkspacesHandler } from "@/modules/workspace/application/queries/list-my-workspaces/handler";
 import { ListMyWorkspacesQuery } from "@/modules/workspace/application/queries/list-my-workspaces/query";
 import { ListWorkspaceInvitesHandler } from "@/modules/workspace/application/queries/list-workspace-invites/handler";
@@ -75,6 +77,10 @@ function wireWorkspaceBuses(): void {
   queryBus.register(
     ListWorkspaceInvitesQuery,
     container.resolve<ListWorkspaceInvitesHandler>(InjectionTokens.Handlers.ListWorkspaceInvites),
+  );
+  queryBus.register(
+    ListMyInvitesQuery,
+    container.resolve<ListMyInvitesHandler>(InjectionTokens.Handlers.ListMyInvites),
   );
   queryBus.register(
     ListMyWorkspacesQuery,
@@ -138,6 +144,12 @@ function registerWorkspaceHandlers(): void {
   container.register<ListWorkspaceInvitesHandler>(
     InjectionTokens.Handlers.ListWorkspaceInvites,
     { useClass: ListWorkspaceInvitesHandler },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register<ListMyInvitesHandler>(
+    InjectionTokens.Handlers.ListMyInvites,
+    { useClass: ListMyInvitesHandler },
     { lifecycle: Lifecycle.Singleton },
   );
 

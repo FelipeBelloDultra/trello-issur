@@ -12,4 +12,5 @@ export const workspaceControllers = [
   InjectionTokens.Controllers.InviteMember,
   InjectionTokens.Controllers.ListWorkspaceInvites,
   InjectionTokens.Controllers.RespondToInvite,
+  InjectionTokens.Controllers.ListMyInvites,
 ];

@@ -1,5 +1,6 @@
 import { Pagination } from "@/core/entity/pagination";
 import {
+  MyWorkspaceInviteView,
   WorkspaceInviteDetails,
   WorkspaceInviteRepository,
   WorkspaceInviteView,
@@ -61,6 +62,25 @@ export class InMemoryWorkspaceInviteRepository implements WorkspaceInviteReposit
       email: i.email,
       role: i.role,
       status: i.status,
+      invitedByName: "",
+      expiresAt: i.expiresAt.value,
+      createdAt: i.createdAt,
+    }));
+
+    return Promise.resolve({ invites, total: all.length });
+  }
+
+  public findPendingByEmail(
+    email: string,
+    pagination: Pagination,
+  ): Promise<{ invites: MyWorkspaceInviteView[]; total: number }> {
+    const all = this.items.filter((i) => i.email === email && i.isPending() && !i.isExpired());
+    const invites = all.slice(pagination.skip, pagination.skip + pagination.take).map((i) => ({
+      id: i.id.toValue(),
+      token: i.token,
+      workspaceId: i.workspaceId.toValue(),
+      workspaceName: "",
+      role: i.role,
       invitedByName: "",
       expiresAt: i.expiresAt.value,
       createdAt: i.createdAt,

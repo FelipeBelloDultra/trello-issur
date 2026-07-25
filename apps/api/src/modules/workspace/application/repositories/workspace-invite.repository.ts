@@ -24,6 +24,20 @@ export type WorkspaceInviteDetails = {
   inviteeAccountId: string | null;
 };
 
+// Includes the raw token — only ever returned to a request authenticated as
+// the invite's own email (see ListMyInvitesHandler), never persisted in a
+// queue payload or notification, so it can't leak through those channels.
+export type MyWorkspaceInviteView = {
+  id: string;
+  token: string;
+  workspaceId: string;
+  workspaceName: string;
+  role: WorkspaceMemberRole;
+  invitedByName: string;
+  expiresAt: Date;
+  createdAt: Date;
+};
+
 export interface WorkspaceInviteRepository {
   create(invite: WorkspaceInvite): Promise<void>;
   save(invite: WorkspaceInvite): Promise<void>;
@@ -37,4 +51,8 @@ export interface WorkspaceInviteRepository {
     workspaceId: string,
     pagination: Pagination,
   ): Promise<{ invites: WorkspaceInviteView[]; total: number }>;
+  findPendingByEmail(
+    email: string,
+    pagination: Pagination,
+  ): Promise<{ invites: MyWorkspaceInviteView[]; total: number }>;
 }
