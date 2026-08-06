@@ -4,10 +4,10 @@ import { inject, injectable } from "tsyringe";
 
 import { Pagination } from "@/core/entity/pagination";
 import { InjectionTokens } from "@/infra/container/tokens";
-import { DatabaseClient } from "@/infra/db/client";
 import { accountRoles } from "@/infra/db/schema/account-roles";
 import { accounts } from "@/infra/db/schema/accounts";
 import { roles } from "@/infra/db/schema/roles";
+import { DrizzleExecutor } from "@/infra/db/transaction";
 import { WorkspaceMemberCacheRepository } from "@/modules/workspace/application/repositories/workspace-member-cache.repository";
 import {
   CreateWorkspaceMemberOptions,
@@ -22,8 +22,8 @@ import { WorkspaceMemberMapper } from "../mappers/workspace-member.mapper";
 @injectable()
 export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberRepository {
   public constructor(
-    @inject(InjectionTokens.Databases.Drizzle)
-    private readonly db: DatabaseClient,
+    @inject(InjectionTokens.Databases.DrizzleExecutor)
+    private readonly db: DrizzleExecutor,
     @inject(InjectionTokens.Cache.WorkspaceMember)
     private readonly memberCache: WorkspaceMemberCacheRepository,
   ) {}
@@ -33,7 +33,7 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
     accountId,
     role,
   }: CreateWorkspaceMemberOptions): Promise<boolean> {
-    const [roleRow] = await this.db.query
+    const [roleRow] = await this.db
       .select({ id: roles.id })
       .from(roles)
       .where(eq(roles.name, role))
@@ -43,7 +43,7 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
       throw new Error(`role "${role}" not found`);
     }
 
-    const inserted = await this.db.query
+    const inserted = await this.db
       .insert(accountRoles)
       .values({ accountId, roleId: roleRow.id, workspaceId })
       .onConflictDoNothing()
@@ -58,7 +58,7 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
   public async existsByEmailAndWorkspace(email: string, workspaceId: string): Promise<boolean> {
     const inviteeAccount = alias(accounts, "invitee_account");
 
-    const [row] = await this.db.query
+    const [row] = await this.db
       .select({ id: accountRoles.id })
       .from(accountRoles)
       .innerJoin(inviteeAccount, eq(accountRoles.accountId, inviteeAccount.id))
@@ -69,7 +69,7 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
   }
 
   public async findById(id: string): Promise<WorkspaceMember | null> {
-    const [row] = await this.db.query
+    const [row] = await this.db
       .select({
         id: accountRoles.id,
         accountId: accountRoles.accountId,
@@ -91,7 +91,7 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
     accountId: string,
     workspaceId: string,
   ): Promise<WorkspaceMember | null> {
-    const [row] = await this.db.query
+    const [row] = await this.db
       .select({
         id: accountRoles.id,
         accountId: accountRoles.accountId,
@@ -122,7 +122,7 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
     if (cached) return cached;
 
     const [members, countResult] = await Promise.all([
-      this.db.query
+      this.db
         .select({
           id: accountRoles.id,
           accountId: accountRoles.accountId,
@@ -138,7 +138,7 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
         .orderBy(asc(accountRoles.createdAt))
         .limit(pagination.take)
         .offset(pagination.skip),
-      this.db.query
+      this.db
         .select({ count: sql<number>`count(*)::int` })
         .from(accountRoles)
         .where(eq(accountRoles.workspaceId, workspaceId)),
@@ -160,13 +160,13 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
   }
 
   public async remove(id: string): Promise<void> {
-    const [row] = await this.db.query
+    const [row] = await this.db
       .select({ workspaceId: accountRoles.workspaceId })
       .from(accountRoles)
       .where(eq(accountRoles.id, id))
       .limit(1);
 
-    await this.db.query.delete(accountRoles).where(eq(accountRoles.id, id));
+    await this.db.delete(accountRoles).where(eq(accountRoles.id, id));
 
     if (row) {
       await this.memberCache.invalidate(row.workspaceId);
@@ -174,7 +174,7 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
   }
 
   public async updateRole({ id, role }: UpdateMemberRoleOptions): Promise<void> {
-    const [roleRow] = await this.db.query
+    const [roleRow] = await this.db
       .select({ id: roles.id })
       .from(roles)
       .where(eq(roles.name, role))
@@ -184,16 +184,13 @@ export class DrizzleWorkspaceMemberRepository implements WorkspaceMemberReposito
       throw new Error(`role "${role}" not found`);
     }
 
-    const [row] = await this.db.query
+    const [row] = await this.db
       .select({ workspaceId: accountRoles.workspaceId })
       .from(accountRoles)
       .where(eq(accountRoles.id, id))
       .limit(1);
 
-    await this.db.query
-      .update(accountRoles)
-      .set({ roleId: roleRow.id })
-      .where(eq(accountRoles.id, id));
+    await this.db.update(accountRoles).set({ roleId: roleRow.id }).where(eq(accountRoles.id, id));
 
     if (row) {
       await this.memberCache.invalidate(row.workspaceId);

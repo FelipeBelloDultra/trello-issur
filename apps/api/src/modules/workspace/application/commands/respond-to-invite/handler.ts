@@ -4,8 +4,9 @@ import { CommandHandler } from "@/core/commands/command-handler";
 import { Either, left, right } from "@/core/either";
 import { InjectionTokens } from "@/infra/container/tokens";
 import { WorkspaceInvite } from "@/modules/workspace/domain/entities/workspace-invite";
+import { UnitOfWork } from "@/shared/database/application/repositories/unit-of-work";
 import { QueueEvents } from "@/shared/queue/application/events";
-import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
+import { OutboxRepository } from "@/shared/queue/application/repositories/outbox.repository";
 
 import { AlreadyAMemberError } from "../../errors/already-a-member.error";
 import { InvalidInviteActionError } from "../../errors/invalid-invite-action.error";
@@ -39,10 +40,8 @@ export class RespondToInviteHandler implements CommandHandler<
   public constructor(
     @inject(InjectionTokens.Repositories.WorkspaceInvite)
     private readonly inviteRepository: WorkspaceInviteRepository,
-    @inject(InjectionTokens.Repositories.WorkspaceMember)
-    private readonly memberRepository: WorkspaceMemberRepository,
-    @inject(InjectionTokens.Queue.Publisher)
-    private readonly publisher: QueuePublisherGateway,
+    @inject(InjectionTokens.Databases.UnitOfWork)
+    private readonly unitOfWork: UnitOfWork,
   ) {
     this.strategies = {
       accept: (invite, accountId) => this.accept(invite, accountId),
@@ -81,23 +80,41 @@ export class RespondToInviteHandler implements CommandHandler<
   }
 
   private async accept(invite: WorkspaceInvite, accountId: string): Output {
-    const created = await this.memberRepository.create({
-      workspaceId: invite.workspaceId.toValue(),
-      accountId,
-      role: invite.role,
+    // Membership + invite status + its own outbox event land in one
+    // transaction — the outbox relay publishes it afterward, so a crash
+    // right after commit can delay the inviter's notification but never
+    // lose it silently (see OutboxRelay).
+    const created = await this.unitOfWork.execute(async (scope) => {
+      const members = scope.get<WorkspaceMemberRepository>(
+        InjectionTokens.Repositories.WorkspaceMember,
+      );
+      const invites = scope.get<WorkspaceInviteRepository>(
+        InjectionTokens.Repositories.WorkspaceInvite,
+      );
+      const outbox = scope.get<OutboxRepository>(InjectionTokens.Queue.OutboxRepository);
+
+      const created = await members.create({
+        workspaceId: invite.workspaceId.toValue(),
+        accountId,
+        role: invite.role,
+      });
+
+      if (!created) return false;
+
+      invite.accept();
+      await invites.save(invite);
+
+      await outbox.save({
+        routingKey: QueueEvents.WorkspaceInvite.Accepted,
+        payload: { inviteId: invite.id.toValue(), accountId },
+      });
+
+      return true;
     });
 
     if (!created) {
       return left(new AlreadyAMemberError());
     }
-
-    invite.accept();
-    await this.inviteRepository.save(invite);
-
-    this.publisher.publish(QueueEvents.WorkspaceInvite.Accepted, {
-      inviteId: invite.id.toValue(),
-      accountId,
-    });
 
     return right(undefined);
   }

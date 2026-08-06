@@ -1,12 +1,14 @@
 import { faker } from "@faker-js/faker";
 
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
+import { InjectionTokens } from "@/infra/container/tokens";
 import { InviteExpiry } from "@/modules/workspace/domain/value-objects/invite-expiry";
 import { WorkspaceInviteStatuses } from "@/modules/workspace/domain/value-objects/workspace-invite-status";
 import { WorkspaceMemberRoles } from "@/modules/workspace/domain/value-objects/workspace-member-role";
 import { QueueEvents } from "@/shared/queue/application/events";
 import { makeWorkspaceInvite } from "@/test/factories/make-workspace-invite";
-import { InMemoryQueuePublisher } from "@/test/queue/in-memory-queue-publisher";
+import { InMemoryOutboxRepository } from "@/test/repositories/in-memory-outbox.repository";
+import { InMemoryUnitOfWork } from "@/test/repositories/in-memory-unit-of-work";
 import { InMemoryWorkspaceInviteRepository } from "@/test/repositories/in-memory-workspace-invite.repository";
 import { InMemoryWorkspaceMemberRepository } from "@/test/repositories/in-memory-workspace-member.repository";
 
@@ -23,14 +25,22 @@ import { RespondToInviteHandler } from "./handler";
 describe("RespondToInviteHandler", () => {
   let inviteRepository: InMemoryWorkspaceInviteRepository;
   let memberRepository: InMemoryWorkspaceMemberRepository;
-  let publisher: InMemoryQueuePublisher;
+  let outboxRepository: InMemoryOutboxRepository;
+  let unitOfWork: InMemoryUnitOfWork;
   let sut: RespondToInviteHandler;
 
   beforeEach(() => {
     inviteRepository = new InMemoryWorkspaceInviteRepository();
     memberRepository = new InMemoryWorkspaceMemberRepository();
-    publisher = new InMemoryQueuePublisher();
-    sut = new RespondToInviteHandler(inviteRepository, memberRepository, publisher);
+    outboxRepository = new InMemoryOutboxRepository();
+    unitOfWork = new InMemoryUnitOfWork(
+      new Map<symbol, unknown>([
+        [InjectionTokens.Repositories.WorkspaceMember, memberRepository],
+        [InjectionTokens.Repositories.WorkspaceInvite, inviteRepository],
+        [InjectionTokens.Queue.OutboxRepository, outboxRepository],
+      ]),
+    );
+    sut = new RespondToInviteHandler(inviteRepository, unitOfWork);
   });
 
   it("accepts a pending invite, creates the membership and publishes WorkspaceInvite.Accepted", async () => {
@@ -53,8 +63,12 @@ describe("RespondToInviteHandler", () => {
     expect(memberRepository.items[0]?.accountId).toBe(accountId);
     expect(memberRepository.items[0]?.workspaceId).toBe(invite.workspaceId.toValue());
     expect(inviteRepository.items[0]?.status).toBe("accepted");
-    expect(publisher.events).toHaveLength(1);
-    expect(publisher.events[0]?.routingKey).toBe(QueueEvents.WorkspaceInvite.Accepted);
+    expect(outboxRepository.items).toHaveLength(1);
+    expect(outboxRepository.items[0]?.routingKey).toBe(QueueEvents.WorkspaceInvite.Accepted);
+    expect(outboxRepository.items[0]?.payload).toEqual({
+      inviteId: invite.id.toValue(),
+      accountId,
+    });
   });
 
   it("rejects a pending invite without creating a membership or publishing an event", async () => {
@@ -74,7 +88,7 @@ describe("RespondToInviteHandler", () => {
     expect(result.isRight()).toBe(true);
     expect(memberRepository.items).toHaveLength(0);
     expect(inviteRepository.items[0]?.status).toBe("rejected");
-    expect(publisher.events).toHaveLength(0);
+    expect(outboxRepository.items).toHaveLength(0);
   });
 
   it("returns InviteNotFoundError when the token doesn't match any invite", async () => {
@@ -165,7 +179,7 @@ describe("RespondToInviteHandler", () => {
 
     expect(result.value).toBeInstanceOf(AlreadyAMemberError);
     expect(inviteRepository.items[0]?.status).toBe("pending");
-    expect(publisher.events).toHaveLength(0);
+    expect(outboxRepository.items).toHaveLength(0);
   });
 
   it("returns InvalidInviteActionError for an unrecognized action", async () => {
