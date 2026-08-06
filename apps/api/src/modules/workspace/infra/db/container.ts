@@ -16,11 +16,12 @@ export function setupDatabaseWorkspaceContainer(): void {
     { lifecycle: Lifecycle.Singleton },
   );
 
-  container.register<WorkspaceMemberRepository>(
-    InjectionTokens.Repositories.WorkspaceMember,
-    { useClass: DrizzleWorkspaceMemberRepository },
-    { lifecycle: Lifecycle.Singleton },
-  );
+  // Deliberately NOT Singleton — built against DrizzleExecutor, which a
+  // UnitOfWork overrides per-transaction in a child container (see
+  // infra/db/unit-of-work.ts and the account module's equivalent comment).
+  container.register<WorkspaceMemberRepository>(InjectionTokens.Repositories.WorkspaceMember, {
+    useClass: DrizzleWorkspaceMemberRepository,
+  });
 
   // Deliberately NOT Singleton — built against DrizzleExecutor, which a
   // UnitOfWork overrides per-transaction in a child container (see
