@@ -45,7 +45,7 @@ export class RespondToInviteHandler implements CommandHandler<
   ) {
     this.strategies = {
       accept: (invite, accountId) => this.accept(invite, accountId),
-      reject: (invite) => this.reject(invite),
+      reject: (invite, accountId) => this.reject(invite, accountId),
     };
   }
 
@@ -119,9 +119,24 @@ export class RespondToInviteHandler implements CommandHandler<
     return right(undefined);
   }
 
-  private async reject(invite: WorkspaceInvite): Output {
-    invite.reject();
-    await this.inviteRepository.save(invite);
+  private async reject(invite: WorkspaceInvite, accountId: string): Output {
+    // Invite status + its own outbox event land in one transaction, same
+    // spirit as accept() — a crash right after commit can delay the
+    // inviter's notification but never lose it silently.
+    await this.unitOfWork.execute(async (scope) => {
+      const invites = scope.get<WorkspaceInviteRepository>(
+        InjectionTokens.Repositories.WorkspaceInvite,
+      );
+      const outbox = scope.get<OutboxRepository>(InjectionTokens.Queue.OutboxRepository);
+
+      invite.reject();
+      await invites.save(invite);
+
+      await outbox.save({
+        routingKey: QueueEvents.WorkspaceInvite.Rejected,
+        payload: { inviteId: invite.id.toValue(), accountId },
+      });
+    });
 
     return right(undefined);
   }
