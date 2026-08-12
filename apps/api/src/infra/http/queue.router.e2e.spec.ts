@@ -1,6 +1,10 @@
 import supertest from "supertest";
+import { container } from "tsyringe";
 
 import { env } from "@/config/env";
+import { InjectionTokens } from "@/infra/container/tokens";
+import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
+import { DeadLetterRepository } from "@/shared/queue/application/repositories/dead-letter.repository";
 
 import { App } from "./app";
 
@@ -55,5 +59,56 @@ describe("[E2E] - Queue admin routes - [/queue/dead-letters]", () => {
       .set("x-internal-token", env.QUEUE_ADMIN_TOKEN);
 
     expect(sut.status).toBe(404);
+  });
+
+  it("publishes a replay under a deterministic key, so a second replay of the same event still 409s without publishing again", async () => {
+    const deadLetterRepository = container.resolve<DeadLetterRepository>(
+      InjectionTokens.Queue.DeadLetterRepository,
+    );
+    const originalPublisher = container.resolve<QueuePublisherGateway>(
+      InjectionTokens.Queue.Publisher,
+    );
+
+    await deadLetterRepository.save({
+      queue: "test-queue",
+      exchange: "trello-issur.events",
+      routingKey: "test.event",
+      payload: { foo: "bar" },
+      errorMessage: "boom",
+      retryCount: 3,
+      firstFailedAt: new Date(),
+      deadAt: new Date(),
+    });
+    const [event] = await deadLetterRepository.findPending({ queue: "test-queue" });
+
+    const publishSpy = vi.fn();
+    container.register<QueuePublisherGateway>(InjectionTokens.Queue.Publisher, {
+      useValue: { publish: publishSpy },
+    });
+
+    try {
+      await supertest(app.expressInstance)
+        .post(`/api/queue/dead-letters/${event.id}/replay`)
+        .set("x-internal-token", env.QUEUE_ADMIN_TOKEN)
+        .expect(200);
+
+      expect(publishSpy).toHaveBeenCalledTimes(1);
+      expect(publishSpy).toHaveBeenCalledWith(
+        event.routingKey,
+        event.payload,
+        `replay:${event.id}`,
+      );
+
+      await supertest(app.expressInstance)
+        .post(`/api/queue/dead-letters/${event.id}/replay`)
+        .set("x-internal-token", env.QUEUE_ADMIN_TOKEN)
+        .expect(409);
+
+      expect(publishSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      container.register<QueuePublisherGateway>(InjectionTokens.Queue.Publisher, {
+        useValue: originalPublisher,
+      });
+    }
   });
 });

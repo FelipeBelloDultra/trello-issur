@@ -57,7 +57,14 @@ queueRouter.post("/queue/dead-letters/:id/replay", async (req, res) => {
     throw new HttpException({ statusCode: 409, message: "dead letter already replayed" });
   }
 
-  publisher.publish(event.routingKey, event.payload);
+  // Deterministic key prefixed to distinguish it from whatever idempotency
+  // key the original (pre-dead-letter) publish may have used — mirrors the
+  // OutboxRelay's use of the row's own id (see outbox-relay.ts). A race
+  // between two concurrent replay calls for the same event now publishes
+  // under the same key, so the consumer's idempotency check collapses them
+  // into a single effective processing instead of duplicating the side
+  // effect.
+  publisher.publish(event.routingKey, event.payload, `replay:${event.id}`);
   await repo.markReplayed(id);
 
   return res.status(200).json({ data: { replayed: true } });
