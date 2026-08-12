@@ -1,5 +1,6 @@
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 import { WorkspaceMemberRoles } from "@/modules/workspace/domain/value-objects/workspace-member-role";
+import { InMemoryAccountRoleCacheRepository } from "@/test/cache/in-memory-account-role-cache-repository";
 import { InMemoryWorkspaceMemberRepository } from "@/test/repositories/in-memory-workspace-member.repository";
 
 import { CannotRemoveSelfError } from "../../errors/cannot-remove-self.error";
@@ -11,11 +12,13 @@ import { RemoveWorkspaceMemberHandler } from "./handler";
 
 describe("RemoveWorkspaceMemberHandler", () => {
   let memberRepository: InMemoryWorkspaceMemberRepository;
+  let accountRoleCache: InMemoryAccountRoleCacheRepository;
   let sut: RemoveWorkspaceMemberHandler;
 
   beforeEach(() => {
     memberRepository = new InMemoryWorkspaceMemberRepository();
-    sut = new RemoveWorkspaceMemberHandler(memberRepository);
+    accountRoleCache = new InMemoryAccountRoleCacheRepository();
+    sut = new RemoveWorkspaceMemberHandler(memberRepository, accountRoleCache);
   });
 
   it("removes the member when requester is different and target is not the owner", async () => {
@@ -34,6 +37,36 @@ describe("RemoveWorkspaceMemberHandler", () => {
 
     expect(result.isRight()).toBe(true);
     expect(memberRepository.items).toHaveLength(0);
+  });
+
+  it("invalidates the removed member's RBAC cache", async () => {
+    const workspaceId = UniqueEntityID.create().toValue();
+    const memberId = UniqueEntityID.create().toValue();
+    const accountId = UniqueEntityID.create().toValue();
+    memberRepository.items.push({
+      id: memberId,
+      workspaceId,
+      accountId,
+      role: WorkspaceMemberRoles.Member,
+    });
+
+    await sut.execute(
+      new RemoveWorkspaceMemberCommand(memberId, workspaceId, UniqueEntityID.create().toValue()),
+    );
+
+    expect(accountRoleCache.invalidateCalls).toEqual([{ accountId, workspaceId }]);
+  });
+
+  it("does not invalidate the RBAC cache when the member is not found", async () => {
+    await sut.execute(
+      new RemoveWorkspaceMemberCommand(
+        UniqueEntityID.create().toValue(),
+        UniqueEntityID.create().toValue(),
+        UniqueEntityID.create().toValue(),
+      ),
+    );
+
+    expect(accountRoleCache.invalidateCalls).toEqual([]);
   });
 
   it("returns WorkspaceMemberNotFoundError when the member doesn't exist", async () => {
