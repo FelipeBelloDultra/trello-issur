@@ -25,6 +25,10 @@ export const env = z
     JWT_ACCESS_EXPIRES: z.string().default("15m"),
     JWT_REFRESH_EXPIRES: z.string().default("7d"),
 
+    // Operational secret gating /queue/dead-letters* (x-internal-token header) — not part of
+    // the product's RBAC, per-environment like JWT_SECRET
+    QUEUE_ADMIN_TOKEN: z.string().min(32),
+
     // Circuit breaker (Valkey + Postgres) — provisional defaults, no production
     // failure data to calibrate against yet; revisit once there is some.
     CIRCUIT_BREAKER_TIMEOUT_MS: z.coerce.number().min(1).default(3000),

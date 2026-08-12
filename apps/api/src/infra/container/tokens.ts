@@ -123,5 +123,6 @@ export const InjectionTokens = {
     Logger: Symbol("LoggerMiddleware"),
     Tracing: Symbol("TracingMiddleware"),
     Metrics: Symbol("MetricsMiddleware"),
+    InternalToken: Symbol("InternalTokenMiddleware"),
   },
 } as const;

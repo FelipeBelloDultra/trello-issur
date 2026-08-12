@@ -5,9 +5,16 @@ import { InjectionTokens } from "@/infra/container/tokens";
 import { QueuePublisherGateway } from "@/shared/queue/application/gateways/queue-publisher.gateway";
 import { DeadLetterRepository } from "@/shared/queue/application/repositories/dead-letter.repository";
 
+import { Middleware } from "./contracts/middleware";
 import { HttpException } from "./http-exception";
 
 export const queueRouter = Router();
+
+const internalTokenMiddleware = container.resolve<Middleware>(
+  InjectionTokens.Middlewares.InternalToken,
+);
+
+queueRouter.use("/queue/dead-letters", internalTokenMiddleware.handle());
 
 queueRouter.get("/queue/dead-letters", async (req, res) => {
   const repo = container.resolve<DeadLetterRepository>(InjectionTokens.Queue.DeadLetterRepository);
