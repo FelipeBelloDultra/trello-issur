@@ -9,17 +9,17 @@ import { WorkspaceInviteRepository } from "@/modules/workspace/application/repos
 import { CacheRepository } from "@/shared/cache/application/repositories/cache.repository";
 import { QueueEvents } from "@/shared/queue/application/events";
 
-interface WorkspaceInviteAcceptedPayload {
+interface WorkspaceInviteRejectedPayload {
   inviteId: string;
   accountId: string;
 }
 
 @injectable()
-export class WorkspaceInviteAcceptedConsumer extends QueueConsumer<WorkspaceInviteAcceptedPayload> {
+export class WorkspaceInviteRejectedConsumer extends QueueConsumer<WorkspaceInviteRejectedPayload> {
   protected readonly config: QueueConsumerConfig = {
     exchange: Exchanges.Main,
-    queue: QueueEvents.WorkspaceInvite.Accepted,
-    routingKey: QueueEvents.WorkspaceInvite.Accepted,
+    queue: QueueEvents.WorkspaceInvite.Rejected,
+    routingKey: QueueEvents.WorkspaceInvite.Rejected,
   };
 
   public constructor(
@@ -33,7 +33,7 @@ export class WorkspaceInviteAcceptedConsumer extends QueueConsumer<WorkspaceInvi
     super(cache);
   }
 
-  public async handle(payload: WorkspaceInviteAcceptedPayload): Promise<void> {
+  public async handle(payload: WorkspaceInviteRejectedPayload): Promise<void> {
     const details = await this.inviteRepository.findRespondedDetails(
       payload.inviteId,
       payload.accountId,
@@ -44,9 +44,9 @@ export class WorkspaceInviteAcceptedConsumer extends QueueConsumer<WorkspaceInvi
     await this.commandBus.dispatch(
       new CreateNotificationCommand({
         accountId: details.invitedByAccountId,
-        type: "workspace_invite_accepted",
-        title: `${details.responderName} joined ${details.workspaceName}`,
-        body: `${details.responderName} accepted your invite to ${details.workspaceName}`,
+        type: "workspace_invite_rejected",
+        title: `${details.responderName} declined your invite to ${details.workspaceName}`,
+        body: `${details.responderName} rejected your invite to join ${details.workspaceName}`,
         metadata: { workspaceInviteId: payload.inviteId },
       }),
     );

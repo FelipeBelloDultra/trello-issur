@@ -46,6 +46,7 @@ export const InjectionTokens = {
     WorkspacePersonalCreationRequested: Symbol("WorkspacePersonalCreationRequestedConsumer"),
     WorkspaceInviteCreated: Symbol("WorkspaceInviteCreatedConsumer"),
     WorkspaceInviteAccepted: Symbol("WorkspaceInviteAcceptedConsumer"),
+    WorkspaceInviteRejected: Symbol("WorkspaceInviteRejectedConsumer"),
   },
 
   Bus: {

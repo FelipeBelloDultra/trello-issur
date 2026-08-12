@@ -38,10 +38,13 @@ export type MyWorkspaceInviteView = {
   createdAt: Date;
 };
 
-export type WorkspaceInviteAcceptanceDetails = {
+// Same shape regardless of whether the invite was accepted or rejected —
+// only who responded and how they responded differs, which the consumer
+// already knows from which event it's handling.
+export type WorkspaceInviteResponseDetails = {
   invitedByAccountId: string;
   workspaceName: string;
-  accepterName: string;
+  responderName: string;
 };
 
 export interface WorkspaceInviteRepository {
@@ -61,8 +64,8 @@ export interface WorkspaceInviteRepository {
     email: string,
     pagination: Pagination,
   ): Promise<{ invites: MyWorkspaceInviteView[]; total: number }>;
-  findAcceptanceDetails(
+  findRespondedDetails(
     inviteId: string,
-    accepterAccountId: string,
-  ): Promise<WorkspaceInviteAcceptanceDetails | null>;
+    responderAccountId: string,
+  ): Promise<WorkspaceInviteResponseDetails | null>;
 }
