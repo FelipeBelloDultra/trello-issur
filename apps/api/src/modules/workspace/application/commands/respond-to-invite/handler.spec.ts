@@ -71,7 +71,8 @@ describe("RespondToInviteHandler", () => {
     });
   });
 
-  it("rejects a pending invite without creating a membership or publishing an event", async () => {
+  it("rejects a pending invite, without creating a membership, and publishes WorkspaceInvite.Rejected", async () => {
+    const accountId = UniqueEntityID.create().toValue();
     const email = faker.internet.email().toLowerCase();
     const invite = makeWorkspaceInvite({ email });
     inviteRepository.items.push(invite);
@@ -79,7 +80,7 @@ describe("RespondToInviteHandler", () => {
     const result = await sut.execute(
       new RespondToInviteCommand({
         token: invite.token,
-        accountId: UniqueEntityID.create().toValue(),
+        accountId,
         accountEmail: email,
         action: "reject",
       }),
@@ -88,7 +89,12 @@ describe("RespondToInviteHandler", () => {
     expect(result.isRight()).toBe(true);
     expect(memberRepository.items).toHaveLength(0);
     expect(inviteRepository.items[0]?.status).toBe("rejected");
-    expect(outboxRepository.items).toHaveLength(0);
+    expect(outboxRepository.items).toHaveLength(1);
+    expect(outboxRepository.items[0]?.routingKey).toBe(QueueEvents.WorkspaceInvite.Rejected);
+    expect(outboxRepository.items[0]?.payload).toEqual({
+      inviteId: invite.id.toValue(),
+      accountId,
+    });
   });
 
   it("returns InviteNotFoundError when the token doesn't match any invite", async () => {

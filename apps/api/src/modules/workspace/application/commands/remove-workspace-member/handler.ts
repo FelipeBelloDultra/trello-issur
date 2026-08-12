@@ -4,6 +4,7 @@ import { CommandHandler } from "@/core/commands/command-handler";
 import { Either, left, right } from "@/core/either";
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 import { InjectionTokens } from "@/infra/container/tokens";
+import { AccountRoleCacheRepository } from "@/modules/auth/application/repositories/account-role-cache.repository";
 
 import { CannotRemoveSelfError } from "../../errors/cannot-remove-self.error";
 import { CannotRemoveWorkspaceOwnerError } from "../../errors/cannot-remove-workspace-owner.error";
@@ -27,6 +28,8 @@ export class RemoveWorkspaceMemberHandler implements CommandHandler<
   public constructor(
     @inject(InjectionTokens.Repositories.WorkspaceMember)
     private readonly workspaceMemberRepository: WorkspaceMemberRepository,
+    @inject(InjectionTokens.Cache.AccountRole)
+    private readonly accountRoleCache: AccountRoleCacheRepository,
   ) {}
 
   public async execute(command: RemoveWorkspaceMemberCommand): Output {
@@ -45,6 +48,7 @@ export class RemoveWorkspaceMemberHandler implements CommandHandler<
     }
 
     await this.workspaceMemberRepository.remove(command.memberId);
+    await this.accountRoleCache.invalidate(member.accountId.toValue(), command.workspaceId);
 
     return right(undefined);
   }

@@ -1,6 +1,7 @@
 import { inject, injectable } from "tsyringe";
 
 import { InjectionTokens } from "@/infra/container/tokens";
+import { logger } from "@/infra/logger";
 import { AccountRoleCacheRepository } from "@/modules/auth/application/repositories/account-role-cache.repository";
 import { RawPermissionKey } from "@/modules/auth/domain/value-objects/permission-key";
 import { CacheRepository } from "@/shared/cache/application/repositories/cache.repository";
@@ -54,11 +55,18 @@ export class ValkeyAccountRoleCacheRepository implements AccountRoleCacheReposit
   }
 
   public async invalidate(accountId: string, workspaceId: string): Promise<void> {
-    await Promise.all([
-      this.cache.delete(this.membershipKey(accountId, workspaceId)),
-      this.cache.delete(this.permissionsKey(accountId, workspaceId)),
-      this.cache.delete(this.roleKey(accountId, workspaceId)),
-    ]);
+    try {
+      await Promise.all([
+        this.cache.delete(this.membershipKey(accountId, workspaceId)),
+        this.cache.delete(this.permissionsKey(accountId, workspaceId)),
+        this.cache.delete(this.roleKey(accountId, workspaceId)),
+      ]);
+    } catch (err: unknown) {
+      logger.warn(
+        { err, accountId, workspaceId },
+        "account role cache invalidation failed — stale permissions may be served until TTL expiry",
+      );
+    }
   }
 
   private membershipKey(accountId: string, workspaceId: string): string {

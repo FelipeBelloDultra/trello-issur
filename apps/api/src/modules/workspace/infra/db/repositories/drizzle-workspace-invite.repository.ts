@@ -11,9 +11,9 @@ import { DrizzleExecutor } from "@/infra/db/transaction";
 import { WorkspaceInviteCacheRepository } from "@/modules/workspace/application/repositories/workspace-invite-cache.repository";
 import {
   MyWorkspaceInviteView,
-  WorkspaceInviteAcceptanceDetails,
   WorkspaceInviteDetails,
   WorkspaceInviteRepository,
+  WorkspaceInviteResponseDetails,
   WorkspaceInviteView,
 } from "@/modules/workspace/application/repositories/workspace-invite.repository";
 import { WorkspaceInvite } from "@/modules/workspace/domain/entities/workspace-invite";
@@ -190,19 +190,19 @@ export class DrizzleWorkspaceInviteRepository implements WorkspaceInviteReposito
     return { invites: invites as MyWorkspaceInviteView[], total: countResult[0]?.count ?? 0 };
   }
 
-  public async findAcceptanceDetails(
+  public async findRespondedDetails(
     inviteId: string,
-    accepterAccountId: string,
-  ): Promise<WorkspaceInviteAcceptanceDetails | null> {
+    responderAccountId: string,
+  ): Promise<WorkspaceInviteResponseDetails | null> {
     const [row] = await this.db
       .select({
         invitedByAccountId: workspaceInvites.invitedByAccountId,
         workspaceName: workspaces.name,
-        accepterName: accounts.name,
+        responderName: accounts.name,
       })
       .from(workspaceInvites)
       .innerJoin(workspaces, eq(workspaceInvites.workspaceId, workspaces.id))
-      .innerJoin(accounts, eq(accounts.id, accepterAccountId))
+      .innerJoin(accounts, eq(accounts.id, responderAccountId))
       .where(eq(workspaceInvites.id, inviteId))
       .limit(1);
 

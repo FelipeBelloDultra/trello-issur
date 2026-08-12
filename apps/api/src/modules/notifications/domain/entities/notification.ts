@@ -1,7 +1,10 @@
 import { Entity } from "@/core/entity/entity";
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 
-export type NotificationType = "workspace_invite" | "workspace_invite_accepted";
+export type NotificationType =
+  | "workspace_invite"
+  | "workspace_invite_accepted"
+  | "workspace_invite_rejected";
 
 interface NotificationProps {
   accountId: UniqueEntityID;

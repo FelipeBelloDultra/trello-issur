@@ -46,6 +46,7 @@ export const InjectionTokens = {
     WorkspacePersonalCreationRequested: Symbol("WorkspacePersonalCreationRequestedConsumer"),
     WorkspaceInviteCreated: Symbol("WorkspaceInviteCreatedConsumer"),
     WorkspaceInviteAccepted: Symbol("WorkspaceInviteAcceptedConsumer"),
+    WorkspaceInviteRejected: Symbol("WorkspaceInviteRejectedConsumer"),
   },
 
   Bus: {
@@ -123,5 +124,6 @@ export const InjectionTokens = {
     Logger: Symbol("LoggerMiddleware"),
     Tracing: Symbol("TracingMiddleware"),
     Metrics: Symbol("MetricsMiddleware"),
+    InternalToken: Symbol("InternalTokenMiddleware"),
   },
 } as const;

@@ -4,6 +4,7 @@ import { InjectionTokens } from "@/infra/container/tokens";
 
 import { WorkspaceInviteAcceptedConsumer } from "./consumers/workspace-invite-accepted.consumer";
 import { WorkspaceInviteCreatedConsumer } from "./consumers/workspace-invite-created.consumer";
+import { WorkspaceInviteRejectedConsumer } from "./consumers/workspace-invite-rejected.consumer";
 import { WorkspacePersonalCreationRequestedConsumer } from "./consumers/workspace-personal-creation-requested.consumer";
 
 export function setupQueueWorkspaceContainer(): void {
@@ -22,6 +23,12 @@ export function setupQueueWorkspaceContainer(): void {
   container.register<WorkspaceInviteAcceptedConsumer>(
     InjectionTokens.Consumers.WorkspaceInviteAccepted,
     { useClass: WorkspaceInviteAcceptedConsumer },
+    { lifecycle: Lifecycle.Singleton },
+  );
+
+  container.register<WorkspaceInviteRejectedConsumer>(
+    InjectionTokens.Consumers.WorkspaceInviteRejected,
+    { useClass: WorkspaceInviteRejectedConsumer },
     { lifecycle: Lifecycle.Singleton },
   );
 }

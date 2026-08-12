@@ -4,6 +4,7 @@ import { CommandHandler } from "@/core/commands/command-handler";
 import { Either, left, right } from "@/core/either";
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 import { InjectionTokens } from "@/infra/container/tokens";
+import { AccountRoleCacheRepository } from "@/modules/auth/application/repositories/account-role-cache.repository";
 
 import { CannotUpdateOwnerRoleError } from "../../errors/cannot-update-owner-role.error";
 import { WorkspaceMemberNotFoundError } from "../../errors/workspace-member-not-found.error";
@@ -23,6 +24,8 @@ export class UpdateWorkspaceMemberRoleHandler implements CommandHandler<
   public constructor(
     @inject(InjectionTokens.Repositories.WorkspaceMember)
     private readonly workspaceMemberRepository: WorkspaceMemberRepository,
+    @inject(InjectionTokens.Cache.AccountRole)
+    private readonly accountRoleCache: AccountRoleCacheRepository,
   ) {}
 
   public async execute(command: UpdateWorkspaceMemberRoleCommand): Output {
@@ -37,6 +40,7 @@ export class UpdateWorkspaceMemberRoleHandler implements CommandHandler<
     }
 
     await this.workspaceMemberRepository.updateRole({ id: command.memberId, role: command.role });
+    await this.accountRoleCache.invalidate(member.accountId.toValue(), command.workspaceId);
 
     return right(undefined);
   }

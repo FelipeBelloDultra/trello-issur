@@ -1,9 +1,9 @@
 import { Pagination } from "@/core/entity/pagination";
 import {
   MyWorkspaceInviteView,
-  WorkspaceInviteAcceptanceDetails,
   WorkspaceInviteDetails,
   WorkspaceInviteRepository,
+  WorkspaceInviteResponseDetails,
   WorkspaceInviteView,
 } from "@/modules/workspace/application/repositories/workspace-invite.repository";
 import { WorkspaceInvite } from "@/modules/workspace/domain/entities/workspace-invite";
@@ -90,17 +90,17 @@ export class InMemoryWorkspaceInviteRepository implements WorkspaceInviteReposit
     return Promise.resolve({ invites, total: all.length });
   }
 
-  public findAcceptanceDetails(
+  public findRespondedDetails(
     inviteId: string,
-    _accepterAccountId: string,
-  ): Promise<WorkspaceInviteAcceptanceDetails | null> {
+    _responderAccountId: string,
+  ): Promise<WorkspaceInviteResponseDetails | null> {
     const invite = this.items.find((i) => i.id.toValue() === inviteId);
     if (!invite) return Promise.resolve(null);
 
     return Promise.resolve({
       invitedByAccountId: invite.invitedByAccountId.toValue(),
       workspaceName: "",
-      accepterName: "",
+      responderName: "",
     });
   }
 }

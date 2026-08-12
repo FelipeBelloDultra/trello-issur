@@ -37,7 +37,7 @@ export class InviteMemberController implements Controller {
     this.middlewares = [
       auth.handle(),
       validateWorkspace.handle(),
-      authorize.handle(["workspace:manage"]),
+      authorize.handle(["workspace:invite"]),
     ];
   }
 

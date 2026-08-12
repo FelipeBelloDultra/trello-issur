@@ -35,6 +35,7 @@ import { setupDatabaseWorkspaceContainer } from "./db/container";
 import { setupHTTPWorkspaceContainer } from "./http/container";
 import { WorkspaceInviteAcceptedConsumer } from "./queue/consumers/workspace-invite-accepted.consumer";
 import { WorkspaceInviteCreatedConsumer } from "./queue/consumers/workspace-invite-created.consumer";
+import { WorkspaceInviteRejectedConsumer } from "./queue/consumers/workspace-invite-rejected.consumer";
 import { WorkspacePersonalCreationRequestedConsumer } from "./queue/consumers/workspace-personal-creation-requested.consumer";
 import { setupQueueWorkspaceContainer } from "./queue/container";
 
@@ -192,6 +193,11 @@ export function setupWorkspaceModule(): void {
   registry.register(
     container.resolve<WorkspaceInviteAcceptedConsumer>(
       InjectionTokens.Consumers.WorkspaceInviteAccepted,
+    ),
+  );
+  registry.register(
+    container.resolve<WorkspaceInviteRejectedConsumer>(
+      InjectionTokens.Consumers.WorkspaceInviteRejected,
     ),
   );
 }

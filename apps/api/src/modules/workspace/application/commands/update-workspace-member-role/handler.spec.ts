@@ -1,5 +1,6 @@
 import { UniqueEntityID } from "@/core/entity/unique-entity-id";
 import { WorkspaceMemberRoles } from "@/modules/workspace/domain/value-objects/workspace-member-role";
+import { InMemoryAccountRoleCacheRepository } from "@/test/cache/in-memory-account-role-cache-repository";
 import { InMemoryWorkspaceMemberRepository } from "@/test/repositories/in-memory-workspace-member.repository";
 
 import { CannotUpdateOwnerRoleError } from "../../errors/cannot-update-owner-role.error";
@@ -10,11 +11,13 @@ import { UpdateWorkspaceMemberRoleHandler } from "./handler";
 
 describe("UpdateWorkspaceMemberRoleHandler", () => {
   let memberRepository: InMemoryWorkspaceMemberRepository;
+  let accountRoleCache: InMemoryAccountRoleCacheRepository;
   let sut: UpdateWorkspaceMemberRoleHandler;
 
   beforeEach(() => {
     memberRepository = new InMemoryWorkspaceMemberRepository();
-    sut = new UpdateWorkspaceMemberRoleHandler(memberRepository);
+    accountRoleCache = new InMemoryAccountRoleCacheRepository();
+    sut = new UpdateWorkspaceMemberRoleHandler(memberRepository, accountRoleCache);
   });
 
   it("updates the member's role", async () => {
@@ -33,6 +36,36 @@ describe("UpdateWorkspaceMemberRoleHandler", () => {
 
     expect(result.isRight()).toBe(true);
     expect(memberRepository.items[0]?.role).toBe(WorkspaceMemberRoles.Admin);
+  });
+
+  it("invalidates the member's RBAC cache after a successful role change", async () => {
+    const workspaceId = UniqueEntityID.create().toValue();
+    const memberId = UniqueEntityID.create().toValue();
+    const accountId = UniqueEntityID.create().toValue();
+    memberRepository.items.push({
+      id: memberId,
+      workspaceId,
+      accountId,
+      role: WorkspaceMemberRoles.Member,
+    });
+
+    await sut.execute(
+      new UpdateWorkspaceMemberRoleCommand(workspaceId, memberId, WorkspaceMemberRoles.Admin),
+    );
+
+    expect(accountRoleCache.invalidateCalls).toEqual([{ accountId, workspaceId }]);
+  });
+
+  it("does not invalidate the RBAC cache when the member is not found", async () => {
+    await sut.execute(
+      new UpdateWorkspaceMemberRoleCommand(
+        UniqueEntityID.create().toValue(),
+        UniqueEntityID.create().toValue(),
+        WorkspaceMemberRoles.Admin,
+      ),
+    );
+
+    expect(accountRoleCache.invalidateCalls).toEqual([]);
   });
 
   it("returns WorkspaceMemberNotFoundError when the member doesn't exist", async () => {
