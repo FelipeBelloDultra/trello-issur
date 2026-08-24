@@ -120,5 +120,6 @@ typings/
 # .claude/skills, .claude/settings.json) tracked; ignore only personal/local overrides.
 .claude/settings.local.json
 
-**/specs/**
-*map**
+# spec-driven-development artifacts (AI-assisted planning docs) — process notes, not
+# meant to be versioned; docs/api/roadmap.md and backend-map.html stay tracked
+docs/**/specs/

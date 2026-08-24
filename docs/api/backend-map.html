@@ -1,0 +1,1310 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>trello-issur — Mapa do Backend</title>
+<style>
+  :root {
+    --bg: #f6f6f3;
+    --surface: #ffffff;
+    --surface-2: #eeeeea;
+    --border: #dbdbd5;
+    --ink: #1b1c1e;
+    --muted: #6b6c72;
+    --accent: #3454d1;
+    --accent-ink: #ffffff;
+    --m-get: #2b7a78;
+    --m-post: #2e7d32;
+    --m-patch: #b7791f;
+    --m-delete: #b3261e;
+    --warn-bg: #fff6e5;
+    --warn-border: #e8b84b;
+    --warn-ink: #6b4e00;
+    --code-bg: #eeeeea;
+    --font-display: ui-sans-serif, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-body: ui-serif, Charter, "Iowan Old Style", Georgia, "Times New Roman", serif;
+    --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12141a;
+      --surface: #1a1d26;
+      --surface-2: #20242f;
+      --border: #2b2f3b;
+      --ink: #e8e9ec;
+      --muted: #9497a3;
+      --accent: #8fa4ff;
+      --accent-ink: #12141a;
+      --m-get: #4fb3b0;
+      --m-post: #74d183;
+      --m-patch: #e3b25c;
+      --m-delete: #e88c86;
+      --warn-bg: #2a2410;
+      --warn-border: #6b5620;
+      --warn-ink: #e8c874;
+      --code-bg: #20242f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12141a;
+    --surface: #1a1d26;
+    --surface-2: #20242f;
+    --border: #2b2f3b;
+    --ink: #e8e9ec;
+    --muted: #9497a3;
+    --accent: #8fa4ff;
+    --accent-ink: #12141a;
+    --m-get: #4fb3b0;
+    --m-post: #74d183;
+    --m-patch: #e3b25c;
+    --m-delete: #e88c86;
+    --warn-bg: #2a2410;
+    --warn-border: #6b5620;
+    --warn-ink: #e8c874;
+    --code-bg: #20242f;
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f6f3;
+    --surface: #ffffff;
+    --surface-2: #eeeeea;
+    --border: #dbdbd5;
+    --ink: #1b1c1e;
+    --muted: #6b6c72;
+    --accent: #3454d1;
+    --accent-ink: #ffffff;
+    --m-get: #2b7a78;
+    --m-post: #2e7d32;
+    --m-patch: #b7791f;
+    --m-delete: #b3261e;
+    --warn-bg: #fff6e5;
+    --warn-border: #e8b84b;
+    --warn-ink: #6b4e00;
+    --code-bg: #eeeeea;
+  }
+
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16.5px;
+    line-height: 1.6;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    line-height: 1.15;
+    margin: 0 0 0.4em 0;
+  }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible, .toc a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  code, .mono {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+  }
+
+  .shell {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 0;
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  /* ---- sidebar / TOC ---- */
+  .toc {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 18px 40px 28px;
+    border-right: 1px solid var(--border);
+  }
+  .toc-brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    margin-bottom: 2px;
+  }
+  .toc-sub {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-bottom: 24px;
+    display: block;
+  }
+  .toc nav ul {
+    list-style: none;
+    margin: 0 0 18px 0;
+    padding: 0;
+  }
+  .toc nav li a {
+    display: block;
+    padding: 5px 0;
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-size: 13.5px;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+    margin-left: -12px;
+  }
+  .toc nav li a:hover { color: var(--accent); border-left-color: var(--accent); }
+  .toc nav .eyebrow {
+    font-family: var(--font-display);
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 18px 0 6px 0;
+  }
+
+  /* ---- main content ---- */
+  main { padding: 40px 48px 100px 48px; min-width: 0; }
+  .hero {
+    margin-bottom: 8px;
+  }
+  .hero .eyebrow {
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: block;
+  }
+  .hero h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 700; max-width: 18ch; }
+  .hero p.lede {
+    font-family: var(--font-body);
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 62ch;
+    margin: 12px 0 0 0;
+  }
+  .stat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 26px 0 44px 0;
+  }
+  .stat {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 3px;
+    padding: 10px 16px;
+    min-width: 108px;
+  }
+  .stat b {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat span {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  section { margin: 64px 0; scroll-margin-top: 24px; }
+  section.module { border-top: 1px solid var(--border); padding-top: 40px; }
+  .module-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .module-head h2 { font-size: 26px; }
+  .module-tag {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    background: var(--surface-2);
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+  h3 { font-size: 18px; margin-top: 34px; }
+  h3 .n { color: var(--muted); font-family: var(--font-mono); font-size: 14px; margin-right: 6px;}
+  p { max-width: 72ch; }
+  p.tight { max-width: 90ch; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+    background: var(--surface);
+  }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; margin: 14px 0 8px 0; }
+  th, td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--font-display);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  td .mono, td code { white-space: nowrap; }
+  td.wrap-ok { white-space: normal; min-width: 22ch; }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+  .badge.get { background: var(--m-get); }
+  .badge.post { background: var(--m-post); }
+  .badge.patch { background: var(--m-patch); }
+  .badge.delete { background: var(--m-delete); }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    margin: 1px 2px 1px 0;
+  }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    border-radius: 0 4px 4px 0;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 14.5px;
+  }
+  .callout p { margin: 0; max-width: none; }
+  .callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); color: var(--warn-ink); }
+
+  figure { margin: 24px 0; }
+  figure svg { width: 100%; height: auto; display: block; }
+  .fig-wrap { border: 1px solid var(--border); border-radius: 4px; background: var(--surface); padding: 16px; overflow-x: auto; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 10px; max-width: 72ch; }
+  svg text { fill: var(--ink); font-family: var(--font-mono); }
+  svg .muted-text { fill: var(--muted); }
+  svg .accent-text { fill: var(--accent); font-weight: 700; }
+  svg rect.box { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.2; }
+  svg rect.box.accent { fill: var(--accent); stroke: var(--accent); }
+  svg .accent-fill-text { fill: var(--accent-ink); }
+  svg line, svg path.arrow { stroke: var(--ink); stroke-width: 1.3; fill: none; }
+  svg path.arrow.dashed { stroke-dasharray: 4 3; }
+  svg polygon.arrowhead { fill: var(--ink); }
+
+  .debt-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .debt-list li {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--warn-border);
+    background: var(--surface);
+    padding: 10px 14px;
+    border-radius: 0 4px 4px 0;
+    font-size: 14.5px;
+    max-width: 84ch;
+  }
+  .debt-list b { font-family: var(--font-display); }
+
+  ol.steps { padding-left: 22px; }
+  ol.steps li { margin-bottom: 8px; max-width: 78ch; }
+
+  footer.doc-footer {
+    margin-top: 90px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+    .toc { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    main { padding: 28px 20px 80px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="toc">
+    <span class="toc-brand">trello-issur</span>
+    <span class="toc-sub">apps/api — mapa do backend</span>
+    <nav>
+      <div class="eyebrow">Visão geral</div>
+      <ul>
+        <li><a href="#overview">Arquitetura</a></li>
+      </ul>
+      <div class="eyebrow">Módulos</div>
+      <ul>
+        <li><a href="#account">Account</a></li>
+        <li><a href="#auth">Auth</a></li>
+        <li><a href="#workspace">Workspace</a></li>
+        <li><a href="#notifications">Notifications</a></li>
+      </ul>
+      <div class="eyebrow">Fluxos de dados</div>
+      <ul>
+        <li><a href="#flow-signup">Cadastro + workspace pessoal</a></li>
+        <li><a href="#flow-auth">Login / refresh / logout</a></li>
+        <li><a href="#flow-invite">Convite: criar → aceitar</a></li>
+      </ul>
+      <div class="eyebrow">Infraestrutura</div>
+      <ul>
+        <li><a href="#queue">Filas (RabbitMQ)</a></li>
+        <li><a href="#cache">Cache (Valkey)</a></li>
+        <li><a href="#database">Banco (Postgres)</a></li>
+      </ul>
+      <div class="eyebrow">Estado</div>
+      <ul>
+        <li><a href="#debts">Débitos conhecidos</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="hero">
+      <span class="eyebrow">Estado atual · apps/api · 2026-08-06</span>
+      <h1>Mapa do backend do trello-issur</h1>
+      <p class="lede">
+        Referência única de tudo que existe hoje em <code>apps/api</code>: rotas HTTP e seus retornos,
+        eventos de fila, o que é gravado no Valkey e em que formato, e o passo a passo do que acontece
+        internamente em cada operação — como aceitar um convite de workspace. Levantado lendo o código-fonte
+        real, módulo por módulo.
+      </p>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><b>4</b><span>módulos de negócio</span></div>
+      <div class="stat"><b>22</b><span>rotas HTTP</span></div>
+      <div class="stat"><b>4</b><span>eventos de fila</span></div>
+      <div class="stat"><b>5</b><span>consumers</span></div>
+      <div class="stat"><b>12</b><span>chaves no Valkey</span></div>
+      <div class="stat"><b>10</b><span>tabelas Postgres</span></div>
+    </div>
+
+    <section id="overview">
+      <h2>Arquitetura, em uma tela</h2>
+      <p>
+        Domain-Driven Design + Clean Architecture + Ports &amp; Adapters + CQRS, sobre uma regra de dependência
+        estrita: <code>Domain ← Application ← Infra ← Entry points</code>. Cada módulo
+        (<code>account</code>, <code>auth</code>, <code>workspace</code>, <code>notifications</code>) repete essa
+        divisão internamente. Comandos e queries passam por um <code>CommandBus</code>/<code>QueryBus</code>
+        em processo — controllers nunca chamam handler ou repositório diretamente.
+      </p>
+      <p class="tight">
+        Dois processos compartilham o mesmo container de injeção de dependência, mas têm responsabilidades
+        diferentes: <code>index.http.ts</code> serve a API e publica eventos (via outbox); <code>index.queue.ts</code>
+        é quem de fato consome as filas do RabbitMQ e roda o <code>OutboxRelay</code>. Erros seguem três camadas —
+        <code>DomainError</code> lançado no domínio, <code>Either&lt;UseCaseError,T&gt;</code> retornado pelos
+        handlers de aplicação, e <code>HttpException</code> lançada pelo controller a partir do lado esquerdo do
+        <code>Either</code>.
+      </p>
+      <div class="callout">
+        <p>
+          Toda rota abaixo está montada sob o prefixo <code>/api</code> (ex.: <code>POST /api/accounts</code>),
+          exceto as duas rotas administrativas de fila em <a href="#queue">Infraestrutura → Filas</a>.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= ACCOUNT ================= -->
+    <section class="module" id="account">
+      <div class="module-head"><h2>Account</h2><span class="module-tag">modules/account</span></div>
+      <p>Cadastro de conta e hash de senha. É o menor módulo de negócio — hoje só existe uma rota pública.</p>
+
+      <h3><span class="n">01</span>Entidade e Value Objects</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tipo</th><th>Regra</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Account</td><td class="wrap-ok"><code>name</code>, <code>email</code>, <code>passwordHash</code>, <code>createdAt</code>, <code>updatedAt</code>. <code>withoutPasswordHash()</code> retorna uma cópia com hash vazio — usada por qualquer leitura que não seja autenticação.</td></tr>
+            <tr><td class="mono">AccountName</td><td class="wrap-ok">máx. 100 chars; exige <b>pelo menos duas palavras com 2+ caracteres cada</b> (regex <code>/^\S{2,}(\s+\S{2,})+$/</code>) — "Jo Silva" passa, "Jo S" falha.</td></tr>
+            <tr><td class="mono">Email</td><td class="wrap-ok">normalizado com <code>trim().toLowerCase()</code> antes de validar — sempre case-insensitive.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3><span class="n">02</span>Rota HTTP</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rota</th><th>Auth</th><th>Request</th><th>Sucesso</th><th>Erros</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="badge post">POST</span> <span class="mono">/accounts</span></td>
+              <td>Pública</td>
+              <td class="wrap-ok"><code>{ name, email, password (min 8), create_workspace? }</code></td>
+              <td class="wrap-ok"><b>201</b> <code>{ id, name, email, created_at }</code></td>
+              <td class="wrap-ok"><b>409</b> email already taken · <b>422</b> validação (Zod)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3><span class="n">03</span>Casos de uso</h3>
+      <ul>
+        <li><code>CreateAccountCommand</code> — valida unicidade de e-mail, faz hash da senha, grava conta + eventos de outbox numa transação.</li>
+        <li><code>SendWelcomeEmailCommand</code> — dispara o e-mail de boas-vindas; acionado pelo consumer de <code>account.created</code>, não por HTTP.</li>
+        <li><code>GetAccountQuery</code> — busca conta por id (consumida pelo <code>GET /auth/me</code>, ver módulo Auth).</li>
+      </ul>
+
+      <h3><span class="n">04</span>Eventos publicados (via outbox)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Routing key</th><th>Payload</th><th>Quando</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">account.created</td><td class="mono">{ accountId, name, email }</td><td>Sempre, ao criar a conta</td></tr>
+            <tr><td class="mono">workspace.personal-creation-requested</td><td class="mono">{ accountId, accountName }</td><td>Só se <code>create_workspace: true</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3><span class="n">05</span>Cache (Valkey)</h3>
+      <p class="tight">
+        <code>account.id.&lt;id&gt;</code> e <code>account.email.&lt;email&gt;</code> — JSON
+        <code>{id, name, email, createdAt, updatedAt}</code> (nunca o hash de senha), TTL <b>1h</b>,
+        cache-aside em <code>findById</code>/<code>findByEmail</code>. Detalhe completo na
+        <a href="#cache">tabela de cache</a>.
+      </p>
+
+      <h3><span class="n">06</span>Hash de senha</h3>
+      <p class="tight">
+        <code>PasswordHasherGateway</code> → <code>Argon2PasswordHasherGateway</code>, algoritmo <b>argon2id</b>
+        (default da lib <code>argon2</code>). Chamado só na camada de aplicação — nunca a partir do domínio.
+      </p>
+    </section>
+
+    <!-- ================= AUTH ================= -->
+    <section class="module" id="auth">
+      <div class="module-head"><h2>Auth</h2><span class="module-tag">modules/auth</span></div>
+      <p>Sessão via JWT access+refresh, RBAC por workspace. Sem entidade persistente própria — a "fonte da verdade" da sessão é o Valkey, não o Postgres.</p>
+
+      <h3><span class="n">01</span>Value Objects de autorização</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tipo</th><th>Regra</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">AccountRole</td><td class="wrap-ok">registry fixo: <code>owner | admin | member | viewer</code>. Carrega o mapa estático role→permissões (<code>ROLE_PERMISSION_MAP</code>).</td></tr>
+            <tr><td class="mono">PermissionKey</td><td class="wrap-ok">13 chaves fixas: <code>workspace:manage/delete/invite/remove-member/transfer-ownership</code>, <code>board:create/edit/delete</code>, <code>card:create/edit/delete/move/assign</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Role</th><th>Permissões</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">owner</td><td>todas as 13</td></tr>
+            <tr><td class="mono">admin</td><td>todas exceto <code>workspace:transfer-ownership</code></td></tr>
+            <tr><td class="mono">member</td><td class="wrap-ok"><code>workspace:invite</code>, <code>board:create/edit</code>, <code>card:create/edit/move/assign</code> (sem delete)</td></tr>
+            <tr><td class="mono">viewer</td><td>nenhuma</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3><span class="n">02</span>Rotas HTTP</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rota</th><th>Auth</th><th>Request</th><th>Sucesso</th><th>Erros</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="badge post">POST</span> <span class="mono">/auth/authenticate</span></td>
+              <td class="wrap-ok">Pública<br><span class="pill">10 req/min por IP</span></td>
+              <td class="mono">{ email, password }</td>
+              <td class="wrap-ok"><b>200</b> <code>{authenticated:true}</code> + cookies</td>
+              <td class="wrap-ok"><b>401</b> invalid credentials · <b>429</b> rate limit</td>
+            </tr>
+            <tr>
+              <td><span class="badge post">POST</span> <span class="mono">/auth/refresh</span></td>
+              <td class="wrap-ok">Cookie <code>refresh_token</code><br><span class="pill">20 req/min</span> <span class="pill">idempotency 30s</span></td>
+              <td>—</td>
+              <td class="wrap-ok"><b>200</b> <code>{authenticated:true}</code> + cookies novos</td>
+              <td class="wrap-ok"><b>401</b> missing/invalid token · <b>429</b></td>
+            </tr>
+            <tr>
+              <td><span class="badge post">POST</span> <span class="mono">/auth/logout</span></td>
+              <td>Cookie <code>refresh_token</code></td>
+              <td>—</td>
+              <td><b>204</b></td>
+              <td class="wrap-ok"><b>401</b> missing/invalid token</td>
+            </tr>
+            <tr>
+              <td><span class="badge get">GET</span> <span class="mono">/auth/me</span></td>
+              <td>JWT (access token)</td>
+              <td>—</td>
+              <td class="wrap-ok"><b>200</b> <code>{id,name,email,created_at}</code></td>
+              <td class="wrap-ok"><b>401</b> unauthorized/token inválido · <b>404</b> account not found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3><span class="n">03</span>Casos de uso</h3>
+      <ul>
+        <li><code>AuthenticateCommand</code> — valida credenciais (compara contra hash real, sem cache), gera par de tokens, grava no Valkey.</li>
+        <li><code>RefreshTokenCommand</code> — verifica o refresh atual, gera par <b>novo</b>, sobrescreve as duas chaves no Valkey (rotação completa).</li>
+        <li><code>LogoutCommand</code> — verifica o refresh atual, apaga as duas chaves do Valkey.</li>
+      </ul>
+
+      <h3><span class="n">04</span>Guards usados nas rotas de outros módulos</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Middleware</th><th>O que checa</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">AuthMiddleware</td><td class="wrap-ok">cookie <code>access_token</code> presente → assinatura/expiração JWT válidas → hash bate no Valkey → injeta <code>req.account = {sub, email}</code>.</td></tr>
+            <tr><td class="mono">ValidateWorkspaceMiddleware</td><td class="wrap-ok"><code>:workspaceId</code> é UUID válido e o requisitante é <b>membro</b> do workspace (sem checar role específica).</td></tr>
+            <tr><td class="mono">AuthorizeMiddleware</td><td class="wrap-ok">busca as permissões do membro (cache-aside, 5 min) e exige que <b>todas</b> as chaves passadas estejam presentes; senão <b>403</b>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="tight">Mecanismo completo de token + cookie + Valkey, com diagrama, em <a href="#flow-auth">Fluxos → Login / refresh / logout</a>.</p>
+    </section>
+
+    <!-- ================= WORKSPACE ================= -->
+    <section class="module" id="workspace">
+      <div class="module-head"><h2>Workspace</h2><span class="module-tag">modules/workspace</span></div>
+      <p>O módulo mais denso: workspaces, membros (RBAC via <code>account_roles</code>) e convites. Não existe tabela <code>workspace_members</code> — membership e role vivem na mesma linha de <code>account_roles</code>.</p>
+
+      <h3><span class="n">01</span>Entidades e Value Objects</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tipo</th><th>Regra / estados</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Workspace</td><td class="wrap-ok"><code>name</code>, <code>slug</code>, <code>ownerId</code>, <code>description</code>, <code>avatarUrl</code> (chave de storage, resolvida em URL só no presenter), <code>isPersonal</code>.</td></tr>
+            <tr><td class="mono">WorkspaceMember</td><td class="wrap-ok">projeção de <code>account_roles ⋈ roles</code> — sem tabela própria.</td></tr>
+            <tr><td class="mono">WorkspaceInvite</td><td class="wrap-ok"><code>email</code>, <code>role</code>, <code>token</code> (32 bytes hex), <code>status</code>, <code>expiresAt</code> (7 dias). Status possíveis gravados: <code>pending → accepted | rejected</code>.</td></tr>
+            <tr><td class="mono">WorkspaceSlug</td><td class="wrap-ok">3–60 chars, <code>^[a-z0-9]+(-[a-z0-9]+)*$</code>; workspace pessoal recebe sufixo aleatório se houver colisão.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <p><b>Nota:</b> o tipo <code>WorkspaceInviteStatus</code> inclui <code>"expired"</code>, mas esse valor <b>nunca é gravado</b> — a expiração é sempre calculada em runtime a partir de <code>expiresAt</code>, não é um status persistido.</p>
+      </div>
+
+      <h3><span class="n">02</span>Rotas HTTP</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rota</th><th>Auth</th><th>Request</th><th>Sucesso</th><th>Erros</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="badge post">POST</span> <span class="mono">/workspaces</span></td>
+              <td>JWT</td>
+              <td class="mono">{ name, description? }</td>
+              <td><b>201</b> workspace</td>
+              <td class="wrap-ok"><b>409</b> slug já existe</td>
+            </tr>
+            <tr>
+              <td><span class="badge get">GET</span> <span class="mono">/workspaces/:id</span></td>
+              <td>JWT + membro</td>
+              <td>—</td>
+              <td><b>200</b> workspace</td>
+              <td class="wrap-ok"><b>404</b> not found</td>
+            </tr>
+            <tr>
+              <td><span class="badge patch">PATCH</span> <span class="mono">/workspaces/:id/avatar</span></td>
+              <td class="wrap-ok">JWT + membro<br><span class="pill">multipart ≤5MB jpeg/png/webp</span></td>
+              <td class="mono">arquivo <code>avatar</code></td>
+              <td><b>200</b> workspace</td>
+              <td class="wrap-ok"><b>400</b> sem arquivo · <b>404</b> not found</td>
+            </tr>
+            <tr>
+              <td><span class="badge get">GET</span> <span class="mono">/workspaces</span></td>
+              <td>JWT</td>
+              <td>—</td>
+              <td class="wrap-ok"><b>200</b> lista com role em cada</td>
+              <td><b>401</b></td>
+            </tr>
+            <tr>
+              <td><span class="badge get">GET</span> <span class="mono">/workspaces/:id/me</span></td>
+              <td>JWT + membro</td>
+              <td>—</td>
+              <td class="wrap-ok"><b>200</b> <code>{role, permissions[]}</code></td>
+              <td class="wrap-ok"><b>404</b> not found</td>
+            </tr>
+            <tr>
+              <td><span class="badge get">GET</span> <span class="mono">/workspaces/:id/members</span></td>
+              <td class="wrap-ok">JWT + membro<br><span class="pill">paginado</span></td>
+              <td>—</td>
+              <td class="wrap-ok"><b>200</b> membros + paginação</td>
+              <td class="wrap-ok"><b>404</b> not found</td>
+            </tr>
+            <tr>
+              <td><span class="badge delete">DELETE</span> <span class="mono">/workspaces/:id/members/:memberId</span></td>
+              <td class="wrap-ok">JWT + membro + <code class="mono">workspace:remove-member</code></td>
+              <td>—</td>
+              <td><b>204</b></td>
+              <td class="wrap-ok"><b>404</b> not found · <b>422</b> não pode remover a si mesmo · <b>422</b> não pode remover o owner</td>
+            </tr>
+            <tr>
+              <td><span class="badge patch">PATCH</span> <span class="mono">/workspaces/:id/members/:memberId</span></td>
+              <td class="wrap-ok">JWT + membro + <code class="mono">workspace:manage</code></td>
+              <td class="mono">{ role: admin|member|viewer }</td>
+              <td><b>204</b></td>
+              <td class="wrap-ok"><b>404</b> not found · <b>422</b> role do owner não pode mudar</td>
+            </tr>
+            <tr>
+              <td><span class="badge post">POST</span> <span class="mono">/workspaces/:id/invites</span></td>
+              <td class="wrap-ok">JWT + membro + <code class="mono">workspace:invite</code></td>
+              <td class="mono">{ email, role }</td>
+              <td class="wrap-ok"><b>201</b> <code>{id}</code></td>
+              <td class="wrap-ok"><b>409</b> já é membro · <b>409</b> já tem convite pendente</td>
+            </tr>
+            <tr>
+              <td><span class="badge get">GET</span> <span class="mono">/workspaces/:id/invites</span></td>
+              <td class="wrap-ok">JWT + membro + <code class="mono">workspace:manage</code> <span class="pill">paginado</span></td>
+              <td>—</td>
+              <td class="wrap-ok"><b>200</b> convites (todos os status) + paginação</td>
+              <td class="wrap-ok"><b>404</b> not found</td>
+            </tr>
+            <tr>
+              <td><span class="badge patch">PATCH</span> <span class="mono">/invites/:token</span></td>
+              <td>JWT</td>
+              <td class="mono">{ action: accept|reject }</td>
+              <td><b>204</b></td>
+              <td class="wrap-ok"><b>404</b> not found · <b>410</b> expirado · <b>409</b> já usado · <b>403</b> e-mail não bate · <b>409</b> já é membro (race)</td>
+            </tr>
+            <tr>
+              <td><span class="badge get">GET</span> <span class="mono">/invites/mine</span></td>
+              <td class="wrap-ok">JWT <span class="pill">paginado</span></td>
+              <td>—</td>
+              <td class="wrap-ok"><b>200</b> convites pendentes do meu e-mail (com token) + paginação</td>
+              <td><b>401</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3><span class="n">03</span>Casos de uso</h3>
+      <ul>
+        <li><code>CreateWorkspaceCommand</code> — cria o workspace + membership do owner numa transação.</li>
+        <li><code>InviteMemberCommand</code> — cria convite pendente + evento de outbox <code>workspace-invite.created</code>.</li>
+        <li><code>RespondToInviteCommand</code> — aceita (cria membro + outbox <code>workspace-invite.accepted</code>) ou rejeita (marca <code>rejected</code> + outbox <code>workspace-invite.rejected</code>) — mesmo mecanismo transacional para as duas ações.</li>
+        <li><code>RemoveWorkspaceMemberCommand</code> — bloqueia auto-remoção e remoção do owner.</li>
+        <li><code>UpdateWorkspaceAvatarCommand</code> — upload via <code>StorageGateway</code>, apaga o arquivo antigo (best-effort).</li>
+        <li><code>UpdateWorkspaceMemberRoleCommand</code> — troca role de um membro que não seja owner.</li>
+        <li><code>GetWorkspaceQuery</code>, <code>GetMyMembershipQuery</code>, <code>ListMyWorkspacesQuery</code>, <code>ListMyInvitesQuery</code>, <code>ListWorkspaceInvitesQuery</code>, <code>ListWorkspaceMembersQuery</code>.</li>
+      </ul>
+
+      <h3><span class="n">04</span>Eventos publicados (via outbox)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Routing key</th><th>Payload</th><th>Handler</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">workspace-invite.created</td><td class="mono">{ inviteId }</td><td class="mono">InviteMemberHandler</td></tr>
+            <tr><td class="mono">workspace-invite.accepted</td><td class="mono">{ inviteId, accountId }</td><td class="mono">RespondToInviteHandler (accept)</td></tr>
+            <tr><td class="mono">workspace-invite.rejected</td><td class="mono">{ inviteId, accountId }</td><td class="mono">RespondToInviteHandler (reject)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tight">Nada é emitido na remoção de membro, troca de role ou atualização de avatar — ver <a href="#flow-invite">Fluxos → Convite completo</a> para o passo a passo.</p>
+
+      <h3><span class="n">05</span>Cache (Valkey)</h3>
+      <p class="tight">
+        Listagens paginadas de membros e convites são cacheadas por 5 min e invalidadas por prefixo a cada
+        escrita no respectivo workspace. Detalhe completo na <a href="#cache">tabela de cache</a>.
+      </p>
+    </section>
+
+    <!-- ================= NOTIFICATIONS ================= -->
+    <section class="module" id="notifications">
+      <div class="module-head"><h2>Notifications</h2><span class="module-tag">modules/notifications</span></div>
+      <p>
+        Só três tipos existem hoje, e nenhum deles é criado por este próprio módulo — todos nascem em
+        consumers de fila do <b>workspace</b> reagindo a eventos de convite. Sem cache, sem tempo real:
+        é consumo por polling HTTP.
+      </p>
+
+      <h3><span class="n">01</span>Entidade</h3>
+      <p class="tight">
+        <code>Notification</code>: <code>accountId</code>, <code>type</code>, <code>title</code>, <code>body</code>,
+        <code>metadata</code> (dicionário livre <code>string→string</code>), <code>readAt</code>. Tipos em uso hoje:
+        <code class="mono">workspace_invite</code>, <code class="mono">workspace_invite_accepted</code> e
+        <code class="mono">workspace_invite_rejected</code>.
+      </p>
+
+      <h3><span class="n">02</span>Rotas HTTP</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rota</th><th>Auth</th><th>Request</th><th>Sucesso</th><th>Erros</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="badge get">GET</span> <span class="mono">/notifications</span></td>
+              <td class="wrap-ok">JWT <span class="pill">paginado</span> <span class="pill">?read=true|false</span></td>
+              <td>—</td>
+              <td class="wrap-ok"><b>200</b> notificações + paginação</td>
+              <td><b>401</b></td>
+            </tr>
+            <tr>
+              <td><span class="badge patch">PATCH</span> <span class="mono">/notifications/:id/read</span></td>
+              <td>JWT</td>
+              <td>—</td>
+              <td><b>204</b></td>
+              <td class="wrap-ok"><b>404</b> not found · <b>403</b> não pertence à sua conta</td>
+            </tr>
+            <tr>
+              <td><span class="badge patch">PATCH</span> <span class="mono">/notifications/read-all</span></td>
+              <td>JWT</td>
+              <td>—</td>
+              <td><b>204</b></td>
+              <td><b>401</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3><span class="n">03</span>Quem cria notificações</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Consumer (módulo workspace)</th><th>Evento</th><th>Notifica</th><th>Título</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="mono">WorkspaceInviteCreatedConsumer</td>
+              <td class="mono">workspace-invite.created</td>
+              <td>o convidado (se já tem conta)</td>
+              <td class="wrap-ok">"you've been invited to {workspace}"</td>
+            </tr>
+            <tr>
+              <td class="mono">WorkspaceInviteAcceptedConsumer</td>
+              <td class="mono">workspace-invite.accepted</td>
+              <td>quem convidou</td>
+              <td class="wrap-ok">"{nome} joined {workspace}"</td>
+            </tr>
+            <tr>
+              <td class="mono">WorkspaceInviteRejectedConsumer</td>
+              <td class="mono">workspace-invite.rejected</td>
+              <td>quem convidou</td>
+              <td class="wrap-ok">"{nome} declined your invite to {workspace}"</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= FLOWS ================= -->
+    <section id="flow-signup">
+      <h2>Fluxo — Cadastro de conta (+ workspace pessoal)</h2>
+      <ol class="steps">
+        <li><code>POST /api/accounts</code> com <code>create_workspace: true</code> → <code>CreateAccountHandler</code> grava a conta e, na <b>mesma transação</b>, duas linhas em <code>outbox_events</code>: <code>account.created</code> e <code>workspace.personal-creation-requested</code>.</li>
+        <li><code>OutboxRelay</code> (rodando só no processo <code>queue</code>) faz polling a cada <b>5s</b>, publica ambos os eventos no RabbitMQ usando o <b>id da própria linha do outbox</b> como chave de idempotência.</li>
+        <li><code>AccountCreatedConsumer</code> consome <code>account.created</code> → dispara <code>SendWelcomeEmailCommand</code> (e-mail de boas-vindas via SMTP/Mailpit em dev).</li>
+        <li><code>WorkspacePersonalCreationRequestedConsumer</code> consome <code>workspace.personal-creation-requested</code> → dispara <code>CreateWorkspaceCommand({ name: "{primeiro nome} Workspace", isPersonal: true })</code>, criando o workspace pessoal de forma assíncrona (não faz parte da resposta HTTP do cadastro).</li>
+      </ol>
+      <div class="callout">
+        <p>Se <code>create_workspace</code> for omitido/false, só o passo 1 (sem o segundo evento) e o passo 3 acontecem — não há workspace pessoal.</p>
+      </div>
+    </section>
+
+    <section id="flow-auth">
+      <h2>Fluxo — Login, refresh e logout</h2>
+      <p class="tight">
+        O ponto pouco óbvio deste mecanismo: os JWTs são stateless por definição, mas o sistema consegue
+        invalidá-los antes da expiração (no logout, ou ao rotacionar) porque toda validação faz <b>duas</b>
+        checagens — assinatura/expiração do JWT <i>e</i> um hash espelho gravado no Valkey.
+      </p>
+
+      <figure>
+        <div class="fig-wrap">
+          <svg viewBox="0 0 900 380" role="img" aria-label="Diagrama: login e refresh gravam o JWT em cookie httpOnly e um hash SHA-256 do mesmo token no Valkey; o AuthMiddleware só autoriza se as duas checagens baterem; logout apaga as chaves do Valkey, o que invalida o cookie mesmo antes de expirar.">
+            <defs>
+              <marker id="arrowC" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <polygon class="arrowhead" points="0,0 6,3 0,6"></polygon>
+              </marker>
+            </defs>
+
+            <rect class="box" x="20" y="30" width="230" height="62" rx="3"></rect>
+            <text x="135" y="55" text-anchor="middle" font-size="12.5">Login ou Refresh</text>
+            <text x="135" y="72" text-anchor="middle" font-size="11" class="muted-text">Authenticate / RefreshToken Handler</text>
+
+            <rect class="box" x="330" y="18" width="230" height="62" rx="3"></rect>
+            <text x="445" y="42" text-anchor="middle" font-size="12.5">Cookies httpOnly</text>
+            <text x="445" y="59" text-anchor="middle" font-size="11" class="muted-text">access_token (15m) · refresh_token (7d)</text>
+
+            <rect class="box" x="330" y="112" width="260" height="62" rx="3"></rect>
+            <text x="460" y="136" text-anchor="middle" font-size="12.5">Valkey</text>
+            <text x="460" y="153" text-anchor="middle" font-size="10.5" class="muted-text">access_token:{id} → sha256(jwt) · refresh_token:{id} → sha256(jwt)</text>
+
+            <rect class="box accent" x="660" y="60" width="215" height="90" rx="3"></rect>
+            <text x="767" y="88" text-anchor="middle" font-size="12.5" class="accent-fill-text">AuthMiddleware</text>
+            <text x="767" y="106" text-anchor="middle" font-size="10.5" class="accent-fill-text">1. assinatura + exp (JWT)</text>
+            <text x="767" y="122" text-anchor="middle" font-size="10.5" class="accent-fill-text">2. hash bate (Valkey)</text>
+            <text x="767" y="138" text-anchor="middle" font-size="10.5" class="accent-fill-text">→ req.account</text>
+
+            <path class="arrow" d="M250,55 C285,50 295,45 328,42" marker-end="url(#arrowC)"></path>
+            <text x="290" y="38" text-anchor="middle" font-size="10.5">grava</text>
+
+            <path class="arrow" d="M250,70 C285,90 295,120 328,138" marker-end="url(#arrowC)"></path>
+            <text x="295" y="112" text-anchor="middle" font-size="10.5">grava</text>
+
+            <path class="arrow" d="M560,45 C610,50 630,70 658,92" marker-end="url(#arrowC)"></path>
+            <path class="arrow" d="M590,143 C620,140 635,120 658,108" marker-end="url(#arrowC)"></path>
+
+            <rect class="box" x="660" y="200" width="215" height="50" rx="3"></rect>
+            <text x="767" y="230" text-anchor="middle" font-size="12">Rota protegida</text>
+            <path class="arrow" d="M767,150 L767,198" marker-end="url(#arrowC)"></path>
+
+            <rect class="box" x="20" y="260" width="230" height="62" rx="3"></rect>
+            <text x="135" y="285" text-anchor="middle" font-size="12.5">Logout</text>
+            <text x="135" y="302" text-anchor="middle" font-size="11" class="muted-text">LogoutHandler</text>
+
+            <path class="arrow dashed" d="M250,285 C290,260 300,200 328,155" marker-end="url(#arrowC)"></path>
+            <text x="300" y="215" text-anchor="middle" font-size="10.5">apaga as 2 chaves</text>
+
+            <text x="135" y="345" text-anchor="middle" font-size="11" class="muted-text">cookie antigo continua existindo,</text>
+            <text x="135" y="360" text-anchor="middle" font-size="11" class="muted-text">mas o hash deixa de bater → 401</text>
+          </svg>
+        </div>
+        <figcaption>
+          Login/refresh gravam o JWT em cookie <i>e</i> um hash espelho no Valkey com o mesmo TTL. O
+          <code>AuthMiddleware</code> só autoriza se as duas checagens baterem — por isso logout (ou uma
+          nova rotação) invalida o token imediatamente, mesmo sem esperar a expiração do JWT.
+        </figcaption>
+      </figure>
+
+      <ol class="steps">
+        <li><b>Login</b> — <code>POST /auth/authenticate</code>: compara senha com <code>PasswordHasherGateway.compare</code> contra o hash real (<code>findCredentialsByEmail</code>, único método que não passa por cache); gera par de JWT; grava os dois hashes no Valkey <i>e</i> os dois cookies httpOnly.</li>
+        <li><b>Refresh</b> — <code>POST /auth/refresh</code>: lê o cookie, verifica o JWT, confere o hash no Valkey, gera um <b>par novo</b> e sobrescreve as mesmas duas chaves — rotação completa a cada chamada (por isso a rota tem <code>IdempotencyMiddleware</code> de 30s, para um retry de rede não gerar dois pares diferentes).</li>
+        <li><b>Logout</b> — <code>POST /auth/logout</code>: verifica o JWT do refresh e apaga as duas chaves do Valkey. Os cookies em si só são limpos no navegador que fez a chamada — qualquer outro lugar que ainda tenha o cookie antigo passa a falhar no passo 2 do <code>AuthMiddleware</code>.</li>
+      </ol>
+    </section>
+
+    <section id="flow-invite">
+      <h2>Fluxo — Convite de workspace: criar → aceitar/rejeitar</h2>
+      <p class="tight">
+        O fluxo que mais aparece nas dúvidas do dia a dia. As três etapas (criar, aceitar, rejeitar) rodam
+        <b>exatamente o mesmo mecanismo</b> — escrita + evento de outbox na mesma transação Postgres,
+        publicação assíncrona pelo <code>OutboxRelay</code> — só muda o routing key e quem é notificado no fim.
+      </p>
+
+      <figure>
+        <div class="fig-wrap">
+          <svg viewBox="0 0 1100 560" role="img" aria-label="Diagrama em três linhas: criar convite grava o invite e um evento de outbox numa transação, o OutboxRelay publica workspace-invite.created, e um consumer notifica o convidado; aceitar convite grava o novo membro, atualiza o invite e outro evento de outbox na mesma transação, o relay publica workspace-invite.accepted, e um consumer notifica quem convidou; rejeitar convite marca o invite como rejeitado e grava outro evento de outbox na mesma transação, o relay publica workspace-invite.rejected, e um consumer notifica quem convidou de que o convite foi recusado.">
+            <defs>
+              <marker id="arrowB" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <polygon class="arrowhead" points="0,0 6,3 0,6"></polygon>
+              </marker>
+            </defs>
+
+            <text x="10" y="20" font-size="12.5" class="accent-text">1 — Criar convite (InviteMemberHandler)</text>
+
+            <rect class="box" x="10" y="35" width="130" height="60" rx="3"></rect>
+            <text x="75" y="60" text-anchor="middle" font-size="11.5">Dono do</text>
+            <text x="75" y="75" text-anchor="middle" font-size="11.5">workspace</text>
+
+            <rect class="box" x="175" y="35" width="150" height="60" rx="3"></rect>
+            <text x="250" y="58" text-anchor="middle" font-size="11">InviteMember</text>
+            <text x="250" y="73" text-anchor="middle" font-size="11">Controller/Handler</text>
+
+            <rect class="box" x="360" y="35" width="160" height="60" rx="3"></rect>
+            <text x="440" y="55" text-anchor="middle" font-size="10.5">1 transação:</text>
+            <text x="440" y="69" text-anchor="middle" font-size="10.5">cria invite +</text>
+            <text x="440" y="83" text-anchor="middle" font-size="10.5">outbox_events</text>
+
+            <rect class="box" x="555" y="35" width="140" height="60" rx="3"></rect>
+            <text x="625" y="60" text-anchor="middle" font-size="11">OutboxRelay</text>
+            <text x="625" y="75" text-anchor="middle" font-size="10" class="muted-text">poll a cada 5s</text>
+
+            <rect class="box" x="730" y="35" width="150" height="60" rx="3"></rect>
+            <text x="805" y="58" text-anchor="middle" font-size="10.5">WorkspaceInvite</text>
+            <text x="805" y="73" text-anchor="middle" font-size="10.5">CreatedConsumer</text>
+
+            <rect class="box" x="915" y="35" width="175" height="60" rx="3"></rect>
+            <text x="1002" y="55" text-anchor="middle" font-size="10.5">Notificação</text>
+            <text x="1002" y="69" text-anchor="middle" font-size="10" class="muted-text">"você foi convidado"</text>
+            <text x="1002" y="82" text-anchor="middle" font-size="10" class="muted-text">→ convidado</text>
+
+            <path class="arrow" d="M140,65 L173,65" marker-end="url(#arrowB)"></path>
+            <text x="157" y="55" text-anchor="middle" font-size="9">POST /invites</text>
+
+            <path class="arrow" d="M325,65 L358,65" marker-end="url(#arrowB)"></path>
+            <text x="341" y="55" text-anchor="middle" font-size="9">create()</text>
+
+            <path class="arrow dashed" d="M520,65 L553,65" marker-end="url(#arrowB)"></path>
+            <text x="536" y="55" text-anchor="middle" font-size="9">outbox row</text>
+
+            <path class="arrow" d="M695,65 L728,65" marker-end="url(#arrowB)"></path>
+            <text x="711" y="52" text-anchor="middle" font-size="8.5">publish invite.created</text>
+
+            <path class="arrow" d="M880,65 L913,65" marker-end="url(#arrowB)"></path>
+            <text x="896" y="55" text-anchor="middle" font-size="9">notify</text>
+
+            <line x1="0" y1="185" x2="1100" y2="185" stroke="var(--border)" stroke-width="1"></line>
+
+            <text x="10" y="210" font-size="12.5" class="accent-text">2 — Aceitar convite (RespondToInviteHandler)</text>
+
+            <rect class="box" x="10" y="225" width="130" height="60" rx="3"></rect>
+            <text x="75" y="260" text-anchor="middle" font-size="11.5">Convidado</text>
+
+            <rect class="box" x="175" y="225" width="150" height="60" rx="3"></rect>
+            <text x="250" y="248" text-anchor="middle" font-size="11">RespondToInvite</text>
+            <text x="250" y="263" text-anchor="middle" font-size="11">Controller/Handler</text>
+
+            <rect class="box" x="360" y="225" width="160" height="60" rx="3"></rect>
+            <text x="440" y="242" text-anchor="middle" font-size="10">1 transação: cria</text>
+            <text x="440" y="255" text-anchor="middle" font-size="10">membro + aceita</text>
+            <text x="440" y="268" text-anchor="middle" font-size="10">invite + outbox_events</text>
+
+            <rect class="box" x="555" y="225" width="140" height="60" rx="3"></rect>
+            <text x="625" y="250" text-anchor="middle" font-size="11">OutboxRelay</text>
+            <text x="625" y="265" text-anchor="middle" font-size="10" class="muted-text">poll a cada 5s</text>
+
+            <rect class="box" x="730" y="225" width="150" height="60" rx="3"></rect>
+            <text x="805" y="248" text-anchor="middle" font-size="10.5">WorkspaceInvite</text>
+            <text x="805" y="263" text-anchor="middle" font-size="10.5">AcceptedConsumer</text>
+
+            <rect class="box" x="915" y="225" width="175" height="60" rx="3"></rect>
+            <text x="1002" y="245" text-anchor="middle" font-size="10.5">Notificação</text>
+            <text x="1002" y="259" text-anchor="middle" font-size="10" class="muted-text">"X aceitou seu convite"</text>
+            <text x="1002" y="272" text-anchor="middle" font-size="10" class="muted-text">→ quem convidou</text>
+
+            <path class="arrow" d="M140,255 L173,255" marker-end="url(#arrowB)"></path>
+            <text x="157" y="245" text-anchor="middle" font-size="9">PATCH /invites/:token</text>
+
+            <path class="arrow" d="M325,255 L358,255" marker-end="url(#arrowB)"></path>
+            <text x="341" y="245" text-anchor="middle" font-size="9">accept()</text>
+
+            <path class="arrow dashed" d="M520,255 L553,255" marker-end="url(#arrowB)"></path>
+            <text x="536" y="245" text-anchor="middle" font-size="9">outbox row</text>
+
+            <path class="arrow" d="M695,255 L728,255" marker-end="url(#arrowB)"></path>
+            <text x="711" y="242" text-anchor="middle" font-size="8.5">publish invite.accepted</text>
+
+            <path class="arrow" d="M880,255 L913,255" marker-end="url(#arrowB)"></path>
+            <text x="896" y="245" text-anchor="middle" font-size="9">notify</text>
+
+            <line x1="0" y1="375" x2="1100" y2="375" stroke="var(--border)" stroke-width="1"></line>
+
+            <text x="10" y="400" font-size="12.5" class="accent-text">3 — Rejeitar convite (RespondToInviteHandler)</text>
+
+            <rect class="box" x="10" y="415" width="130" height="60" rx="3"></rect>
+            <text x="75" y="450" text-anchor="middle" font-size="11.5">Convidado</text>
+
+            <rect class="box" x="175" y="415" width="150" height="60" rx="3"></rect>
+            <text x="250" y="438" text-anchor="middle" font-size="11">RespondToInvite</text>
+            <text x="250" y="453" text-anchor="middle" font-size="11">Controller/Handler</text>
+
+            <rect class="box" x="360" y="415" width="160" height="60" rx="3"></rect>
+            <text x="440" y="432" text-anchor="middle" font-size="10">1 transação: marca</text>
+            <text x="440" y="445" text-anchor="middle" font-size="10">invite rejected +</text>
+            <text x="440" y="458" text-anchor="middle" font-size="10">outbox_events</text>
+
+            <rect class="box" x="555" y="415" width="140" height="60" rx="3"></rect>
+            <text x="625" y="440" text-anchor="middle" font-size="11">OutboxRelay</text>
+            <text x="625" y="455" text-anchor="middle" font-size="10" class="muted-text">poll a cada 5s</text>
+
+            <rect class="box" x="730" y="415" width="150" height="60" rx="3"></rect>
+            <text x="805" y="438" text-anchor="middle" font-size="10.5">WorkspaceInvite</text>
+            <text x="805" y="453" text-anchor="middle" font-size="10.5">RejectedConsumer</text>
+
+            <rect class="box" x="915" y="415" width="175" height="60" rx="3"></rect>
+            <text x="1002" y="435" text-anchor="middle" font-size="10.5">Notificação</text>
+            <text x="1002" y="449" text-anchor="middle" font-size="10" class="muted-text">"X recusou seu convite"</text>
+            <text x="1002" y="462" text-anchor="middle" font-size="10" class="muted-text">→ quem convidou</text>
+
+            <path class="arrow" d="M140,445 L173,445" marker-end="url(#arrowB)"></path>
+            <text x="157" y="435" text-anchor="middle" font-size="9">PATCH /invites/:token</text>
+
+            <path class="arrow" d="M325,445 L358,445" marker-end="url(#arrowB)"></path>
+            <text x="341" y="435" text-anchor="middle" font-size="9">reject()</text>
+
+            <path class="arrow dashed" d="M520,445 L553,445" marker-end="url(#arrowB)"></path>
+            <text x="536" y="435" text-anchor="middle" font-size="9">outbox row</text>
+
+            <path class="arrow" d="M695,445 L728,445" marker-end="url(#arrowB)"></path>
+            <text x="711" y="432" text-anchor="middle" font-size="8.5">publish invite.rejected</text>
+
+            <path class="arrow" d="M880,445 L913,445" marker-end="url(#arrowB)"></path>
+            <text x="896" y="435" text-anchor="middle" font-size="9">notify</text>
+
+            <text x="10" y="520" font-size="10.5" class="muted-text">Se a conta convidada ainda não existir (convite por e-mail de quem nunca se cadastrou), o passo</text>
+            <text x="10" y="535" font-size="10.5" class="muted-text">"CreatedConsumer → Notificação" da linha 1 é pulado silenciosamente — sem notificação, sem erro.</text>
+          </svg>
+        </div>
+        <figcaption>
+          As três etapas do fluxo de convite passam pelo mesmo mecanismo de escrita+outbox — o que muda é
+          o evento publicado e quem recebe a notificação no fim de cada linha.
+        </figcaption>
+      </figure>
+
+      <h3><span class="n">A</span>Criar o convite</h3>
+      <ol class="steps">
+        <li><code>POST /workspaces/:id/invites</code> → <code>InviteMemberHandler</code> normaliza o e-mail, checa se já é membro (<code>409 AlreadyAMemberError</code>) e se já existe convite pendente para aquele e-mail no workspace (<code>409 InviteAlreadyPendingError</code>).</li>
+        <li>Cria <code>WorkspaceInvite</code> com token aleatório de 32 bytes e <code>expiresAt</code> = agora + 7 dias.</li>
+        <li>Numa <b>única transação</b> (<code>UnitOfWork</code>): grava a linha do invite <i>e</i> uma linha em <code>outbox_events</code> com routing key <code>workspace-invite.created</code> e payload <code>{ inviteId }</code>.</li>
+        <li><code>OutboxRelay</code> pega essa linha no próximo poll (até 5s de atraso), publica no RabbitMQ com o id da própria linha como chave de idempotência, marca <code>published_at</code>.</li>
+        <li><code>WorkspaceInviteCreatedConsumer</code> consome, busca os detalhes do convite; se o e-mail convidado já corresponde a uma conta existente, dispara <code>CreateNotificationCommand</code> (tipo <code>workspace_invite</code>) para essa conta. Se não existir conta ainda, não faz nada — sem notificação, sem retry, sem erro.</li>
+      </ol>
+
+      <h3><span class="n">B</span>Aceitar (ou rejeitar) o convite</h3>
+      <ol class="steps">
+        <li><code>PATCH /invites/:token</code> com <code>{action: "accept"}</code> → valida, na ordem: convite existe (<b>404</b>) → está <code>pending</code> (<b>409</b> se não) → não expirou (<b>410</b>) → o e-mail da conta logada bate com o do convite (<b>403</b>).</li>
+        <li><b>Accept</b>, numa única transação: insere o novo membro em <code>account_roles</code> via <code>onConflictDoNothing</code> — se a inserção não afetar nenhuma linha (já era membro, corrida entre duas abas por exemplo), a transação lógica aborta e retorna <b>409 AlreadyAMemberError</b>, <b>sem</b> marcar o convite como aceito nem gravar evento; se afetar, marca o convite <code>accepted</code> e grava a linha de outbox <code>workspace-invite.accepted</code> com payload <code>{ inviteId, accountId }</code>. Tudo atômico.</li>
+        <li><b>Reject</b>, também numa única transação (mesmo desenho do accept, sem a etapa de inserir membro): marca o convite <code>rejected</code> e grava a linha de outbox <code>workspace-invite.rejected</code> com payload <code>{ inviteId, accountId }</code>.</li>
+        <li>Publicação e consumo de ambos os eventos seguem o mesmo caminho outbox→relay→consumer da criação; <code>WorkspaceInviteAcceptedConsumer</code> dispara <code>CreateNotificationCommand</code> (tipo <code>workspace_invite_accepted</code>) e <code>WorkspaceInviteRejectedConsumer</code> dispara o mesmo comando (tipo <code>workspace_invite_rejected</code>) — ambos para <code>invitedByAccountId</code>, quem convidou, não quem respondeu.</li>
+      </ol>
+    </section>
+
+    <!-- ================= QUEUE ================= -->
+    <section id="queue">
+      <h2>Infraestrutura — Filas (RabbitMQ)</h2>
+      <p class="tight">
+        Exchange direto <code>trello-issur.events</code> para os 5 eventos de negócio, mais um exchange topic
+        <code>trello-issur.dead</code> só para roteamento de dead-letters. Todo publish (direto ou via outbox)
+        carrega um header <code>x-idempotency-key</code>.
+      </p>
+
+      <h3><span class="n">01</span>Catálogo de eventos</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Routing key</th><th>Payload</th><th>Publicado por</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">account.created</td><td class="mono">{accountId, name, email}</td><td class="mono">CreateAccountHandler</td></tr>
+            <tr><td class="mono">workspace.personal-creation-requested</td><td class="mono">{accountId, accountName}</td><td class="mono">CreateAccountHandler</td></tr>
+            <tr><td class="mono">workspace-invite.created</td><td class="mono">{inviteId}</td><td class="mono">InviteMemberHandler</td></tr>
+            <tr><td class="mono">workspace-invite.accepted</td><td class="mono">{inviteId, accountId}</td><td class="mono">RespondToInviteHandler (accept)</td></tr>
+            <tr><td class="mono">workspace-invite.rejected</td><td class="mono">{inviteId, accountId}</td><td class="mono">RespondToInviteHandler (reject)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <p><b>Os 5 eventos hoje passam todos pelo padrão outbox</b> — nenhum handler de módulo publica direto no RabbitMQ (confirmado por busca exaustiva de <code>.publish(</code> em <code>modules/**</code>).</p>
+      </div>
+
+      <h3><span class="n">02</span>Consumers</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Consumer</th><th>Escuta</th><th>Faz</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">AccountCreatedConsumer</td><td class="mono">account.created</td><td>dispara <code>SendWelcomeEmailCommand</code></td></tr>
+            <tr><td class="mono">WorkspacePersonalCreationRequestedConsumer</td><td class="mono">workspace.personal-creation-requested</td><td>dispara <code>CreateWorkspaceCommand(isPersonal:true)</code></td></tr>
+            <tr><td class="mono">WorkspaceInviteCreatedConsumer</td><td class="mono">workspace-invite.created</td><td>notifica o convidado (se já tem conta)</td></tr>
+            <tr><td class="mono">WorkspaceInviteAcceptedConsumer</td><td class="mono">workspace-invite.accepted</td><td>notifica quem convidou</td></tr>
+            <tr><td class="mono">WorkspaceInviteRejectedConsumer</td><td class="mono">workspace-invite.rejected</td><td>notifica quem convidou</td></tr>
+            <tr><td class="mono">DeadLetterConsumer</td><td class="mono">exchange trello-issur.dead (bind #)</td><td>grava em <code>failed_queue_events</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tight">Os 5 primeiros herdam idempotência e retry escalonado da classe base <code>QueueConsumer</code>; o <code>DeadLetterConsumer</code> é implementado à parte e não deduplica.</p>
+
+      <h3><span class="n">03</span>Idempotência</h3>
+      <p class="tight">
+        Antes de chamar <code>handle()</code>, a base verifica <code>idempotency.&lt;fila&gt;.&lt;chave&gt;</code>
+        no Valkey. Se já existir, dá <code>ack</code> sem reprocessar. Após sucesso, grava a mesma chave com
+        TTL de <b>24h</b>. Falha do Valkey nessa checagem é <b>fail-open</b> — loga e segue como se não
+        tivesse sido processado ainda (disponibilidade da fila &gt; exactly-once estrito).
+      </p>
+
+      <h3><span class="n">04</span>Retry escalonado e dead-letter</h3>
+      <figure>
+        <div class="fig-wrap">
+          <svg viewBox="0 0 1080 300" role="img" aria-label="Diagrama: consumer processa a mensagem após checar idempotência no Valkey; em caso de sucesso, confirma e marca o Valkey; em caso de falha, a mensagem passa por três filas de retry com TTL crescente (5s, 30s, 5min) antes de cair na fila morta e ser persistida em failed_queue_events.">
+            <defs>
+              <marker id="arrowD" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <polygon class="arrowhead" points="0,0 6,3 0,6"></polygon>
+              </marker>
+            </defs>
+
+            <rect class="box" x="20" y="30" width="150" height="55" rx="3"></rect>
+            <text x="95" y="53" text-anchor="middle" font-size="11">Fila principal</text>
+            <text x="95" y="68" text-anchor="middle" font-size="9.5" class="muted-text">checa x-idempotency-key</text>
+
+            <rect class="box" x="220" y="30" width="160" height="55" rx="3"></rect>
+            <text x="300" y="53" text-anchor="middle" font-size="11">Consumer.handle()</text>
+
+            <path class="arrow" d="M170,57 L218,57" marker-end="url(#arrowD)"></path>
+
+            <rect class="box accent" x="470" y="10" width="200" height="50" rx="3"></rect>
+            <text x="570" y="30" text-anchor="middle" font-size="11" class="accent-fill-text">ack + marca Valkey</text>
+            <text x="570" y="45" text-anchor="middle" font-size="9.5" class="accent-fill-text">TTL 24h</text>
+            <path class="arrow" d="M380,45 C410,35 440,25 468,25" marker-end="url(#arrowD)"></path>
+            <text x="420" y="18" text-anchor="middle" font-size="9.5">sucesso</text>
+
+            <path class="arrow" d="M300,86 L300,140" marker-end="url(#arrowD)"></path>
+            <text x="340" y="115" text-anchor="middle" font-size="9.5">falha</text>
+
+            <rect class="box" x="220" y="140" width="120" height="55" rx="3"></rect>
+            <text x="280" y="163" text-anchor="middle" font-size="11">retry.1</text>
+            <text x="280" y="178" text-anchor="middle" font-size="9.5" class="muted-text">TTL 5s</text>
+
+            <rect class="box" x="380" y="140" width="120" height="55" rx="3"></rect>
+            <text x="440" y="163" text-anchor="middle" font-size="11">retry.2</text>
+            <text x="440" y="178" text-anchor="middle" font-size="9.5" class="muted-text">TTL 30s</text>
+
+            <rect class="box" x="540" y="140" width="120" height="55" rx="3"></rect>
+            <text x="600" y="163" text-anchor="middle" font-size="11">retry.3</text>
+            <text x="600" y="178" text-anchor="middle" font-size="9.5" class="muted-text">TTL 5min</text>
+
+            <rect class="box" x="700" y="140" width="140" height="55" rx="3"></rect>
+            <text x="770" y="163" text-anchor="middle" font-size="11">{queue}.dead</text>
+
+            <rect class="box" x="880" y="140" width="180" height="55" rx="3"></rect>
+            <text x="970" y="158" text-anchor="middle" font-size="10.5">DeadLetterConsumer</text>
+
+            <path class="arrow" d="M340,167 L378,167" marker-end="url(#arrowD)"></path>
+            <path class="arrow" d="M500,167 L538,167" marker-end="url(#arrowD)"></path>
+            <path class="arrow" d="M660,167 L698,167" marker-end="url(#arrowD)"></path>
+            <path class="arrow" d="M840,167 L878,167" marker-end="url(#arrowD)"></path>
+
+            <rect class="box" x="880" y="230" width="180" height="55" rx="3"></rect>
+            <text x="970" y="253" text-anchor="middle" font-size="10.5">failed_queue_events</text>
+            <text x="970" y="268" text-anchor="middle" font-size="9.5" class="muted-text">Postgres</text>
+            <path class="arrow" d="M970,195 L970,228" marker-end="url(#arrowD)"></path>
+            <text x="1010" y="215" text-anchor="middle" font-size="9.5">save()</text>
+
+            <path class="arrow dashed" d="M280,138 C250,110 250,90 245,88" marker-end="url(#arrowD)"></path>
+            <text x="150" y="115" text-anchor="middle" font-size="9.5">TTL expira → DLX republica</text>
+            <text x="150" y="128" text-anchor="middle" font-size="9.5">na fila principal (mesmo em retry.2 e retry.3)</text>
+          </svg>
+        </div>
+        <figcaption>
+          Cada fila de retry é a mesma mecânica: ao expirar o TTL, a dead-letter-exchange republica a
+          mensagem na fila original, incrementando <code>x-retry-count</code>. Na quarta falha consecutiva
+          (após retry.3), a mensagem vai para <code>{queue}.dead</code> e é persistida.
+        </figcaption>
+      </figure>
+
+      <h3><span class="n">05</span>Dead-letter replay (API administrativa)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rota</th><th>Auth</th><th>Faz</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge get">GET</span> <span class="mono">/queue/dead-letters</span></td><td class="wrap-ok"><code class="mono">x-internal-token</code></td><td class="wrap-ok">lista eventos não reprocessados, filtro <code>?queue=</code>, paginação <code>limit/offset</code></td></tr>
+            <tr><td><span class="badge post">POST</span> <span class="mono">/queue/dead-letters/:id/replay</span></td><td class="wrap-ok"><code class="mono">x-internal-token</code></td><td class="wrap-ok">republica no routing key original com chave de idempotência <b>determinística</b> (<code>replay:&lt;id&gt;</code>, dedup contra replays repetidos do mesmo evento); <b>404</b> se não existe, <b>409</b> se já reprocessado</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout"><p>Essas duas rotas exigem o header <code>x-internal-token</code>, validado contra a env var <code>QUEUE_ADMIN_TOKEN</code> (segredo operacional por ambiente, não RBAC de produto — mesma categoria de <code>/metrics</code>). Sem o header ou com valor incorreto: <b>401</b>, sem vazar dados de <code>failed_queue_events</code>.</p></div>
+
+      <h3><span class="n">06</span>Outbox pattern</h3>
+      <p class="tight">
+        <code>outbox_events</code> (<code>routing_key</code>, <code>payload</code> jsonb, <code>published_at</code>).
+        <code>OutboxRelay</code> roda só no processo <code>queue</code>, a cada <code>OUTBOX_RELAY_INTERVAL_MS</code>
+        (padrão <b>5000ms</b>), dentro de um <code>UnitOfWork</code>: busca pendentes com
+        <code>FOR UPDATE SKIP LOCKED</code>, publica cada um com o <b>id da própria linha</b> como chave de
+        idempotência determinística, marca <code>published_at</code>. Se o publish for e o
+        <code>markPublished</code> falhar, o próximo tick republica sob a mesma chave — o consumer absorve a
+        duplicata pela checagem de idempotência.
+      </p>
+    </section>
+
+    <!-- ================= CACHE ================= -->
+    <section id="cache">
+      <h2>Infraestrutura — Cache (Valkey)</h2>
+      <p class="tight">
+        Chaves de cache-aside usam <code>createKey()</code>, que junta os segmentos com <b>ponto</b>
+        (<code>"workspace.&lt;id&gt;.members.1.20"</code>). Os dois repositórios de sessão de <code>auth</code>
+        são a exceção — usam <code>ValkeyClient</code> direto com template strings próprias (<b>dois-pontos</b>).
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Chave</th><th>Guarda</th><th>TTL</th><th>Escreve quando</th><th>Invalida quando</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">refresh_token:&lt;accountId&gt;</td><td>sha256 do refresh JWT</td><td>7d</td><td>login, refresh</td><td>logout (delete) · sobrescrita a cada refresh</td></tr>
+            <tr><td class="mono">access_token:&lt;accountId&gt;</td><td>sha256 do access JWT</td><td>15min</td><td>login, refresh</td><td>logout (delete) · sobrescrita a cada refresh</td></tr>
+            <tr><td class="mono">account.id.&lt;id&gt;</td><td>JSON da conta (sem hash de senha)</td><td>1h</td><td>miss em <code>findById</code></td><td class="wrap-ok"><span class="pill">método existe, nunca é chamado</span> só TTL</td></tr>
+            <tr><td class="mono">account.email.&lt;email&gt;</td><td>JSON da conta (sem hash de senha)</td><td>1h</td><td>miss em <code>findByEmail</code></td><td class="wrap-ok"><span class="pill">método existe, nunca é chamado</span> só TTL</td></tr>
+            <tr><td class="mono">membership.&lt;accountId&gt;.&lt;workspaceId&gt;</td><td>flag "1" (é membro)</td><td>5min</td><td>miss positivo em <code>isMember</code></td><td>troca de role ou remoção de membro (chamado por <code>UpdateWorkspaceMemberRoleHandler</code>/<code>RemoveWorkspaceMemberHandler</code>, antes de retornar sucesso)</td></tr>
+            <tr><td class="mono">permissions.&lt;accountId&gt;.&lt;workspaceId&gt;</td><td>JSON array de permission keys</td><td>5min</td><td>miss em <code>findPermissions</code></td><td>idem acima</td></tr>
+            <tr><td class="mono">role.&lt;accountId&gt;.&lt;workspaceId&gt;</td><td>nome da role</td><td>5min</td><td>miss em <code>findRole</code></td><td>idem acima</td></tr>
+            <tr><td class="mono">workspace.&lt;id&gt;.invites.&lt;page&gt;.&lt;limit&gt;</td><td>JSON {invites[], total}</td><td>5min</td><td>miss em <code>findManyByWorkspace</code></td><td>criar/atualizar qualquer invite do workspace (prefixo)</td></tr>
+            <tr><td class="mono">workspace.&lt;id&gt;.members.&lt;page&gt;.&lt;limit&gt;</td><td>JSON {members[], total}</td><td>5min</td><td>miss em <code>findManyByWorkspace</code></td><td>add/remove membro, troca de role (prefixo)</td></tr>
+            <tr><td class="mono">idempotency.&lt;fila&gt;.&lt;chave&gt;</td><td>flag "1" (evento processado)</td><td>24h</td><td>consumer processa com sucesso</td><td>nunca — só TTL</td></tr>
+            <tr><td class="mono">idempotency.http.&lt;path&gt;.&lt;chave&gt;</td><td>snapshot {status, headers, body}</td><td>30s (uso atual: só refresh)</td><td>cliente manda <code>x-idempotency-key</code></td><td>nunca — só TTL</td></tr>
+            <tr><td class="mono">rate-limit.&lt;ip&gt;.&lt;path&gt;</td><td>contador (INCR)</td><td>janela (60s hoje)</td><td>toda request no endpoint protegido</td><td>nunca — só TTL</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <p>
+          <code>membership</code>/<code>permissions</code>/<code>role</code> são invalidados ativamente desde a
+          spec <a href="./specs/002-rbac-cache-invalidation.md">002</a> — troca de role/remoção de membro reflete
+          na checagem de autorização seguinte, sem esperar o TTL. O cache de <code>account.*</code> continua com
+          <code>invalidate()</code> existente e nunca chamado (fora do escopo daquela spec — nenhum caso de uso
+          de atualização de conta existe ainda que precise chamá-lo).
+        </p>
+      </div>
+
+      <h3><span class="n">01</span>Circuit breaker (opossum)</h3>
+      <p class="tight">
+        <code>ValkeyClient</code> guarda <code>get/set/del/incr/expire/ttl/keys</code>; <code>DatabaseClient</code>
+        guarda <code>pool.query</code> (o primitivo que o driver do Drizzle chama para toda query). Thresholds via env
+        (<code>CIRCUIT_BREAKER_TIMEOUT_MS=3000</code>, <code>ERROR_THRESHOLD_PERCENTAGE=50</code>,
+        <code>RESET_TIMEOUT_MS=10000</code>, <code>VOLUME_THRESHOLD=10</code>) — conservadores, ainda não calibrados
+        contra tráfego real. RabbitMQ não é coberto (client síncrono, não há o que envolver em timeout/promise) —
+        a resiliência de publish é o próprio outbox.
+      </p>
+    </section>
+
+    <!-- ================= DATABASE ================= -->
+    <section id="database">
+      <h2>Infraestrutura — Banco (Postgres via Drizzle)</h2>
+      <p class="tight">
+        Todas as PKs são UUID v7 geradas na aplicação (nunca <code>gen_random_uuid()</code>). Sem enum nativo do
+        Postgres em nenhuma tabela — colunas de status/role são <code>text</code> validado na aplicação.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tabela</th><th>Colunas principais</th><th>FKs</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">accounts</td><td class="wrap-ok">name, email (unique), password_hash</td><td>—</td></tr>
+            <tr><td class="mono">workspaces</td><td class="wrap-ok">name, slug (unique), owner_id, is_personal, avatar_url (chave de storage)</td><td class="wrap-ok">owner_id → accounts</td></tr>
+            <tr><td class="mono">workspace_invites</td><td class="wrap-ok">workspace_id, invited_by_account_id, email, role, token (unique), status, expires_at</td><td class="wrap-ok">workspace_id → workspaces · invited_by_account_id → accounts</td></tr>
+            <tr><td class="mono">account_roles</td><td class="wrap-ok">account_id, role_id, workspace_id — unique (account_id, workspace_id)</td><td class="wrap-ok">account_id → accounts · role_id → roles · workspace_id → workspaces</td></tr>
+            <tr><td class="mono">roles</td><td class="wrap-ok">name (unique) — owner/admin/member/viewer</td><td>—</td></tr>
+            <tr><td class="mono">permissions</td><td class="wrap-ok">key (unique) — 13 permission keys</td><td>—</td></tr>
+            <tr><td class="mono">role_permissions</td><td class="wrap-ok">PK composta (role_id, permission_id)</td><td class="wrap-ok">role_id → roles · permission_id → permissions</td></tr>
+            <tr><td class="mono">notifications</td><td class="wrap-ok">account_id, type, title, body, metadata (jsonb), read_at</td><td class="wrap-ok">account_id → accounts</td></tr>
+            <tr><td class="mono">outbox_events</td><td class="wrap-ok">routing_key, payload (jsonb), published_at</td><td>—</td></tr>
+            <tr><td class="mono">failed_queue_events</td><td class="wrap-ok">queue, exchange, routing_key, payload, error_message, retry_count, dead_at, replayed_at</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <p><b>Não existe tabela de refresh/access token.</b> A sessão vive inteiramente no Valkey — se ele for perdido, todas as sessões ativas caem (usuários precisam logar de novo, sem risco de dado corrompido).</p>
+      </div>
+    </section>
+
+    <!-- ================= DEBTS ================= -->
+    <section id="debts">
+      <h2>Débitos e lacunas conhecidas</h2>
+      <p class="tight">Encontrados lendo o código nesta varredura — nenhum é bloqueante, mas valem registro.</p>
+      <ul class="debt-list">
+        <li><b><code>CreateAccountController</code> tem um <code>default: throw new Error()</code> cru</b> no switch de erros — hoje é código morto (só existe 1 erro possível), mas vira um 500 não estruturado se um novo <code>left</code> for adicionado sem atualizar o controller.</li>
+        <li><b>Sem tempo real para notificações</b> — só <code>GET /notifications</code> via polling, sem WebSocket/SSE nem contagem de não-lidas dedicada.</li>
+        <li><b>Fluxo de convite tem e2e só para criar → rejeitar</b> — o caminho criar → aceitar ainda não tem e2e dedicado, só specs unitárias com repositórios em memória.</li>
+      </ul>
+      <p class="tight">
+        Specs 001–005 do <a href="./roadmap.md">roadmap</a> fecharam o restante do debt pequeno
+        identificado numa varredura anterior (auth das rotas de fila, invalidação de cache RBAC,
+        rejeição de convite, idempotência de replay, permissão de convite) — ver
+        <a href="./specs/README.md">docs/api/specs/</a> para o histórico de cada uma.
+      </p>
+    </section>
+
+    <footer class="doc-footer">
+      Gerado lendo <code>apps/api/src</code> diretamente (sem inferência) — módulos account/auth/workspace/notifications,
+      filas, cache e schema. Documento de referência, não normativo: quando o código mudar, este mapa fica desatualizado
+      até ser re-varrido.
+    </footer>
+  </main>
+</div>
+</body>
+</html>
