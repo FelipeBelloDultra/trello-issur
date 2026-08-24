@@ -43,7 +43,6 @@ export const InjectionTokens = {
 
   Consumers: {
     AccountCreated: Symbol("AccountCreatedConsumer"),
-    WorkspacePersonalCreationRequested: Symbol("WorkspacePersonalCreationRequestedConsumer"),
     WorkspaceInviteCreated: Symbol("WorkspaceInviteCreatedConsumer"),
     WorkspaceInviteAccepted: Symbol("WorkspaceInviteAcceptedConsumer"),
     WorkspaceInviteRejected: Symbol("WorkspaceInviteRejectedConsumer"),
