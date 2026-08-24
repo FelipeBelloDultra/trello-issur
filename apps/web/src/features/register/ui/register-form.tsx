@@ -5,16 +5,7 @@ import { z } from "zod";
 
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
-import { Checkbox } from "@/shared/ui/checkbox";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/shared/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 import { PasswordInput } from "@/shared/ui/password-input";
 
@@ -50,7 +41,6 @@ const registerSchema = z
       .string()
       .refine((v) => PASSWORD_STRENGTH_RULES.every((rule) => rule.test(v)), "password is too weak"),
     confirm_password: z.string(),
-    create_workspace: z.boolean(),
   })
   .refine((data) => data.password === data.confirm_password, {
     message: "passwords don't match",
@@ -110,7 +100,6 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       email: "",
       password: "",
       confirm_password: "",
-      create_workspace: true,
     },
   });
   const password = useWatch({ control: form.control, name: "password" });
@@ -127,7 +116,6 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         name: values.name,
         email: values.email,
         password: values.password,
-        create_workspace: values.create_workspace,
       });
       onSuccess?.(values);
     } catch {
@@ -188,27 +176,6 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                 <PasswordInput autoComplete="new-password" {...field} />
               </FormControl>
               <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="create_workspace"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start gap-2 space-y-0">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="mt-0.5"
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel className="font-normal">Create a workspace for me</FormLabel>
-                <FormDescription>
-                  Otherwise you&apos;ll name and create your own right after signing up.
-                </FormDescription>
-              </div>
             </FormItem>
           )}
         />

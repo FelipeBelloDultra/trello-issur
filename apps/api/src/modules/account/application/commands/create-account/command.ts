@@ -6,7 +6,6 @@ export class CreateAccountCommand implements Command {
       name: string;
       email: string;
       password: string;
-      createWorkspace?: boolean;
     },
   ) {}
 }

@@ -36,7 +36,6 @@ import { setupHTTPWorkspaceContainer } from "./http/container";
 import { WorkspaceInviteAcceptedConsumer } from "./queue/consumers/workspace-invite-accepted.consumer";
 import { WorkspaceInviteCreatedConsumer } from "./queue/consumers/workspace-invite-created.consumer";
 import { WorkspaceInviteRejectedConsumer } from "./queue/consumers/workspace-invite-rejected.consumer";
-import { WorkspacePersonalCreationRequestedConsumer } from "./queue/consumers/workspace-personal-creation-requested.consumer";
 import { setupQueueWorkspaceContainer } from "./queue/container";
 
 function wireWorkspaceBuses(): void {
@@ -180,11 +179,6 @@ export function setupWorkspaceModule(): void {
   setupQueueWorkspaceContainer();
 
   const registry = container.resolve<ConsumerRegistry>(InjectionTokens.Queue.ConsumerRegistry);
-  registry.register(
-    container.resolve<WorkspacePersonalCreationRequestedConsumer>(
-      InjectionTokens.Consumers.WorkspacePersonalCreationRequested,
-    ),
-  );
   registry.register(
     container.resolve<WorkspaceInviteCreatedConsumer>(
       InjectionTokens.Consumers.WorkspaceInviteCreated,

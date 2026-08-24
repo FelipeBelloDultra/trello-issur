@@ -15,7 +15,6 @@ export const CreateAccountDto = z.object({
     ),
   email: z.email(),
   password: z.string().min(8),
-  create_workspace: z.boolean().default(false),
 });
 
 export type CreateAccountInput = z.infer<typeof CreateAccountDto>;
