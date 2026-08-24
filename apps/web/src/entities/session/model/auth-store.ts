@@ -8,8 +8,14 @@ export type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 interface AuthState {
   status: AuthStatus;
   user: Account | null;
+  // True for the span of a hard session transition (login/logout — mutation
+  // through the resulting navigation), not for ordinary route changes. Only
+  // ever written by withSessionTransition (model/with-session-transition.ts)
+  // — that single writer is what keeps this from getting stuck true.
+  isTransitioning: boolean;
   setAuthenticated: (user: Account) => void;
   setUnauthenticated: () => void;
+  setTransitioning: (value: boolean) => void;
 }
 
 // immer middleware wired in ahead of need — this store is flat today, but
@@ -19,6 +25,7 @@ export const useAuthStore = create<AuthState>()(
   immer((set) => ({
     status: "loading",
     user: null,
+    isTransitioning: false,
     setAuthenticated: (user) =>
       set((state) => {
         state.status = "authenticated";
@@ -28,6 +35,10 @@ export const useAuthStore = create<AuthState>()(
       set((state) => {
         state.status = "unauthenticated";
         state.user = null;
+      }),
+    setTransitioning: (value) =>
+      set((state) => {
+        state.isTransitioning = value;
       }),
   })),
 );

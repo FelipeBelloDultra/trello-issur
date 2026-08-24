@@ -2,6 +2,7 @@ import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 
 import { bootstrapSession } from "@/entities/session";
 import { RouteProgressBar } from "@/shared/ui/route-progress-bar";
+import { SessionTransitionOverlay } from "@/shared/ui/session-transition-overlay";
 
 import { AppBootSkeleton } from "../layouts/app-boot-skeleton";
 
@@ -21,6 +22,7 @@ export const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: () => (
     <>
       <RouteProgressBar />
+      <SessionTransitionOverlay />
       <Outlet />
     </>
   ),
