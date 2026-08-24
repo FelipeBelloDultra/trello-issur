@@ -64,13 +64,6 @@ export class CreateAccountHandler implements CommandHandler<
         routingKey: QueueEvents.Account.Created,
         payload: { accountId: account.id.toValue(), name: account.name, email: account.email },
       });
-
-      if (command.props.createWorkspace) {
-        await outbox.save({
-          routingKey: QueueEvents.Workspace.PersonalCreationRequested,
-          payload: { accountId: account.id.toValue(), accountName: account.name },
-        });
-      }
     });
 
     return right({ account });

@@ -34,7 +34,6 @@ export class CreateAccountController implements Controller {
         name: dto.name,
         email: dto.email,
         password: dto.password,
-        createWorkspace: dto.create_workspace,
       }),
     );
 
