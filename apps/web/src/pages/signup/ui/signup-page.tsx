@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 
+import { withSessionTransition } from "@/entities/session";
 import { useAuthenticate } from "@/features/authenticate";
 import { RegisterForm } from "@/features/register";
 
@@ -19,7 +20,7 @@ export function SignupPage() {
 
     // No workspace exists yet — the "/" loader routes into onboarding to
     // create one.
-    void navigate({ to: "/" });
+    await withSessionTransition(() => navigate({ to: "/" }));
   };
 
   return (

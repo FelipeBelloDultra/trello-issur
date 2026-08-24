@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 
+import { withSessionTransition } from "@/entities/session";
 import { LoginForm } from "@/features/authenticate";
 
 export function LoginPage() {
@@ -17,7 +18,7 @@ export function LoginPage() {
           <p className="text-muted-foreground text-sm">Welcome back, enter your credentials.</p>
         </div>
 
-        <LoginForm onSuccess={() => void navigate({ to: "/" })} />
+        <LoginForm onSuccess={() => void withSessionTransition(() => navigate({ to: "/" }))} />
 
         <p className="text-muted-foreground text-sm">
           Don&apos;t have an account?{" "}

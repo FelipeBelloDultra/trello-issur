@@ -1,6 +1,6 @@
 import { useNavigate, useParams, useRouteContext } from "@tanstack/react-router";
 
-import { useAuthStore } from "@/entities/session";
+import { useAuthStore, withSessionTransition } from "@/entities/session";
 import { useWorkspacesQuery } from "@/entities/workspace";
 import { useLogout } from "@/features/authenticate";
 
@@ -22,10 +22,11 @@ export function useAppSidebar() {
 
   const currentWorkspace = workspaces?.find((w) => w.id === workspaceId);
 
-  const handleSignOut = async (): Promise<void> => {
-    await logout.mutateAsync();
-    void navigate({ to: "/login" });
-  };
+  const handleSignOut = (): Promise<void> =>
+    withSessionTransition(async () => {
+      await logout.mutateAsync();
+      await navigate({ to: "/login" });
+    });
 
   const handleSwitchWorkspace = (targetWorkspaceId: string): void => {
     void navigate({ to: "/w/$workspaceId", params: { workspaceId: targetWorkspaceId } });
