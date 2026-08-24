@@ -36,4 +36,4 @@ pnpm --filter api run dev:queue    # queue consumer process, separate process
 pnpm --filter web run dev          # frontend dev server
 ```
 
-See `apps/api/README.md` for the backend's architecture and design decisions, and `CLAUDE.md` for repo conventions.
+See `apps/api/README.md` for the backend's architecture and design decisions, `CLAUDE.md` for repo conventions, and `infrastructure/README.md` for the full list of service URLs (Postgres, Valkey, RabbitMQ, Mailpit, Jaeger, MinIO, Prometheus, Grafana) once the stack above is running.

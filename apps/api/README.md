@@ -57,7 +57,7 @@ Two independent processes share the same DI container: `index.http.ts` publishes
 
 Each retry queue has `x-dead-letter-exchange` pointing back to the main exchange, so re-queued messages re-enter the original consumer after the delay. Retry count is tracked via `x-retry-count` header alongside `x-last-error`, `x-first-failed-at`, and `x-original-queue` for operational visibility.
 
-**Dead-letter replay** — failed events are persisted to `failed_queue_events` with a nullable `replayed_at` timestamp. An internal API exposes list and replay endpoints: replay republishes to the original routing key with a fresh idempotency key, preventing accidental double-processing.
+**Dead-letter replay** — failed events are persisted to `failed_queue_events` with a nullable `replayed_at` timestamp. `GET /queue/dead-letters` and `POST /queue/dead-letters/:id/replay` are gated by an `x-internal-token` header checked against `QUEUE_ADMIN_TOKEN` (operational secret, not part of product RBAC — same category as `/metrics`). Replay republishes to the original routing key with a **deterministic** idempotency key (`replay:<event id>`, not a fresh random one), so two replays of the same dead event — a double-click, a client retry before the first response lands — collapse into one effective processing instead of duplicating the original side effect.
 
 ### Authentication
 
@@ -164,8 +164,13 @@ stateless wrapper. **The rule for any future repository joining a `UnitOfWork` f
 constructor to `DrizzleExecutor`, and drop `Lifecycle.Singleton` from its registration — both, not
 just one.**
 
-Only `CreateAccountHandler` has been migrated so far — other publish-after-write handlers
-(workspace invites, etc.) are follow-up work, one at a time, not bundled into one PR.
+Every publish-after-write handler is migrated as of this writing: `CreateAccountHandler`,
+`InviteMemberHandler`, and `RespondToInviteHandler` (both `accept()` and `reject()`) all write their
+domain event through the shared `UnitOfWork` in the same transaction as their own aggregate write —
+none of them call `QueuePublisherGateway` directly anymore. Migrated one handler at a time across
+several small PRs rather than one rewrite, per the incremental-rollout note below. Any *new*
+publish-after-write handler should default to this pattern from the start rather than reintroducing
+the crash window.
 
 **Scale considerations, going forward:**
 
@@ -177,9 +182,9 @@ Only `CreateAccountHandler` has been migrated so far — other publish-after-wri
 - **No retention/cleanup yet**: `outbox_events` only grows — published rows are never deleted or
   archived. Fine at current volume; needs a cleanup job (delete/archive rows with `published_at`
   older than N days) before this becomes a real table-bloat problem.
-- **Rollout is incremental by design**: every other publish-after-write handler still has the
-  original crash-window bug until it's individually migrated to this pattern. That's deliberate —
-  each migration is small and independently reviewable, not a rewrite.
+- **Rollout was incremental by design**: each handler was migrated in its own small, independently
+  reviewable PR rather than one rewrite — the same approach applies to any handler added in the
+  future that needs this pattern.
 
 ### Circuit breaker
 

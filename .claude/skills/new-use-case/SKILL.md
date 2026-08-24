@@ -92,4 +92,4 @@ Every write in this codebase is a **command** dispatched through `CommandBus`; e
 ## Non-goals
 
 - Don't put business logic in a controller or consumer — it belongs in the handler.
-- Don't call another module's handler directly from a handler — publish a queue event instead (see `CreateAccountHandler` publishing `QueueEvents.Workspace.PersonalCreationRequested`), keeping modules decoupled.
+- Don't call another module's handler directly from a handler — publish a queue event instead (see `CreateAccountHandler` writing `QueueEvents.Workspace.PersonalCreationRequested` through the outbox — every publish-after-write handler in this codebase goes through `UnitOfWork` + `OutboxRepository` rather than calling `QueuePublisherGateway` directly, see `apps/api/README.md`'s "Outbox pattern" section), keeping modules decoupled.
