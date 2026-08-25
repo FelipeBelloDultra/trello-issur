@@ -1,21 +1,47 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { useCreateWorkspace } from "@/entities/workspace";
+import { useFormErrors } from "@/shared/lib/hooks";
 import { Button } from "@/shared/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+
+// Mirrors apps/api's WorkspaceName value object
+// (src/modules/workspace/domain/value-objects/workspace-name.ts) — that's
+// the single source of truth, kept in sync by hand since there's no shared
+// codegen between the two apps.
+const WORKSPACE_NAME_MIN = 3;
+const WORKSPACE_NAME_MAX = 80;
+
+const onboardingSchema = z.object({
+  name: z.string().min(WORKSPACE_NAME_MIN).max(WORKSPACE_NAME_MAX),
+});
+
+type OnboardingSchema = z.infer<typeof onboardingSchema>;
 
 export function OnboardingPage() {
   const navigate = useNavigate();
   const createWorkspace = useCreateWorkspace();
-  const [name, setName] = useState("");
+  const form = useForm<OnboardingSchema>({
+    resolver: zodResolver(onboardingSchema),
+    defaultValues: { name: "" },
+  });
+  const { handleApiError } = useFormErrors(form);
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const workspace = await createWorkspace.mutateAsync({ name });
-    void navigate({ to: "/w/$workspaceId", params: { workspaceId: workspace.id } });
-  };
+  const onSubmit = form.handleSubmit(async (values) => {
+    // Field-scoped errors (422) land on the "name" input via useFormErrors;
+    // anything else surfaces via the global mutation-error toast (see
+    // app/query-client.ts).
+    try {
+      const workspace = await createWorkspace.mutateAsync({ name: values.name });
+      void navigate({ to: "/w/$workspaceId", params: { workspaceId: workspace.id } });
+    } catch (err) {
+      handleApiError(err);
+    }
+  });
 
   return (
     <div className="flex min-h-svh items-center justify-center p-4">
@@ -31,22 +57,26 @@ export function OnboardingPage() {
           </p>
         </div>
 
-        <form onSubmit={(e) => void onSubmit(e)} className="w-full space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="workspace-name">Workspace name</Label>
-            <Input
-              id="workspace-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Acme Inc"
-              autoFocus
-              required
+        <Form {...form}>
+          <form onSubmit={(e) => void onSubmit(e)} className="w-full space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Workspace name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Acme Inc" autoFocus {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <Button type="submit" className="w-full" disabled={createWorkspace.isPending}>
-            {createWorkspace.isPending ? "Creating..." : "Create workspace"}
-          </Button>
-        </form>
+            <Button type="submit" className="w-full" disabled={createWorkspace.isPending}>
+              {createWorkspace.isPending ? "Creating..." : "Create workspace"}
+            </Button>
+          </form>
+        </Form>
       </div>
     </div>
   );
