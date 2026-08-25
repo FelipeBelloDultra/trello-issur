@@ -1,6 +1,6 @@
-import { useAuthStore } from "@/entities/session";
+import { Skeleton } from "@/shared/ui/skeleton";
 
-import { Skeleton } from "./skeleton";
+import { useAuthStore } from "../model/auth-store";
 
 // Full-screen blocking overlay for hard session transitions (login/logout)
 // — distinct from RouteProgressBar's lightweight top bar, which doesn't
