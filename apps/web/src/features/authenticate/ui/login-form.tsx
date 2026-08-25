@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
 import { useFormErrors } from "@/shared/lib/hooks";
 import { Button } from "@/shared/ui/button";
@@ -8,14 +7,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/shared/ui/input";
 import { PasswordInput } from "@/shared/ui/password-input";
 
+import { loginSchema, type LoginSchema } from "../model/login-schema";
 import { useAuthenticate } from "../model/use-authenticate";
-
-const loginSchema = z.object({
-  email: z.email(),
-  password: z.string().min(1, "password is required"),
-});
-
-type LoginSchema = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
   onSuccess?: () => void;
