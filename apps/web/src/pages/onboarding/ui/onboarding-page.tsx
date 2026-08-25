@@ -1,32 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
-import { useCreateWorkspace } from "@/entities/workspace";
+import {
+  useCreateWorkspace,
+  workspaceNameSchema,
+  type WorkspaceNameSchema,
+} from "@/entities/workspace";
 import { useFormErrors } from "@/shared/lib/hooks";
 import { Button } from "@/shared/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 
-// Mirrors apps/api's WorkspaceName value object
-// (src/modules/workspace/domain/value-objects/workspace-name.ts) — that's
-// the single source of truth, kept in sync by hand since there's no shared
-// codegen between the two apps.
-const WORKSPACE_NAME_MIN = 3;
-const WORKSPACE_NAME_MAX = 80;
-
-const onboardingSchema = z.object({
-  name: z.string().min(WORKSPACE_NAME_MIN).max(WORKSPACE_NAME_MAX),
-});
-
-type OnboardingSchema = z.infer<typeof onboardingSchema>;
-
 export function OnboardingPage() {
   const navigate = useNavigate();
   const createWorkspace = useCreateWorkspace();
-  const form = useForm<OnboardingSchema>({
-    resolver: zodResolver(onboardingSchema),
+  const form = useForm<WorkspaceNameSchema>({
+    resolver: zodResolver(workspaceNameSchema),
     defaultValues: { name: "" },
   });
   const { handleApiError } = useFormErrors(form);
