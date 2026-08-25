@@ -3,6 +3,7 @@ import { Check, X } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
+import { useFormErrors } from "@/shared/lib/hooks";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
@@ -104,11 +105,12 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   });
   const password = useWatch({ control: form.control, name: "password" });
   const confirmPassword = useWatch({ control: form.control, name: "confirm_password" });
+  const { handleApiError } = useFormErrors(form);
 
   const onSubmit = form.handleSubmit(async (values) => {
-    // Errors surface via the global mutation-error toast (see
-    // app/query-client.ts) with the API's own message (e.g. "email already
-    // taken") — no need to duplicate/guess it here.
+    // Field-scoped errors (422) land on the matching input via
+    // useFormErrors; anything else (e.g. "email already taken") surfaces
+    // via the global mutation-error toast (see app/query-client.ts).
     try {
       // confirm_password only exists to validate a match client-side — the
       // API doesn't accept it.
@@ -118,8 +120,8 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         password: values.password,
       });
       onSuccess?.(values);
-    } catch {
-      // handled by the toast; just stop the flow from continuing.
+    } catch (err) {
+      handleApiError(err);
     }
   });
 

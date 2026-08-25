@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useFormErrors } from "@/shared/lib/hooks";
 import { Button } from "@/shared/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
@@ -26,16 +27,17 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
+  const { handleApiError } = useFormErrors(form);
 
   const onSubmit = form.handleSubmit(async (values) => {
-    // Errors surface via the global mutation-error toast (see
-    // app/query-client.ts) with the API's own message (e.g. "invalid
-    // credentials") — no need to duplicate/guess it here.
+    // Field-scoped errors (422) land on the matching input via
+    // useFormErrors; anything else (e.g. "invalid credentials") surfaces
+    // via the global mutation-error toast (see app/query-client.ts).
     try {
       await authenticate.mutateAsync(values);
       onSuccess?.();
-    } catch {
-      // handled by the toast; just stop the flow from continuing.
+    } catch (err) {
+      handleApiError(err);
     }
   });
 
