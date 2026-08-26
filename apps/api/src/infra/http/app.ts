@@ -19,6 +19,7 @@ import { ValkeyClient } from "../valkey/client";
 
 import { ErrorMiddleware } from "./contracts/error-middleware";
 import { Middleware } from "./contracts/middleware";
+import { devDelayMiddleware } from "./middlewares/dev-delay.middleware";
 import { Routes } from "./routes";
 
 export class App {
@@ -50,6 +51,7 @@ export class App {
     this.expressInstance.use(loggerMiddleware.handle());
     this.expressInstance.use(tracingMiddleware.handle());
     this.expressInstance.use(metricsMiddleware.handle());
+    this.expressInstance.use(devDelayMiddleware);
 
     this.registerRoutes();
 

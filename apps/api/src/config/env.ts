@@ -17,6 +17,11 @@ export const env = z
     HTTP_SERVER_PORT: z.coerce.number().default(3000),
     APP_URL: z.string().url().default("http://localhost:3000"),
 
+    // Dev tooling — artificial per-response latency to exercise loading
+    // states locally without a slow network. Ignored outside development
+    // regardless of value (see DevDelayMiddleware).
+    DEV_RESPONSE_DELAY_MS: z.coerce.number().int().min(0).default(0),
+
     // CORS
     CORS_ORIGIN: z.string().default("*"),
 
