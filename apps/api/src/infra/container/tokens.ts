@@ -23,6 +23,9 @@ export const InjectionTokens = {
     WorkspaceMember: Symbol("WorkspaceMemberRepository"),
     WorkspaceInvite: Symbol("WorkspaceInviteRepository"),
     Notification: Symbol("NotificationRepository"),
+    Board: Symbol("BoardRepository"),
+    Column: Symbol("ColumnRepository"),
+    Card: Symbol("CardRepository"),
   },
 
   Email: {
@@ -86,6 +89,19 @@ export const InjectionTokens = {
     MarkNotificationAsRead: Symbol("MarkNotificationAsReadHandler"),
     MarkAllNotificationsAsRead: Symbol("MarkAllNotificationsAsReadHandler"),
     ListNotifications: Symbol("ListNotificationsHandler"),
+    CreateBoard: Symbol("CreateBoardHandler"),
+    RenameBoard: Symbol("RenameBoardHandler"),
+    DeleteBoard: Symbol("DeleteBoardHandler"),
+    ListWorkspaceBoards: Symbol("ListWorkspaceBoardsHandler"),
+    GetBoard: Symbol("GetBoardHandler"),
+    CreateColumn: Symbol("CreateColumnHandler"),
+    MoveColumn: Symbol("MoveColumnHandler"),
+    DeleteColumn: Symbol("DeleteColumnHandler"),
+    CreateCard: Symbol("CreateCardHandler"),
+    UpdateCard: Symbol("UpdateCardHandler"),
+    MoveCard: Symbol("MoveCardHandler"),
+    AssignCard: Symbol("AssignCardHandler"),
+    DeleteCard: Symbol("DeleteCardHandler"),
   },
 
   Controllers: {
@@ -109,6 +125,19 @@ export const InjectionTokens = {
     ListNotifications: Symbol("ListNotificationsController"),
     MarkNotificationAsRead: Symbol("MarkNotificationAsReadController"),
     MarkAllNotificationsAsRead: Symbol("MarkAllNotificationsAsReadController"),
+    CreateBoard: Symbol("CreateBoardController"),
+    RenameBoard: Symbol("RenameBoardController"),
+    DeleteBoard: Symbol("DeleteBoardController"),
+    ListWorkspaceBoards: Symbol("ListWorkspaceBoardsController"),
+    GetBoard: Symbol("GetBoardController"),
+    CreateColumn: Symbol("CreateColumnController"),
+    MoveColumn: Symbol("MoveColumnController"),
+    DeleteColumn: Symbol("DeleteColumnController"),
+    CreateCard: Symbol("CreateCardController"),
+    UpdateCard: Symbol("UpdateCardController"),
+    MoveCard: Symbol("MoveCardController"),
+    AssignCard: Symbol("AssignCardController"),
+    DeleteCard: Symbol("DeleteCardController"),
   },
 
   Middlewares: {
@@ -124,5 +153,6 @@ export const InjectionTokens = {
     Tracing: Symbol("TracingMiddleware"),
     Metrics: Symbol("MetricsMiddleware"),
     InternalToken: Symbol("InternalTokenMiddleware"),
+    ResolveBoardWorkspace: Symbol("ResolveBoardWorkspaceMiddleware"),
   },
 } as const;
