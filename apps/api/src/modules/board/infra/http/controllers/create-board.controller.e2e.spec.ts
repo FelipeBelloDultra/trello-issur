@@ -90,7 +90,7 @@ describe("[E2E] - Board & Card module", () => {
 
     await owner.agent
       .patch(`/api/cards/${cardId}/move`)
-      .send({ columnId: columnBId, position: 1 })
+      .send({ columnId: columnBId, index: 0 })
       .expect(200);
 
     const board = await owner.agent.get(`/api/boards/${boardId}`).expect(200);
@@ -143,7 +143,7 @@ describe("[E2E] - Board & Card module", () => {
 
     await owner.agent
       .patch(`/api/cards/${cardId}/move`)
-      .send({ columnId: otherColumnId, position: 1 })
+      .send({ columnId: otherColumnId, index: 0 })
       .expect(409);
   });
 
@@ -166,8 +166,8 @@ describe("[E2E] - Board & Card module", () => {
     const cardId = (card.body as { data: { id: string } }).data.id;
 
     const [first, second] = await Promise.all([
-      owner.agent.patch(`/api/cards/${cardId}/move`).send({ columnId: columnBId, position: 1 }),
-      owner.agent.patch(`/api/cards/${cardId}/move`).send({ columnId: columnAId, position: 2 }),
+      owner.agent.patch(`/api/cards/${cardId}/move`).send({ columnId: columnBId, index: 0 }),
+      owner.agent.patch(`/api/cards/${cardId}/move`).send({ columnId: columnAId, index: 0 }),
     ]);
 
     expect([first.status, second.status]).toEqual([200, 200]);
