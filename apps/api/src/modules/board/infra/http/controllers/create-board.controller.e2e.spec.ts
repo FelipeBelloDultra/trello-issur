@@ -274,10 +274,7 @@ describe("[E2E] - Board & Card module", () => {
       await outsider.agent.get(`/api/boards/${boardId}`).expect(404);
       await outsider.agent.patch(`/api/boards/${boardId}`).send({ name: "x" }).expect(404);
       await outsider.agent.delete(`/api/boards/${boardId}`).expect(404);
-      await outsider.agent
-        .post(`/api/boards/${boardId}/columns`)
-        .send({ name: "x" })
-        .expect(404);
+      await outsider.agent.post(`/api/boards/${boardId}/columns`).send({ name: "x" }).expect(404);
     });
   });
 
@@ -315,10 +312,7 @@ describe("[E2E] - Board & Card module", () => {
         role: "viewer",
       });
 
-      await viewer.agent
-        .post(`/api/boards/${boardId}/columns`)
-        .send({ name: "x" })
-        .expect(403);
+      await viewer.agent.post(`/api/boards/${boardId}/columns`).send({ name: "x" }).expect(403);
       await viewer.agent.patch(`/api/boards/${boardId}`).send({ name: "x" }).expect(403);
 
       // A viewer can still read (no dedicated board:view permission key —
