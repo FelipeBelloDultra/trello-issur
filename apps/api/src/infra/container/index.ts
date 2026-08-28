@@ -2,6 +2,7 @@ import "reflect-metadata";
 
 import { setupAccountModule } from "@/modules/account/infra/container";
 import { setupAuthModule } from "@/modules/auth/infra/container";
+import { setupBoardModule } from "@/modules/board/infra/container";
 import { setupNotificationsModule } from "@/modules/notifications/infra/container";
 import { setupWorkspaceModule } from "@/modules/workspace/infra/container";
 
@@ -25,4 +26,5 @@ setupQueueContainer();
 setupAccountModule();
 setupAuthModule();
 setupWorkspaceModule();
+setupBoardModule();
 setupNotificationsModule();
