@@ -1,83 +1,88 @@
 # Roadmap — apps/api
 
-Companheiro de [`backend-map.html`](./backend-map.html) (retrato do estado atual). Este documento
-é o próximo passo: **o que priorizar**, **quais fluxos ainda estão incompletos** e **por onde
-seguir**. Levantado lendo o código-fonte, sem inferência.
+Companion to [`backend-map.html`](./backend-map.html) (snapshot of the current state). This
+document is the next step: **what to prioritize**, **which flows are still incomplete**, and
+**where to go next**. Compiled by reading the source code, no inference.
 
-## Resumo
+## Summary
 
-O que existe hoje é uma infraestrutura de conta/workspace/RBAC/notificações madura — auth com
-JWT+Valkey, outbox pattern (agora cobrindo 100% dos publish-after-write, ver "Concluído" abaixo),
-retry escalonado com dead-letter (idempotente e autenticado), cache-aside com invalidação ativa,
-circuit breaker. Specs 001–005 (todo o debt pequeno/isolado identificado nesta varredura)
-implementadas, testadas e mergeadas — ver seção "Concluído" para o que cada uma fechou. O que
-**não existe ainda** é o produto em si: `apps/api/src/modules/` só tem `account`, `auth`,
-`workspace` e `notifications`. Não há módulo `board` nem `card`. As permission keys
-`board:create/edit/delete` e `card:create/edit/delete/move/assign`
-(`src/modules/auth/domain/value-objects/permission-key.ts`) já estão no registry de RBAC, mas não
-protegem nenhuma rota real — é RBAC pronto para uma funcionalidade que ainda não foi construída.
-Com o debt pequeno fechado, o item que define o próximo ciclo de trabalho é o board/card (spec
-006).
+What exists today is a mature account/workspace/RBAC/notifications infrastructure — JWT+Valkey
+auth, outbox pattern (now covering 100% of publish-after-write, see "Done" below), staged retry
+with dead-letter (idempotent and authenticated), cache-aside with active invalidation, circuit
+breaker. Specs 001–005 (all the small/isolated debt identified in this sweep) implemented,
+tested, and merged — see the "Done" section for what each one closed. What **doesn't exist yet**
+is the product itself: `apps/api/src/modules/` only has `account`, `auth`, `workspace`, and
+`notifications`. There's no `board` or `card` module. The `board:create/edit/delete` and
+`card:create/edit/delete/move/assign` permission keys
+(`src/modules/auth/domain/value-objects/permission-key.ts`) are already in the RBAC registry, but
+protect no real route — it's RBAC ready for a feature that hasn't been built yet. With the small
+debt closed, the item defining the next work cycle is board/card (spec 001 in the spec-kit flow,
+formerly spec 006).
 
-## Prioridades
+## Priorities
 
-### Produto ausente
+### Missing product
 
-- **Módulo `board`/`card` não existe.** Sem ele, o RBAC de `board:*`/`card:*` é código morto e o
-  produto não tem sua função central (é um Kanban sem quadro). Não é um bug para corrigir — é uma
-  decisão de escopo para tomar antes de começar (ver [spec 006](./specs/006-board-card-module.md)).
+- **The `board`/`card` module doesn't exist.** Without it, `board:*`/`card:*` RBAC is dead code
+  and the product lacks its core function (it's a Kanban with no board). Not a bug to fix — a
+  scope decision to make before starting (see
+  [spec-kit spec 001](../../specs/001-board-card-module/spec.md)).
 
-## Concluído
+## Done
 
-Specs 001–005 — implementadas, testadas (unit + e2e) e mergeadas em `main` via PRs #10–#14
-(stack). Detalhe completo de requisitos/design em cada arquivo de spec (marcado
-`Status: Concluído` no cabeçalho).
+Specs 001–005 — implemented, tested (unit + e2e), and merged into `main` via PRs #10–#14
+(stacked). Full requirement/design detail in each spec file (marked `Status: Done` in the
+header).
 
-- **[001](./specs/001-secure-queue-admin-routes.md) — Autenticar rotas de fila.**
-  `GET /queue/dead-letters` e `POST /queue/dead-letters/:id/replay` exigem header
-  `x-internal-token` (segredo operacional, `QUEUE_ADMIN_TOKEN`), não login de produto.
-- **[002](./specs/002-rbac-cache-invalidation.md) — Invalidação ativa do cache de RBAC.**
-  `UpdateWorkspaceMemberRoleHandler` e `RemoveWorkspaceMemberHandler` agora chamam
-  `AccountRoleCacheRepository.invalidate()` antes de retornar sucesso — mudança de role/remoção
-  reflete na próxima checagem de autorização, sem esperar o TTL de 5 min. Cache adapter também
-  passou a falhar aberto (log + segue) em vez de propagar erro do Valkey.
-- **[003](./specs/003-close-invite-rejection-flow.md) — Fechar rejeição de convite.**
-  `reject()` espelha `accept()`: escrita atômica via `UnitOfWork` + evento de outbox
-  `workspace-invite.rejected` + `WorkspaceInviteRejectedConsumer` notificando quem convidou.
-- **[004](./specs/004-dead-letter-replay-idempotency.md) — Idempotência no replay.**
-  Replay publica com chave determinística (`replay:<event.id>`) em vez de uma nova a cada
-  chamada — duas chamadas para o mesmo evento (corrida ou duplo clique) não duplicam mais o
+- **[001](./specs/001-secure-queue-admin-routes.md) — Authenticate queue routes.**
+  `GET /queue/dead-letters` and `POST /queue/dead-letters/:id/replay` require the
+  `x-internal-token` header (an operational secret, `QUEUE_ADMIN_TOKEN`), not product login.
+- **[002](./specs/002-rbac-cache-invalidation.md) — Active RBAC cache invalidation.**
+  `UpdateWorkspaceMemberRoleHandler` and `RemoveWorkspaceMemberHandler` now call
+  `AccountRoleCacheRepository.invalidate()` before returning success — a role change/removal
+  reflects on the next authorization check, without waiting for the 5 min TTL. The cache
+  adapter also now fails open (log + proceed) instead of propagating a Valkey error.
+- **[003](./specs/003-close-invite-rejection-flow.md) — Close invite rejection.**
+  `reject()` mirrors `accept()`: atomic write via `UnitOfWork` + `workspace-invite.rejected`
+  outbox event + `WorkspaceInviteRejectedConsumer` notifying the inviter.
+- **[004](./specs/004-dead-letter-replay-idempotency.md) — Idempotency on replay.**
+  Replay now publishes with a deterministic key (`replay:<event.id>`) instead of a fresh one on
+  every call — two calls for the same event (a race or a double click) no longer duplicate the
   side effect.
-- **[005](./specs/005-align-invite-permission-key.md) — Alinhar permissão de convite.**
-  `InviteMemberController` exige `workspace:invite` (Opção A) em vez de `workspace:manage` —
-  `member` já tinha essa permissão no `ROLE_PERMISSION_MAP` e agora ela é de fato checada.
+- **[005](./specs/005-align-invite-permission-key.md) — Align invite permission.**
+  `InviteMemberController` requires `workspace:invite` (Option A) instead of `workspace:manage`
+  — `member` already had that permission in `ROLE_PERMISSION_MAP` and it's now actually
+  enforced.
 
-Como efeito colateral dessas specs: a nota do `CLAUDE.md` sobre handlers pendentes de migração
-para outbox foi corrigida (os 3 handlers que publicam eventos — `CreateAccountHandler`,
-`InviteMemberHandler`, `RespondToInviteHandler` — já passam todos pelo outbox, sem exceção).
+Side effect of these specs: the `CLAUDE.md` note about handlers still pending migration to the
+outbox was corrected (all 3 handlers that publish events — `CreateAccountHandler`,
+`InviteMemberHandler`, `RespondToInviteHandler` — already go through the outbox, no exception
+left).
 
-### Debt menor / cobertura ainda aberto
+### Minor debt / coverage still open
 
-- `CreateAccountController`: branch `default` do switch de erro faz `throw new Error()` cru em
-  vez de um `HttpException` estruturado. Hoje é código morto (só existe 1 erro possível), mas é
-  uma armadilha para o próximo `left` que for adicionado sem atualizar o controller.
-- E2e do fluxo de convite cobre hoje só criar → **rejeitar** (spec 003). Criar → **aceitar**
-  ainda não tem e2e dedicado, só specs unitárias com repositórios em memória.
+- `CreateAccountController`: the `default` branch of the error switch does a raw
+  `throw new Error()` instead of a structured `HttpException`. Dead code today (only 1 possible
+  error exists), but a trap for the next `left` added without updating the controller.
+- The invite flow's e2e coverage today only covers create → **reject** (spec 003). Create →
+  **accept** still has no dedicated e2e, only unit specs with in-memory repositories.
 
-## Próximos passos sugeridos
+## Suggested next steps
 
-1. **Dimensionar e iniciar o módulo `board`** (via skill `new-module` já disponível no repo) —
-   é o maior item do roadmap, então merece ser discutido à parte antes de codar: quadros, colunas,
-   cards, limites de WIP, ordenação/drag-and-drop, quem pode ver o quê (o RBAC de `board:*`/
-   `card:*` já existe e está esperando por isso). Não assumir escopo aqui.
-2. **Cobertura/limpeza residual** — e2e do fluxo criar→aceitar convite, corrigir o
-   `throw new Error()` cru em `CreateAccountController`. Baixo risco, pode intercalar com o item
-   acima; nenhum dos dois gera spec própria (trivial demais, ver `specs/README.md`).
+1. **Size and start the `board` module** (via the `new-module` skill already available in the
+   repo) — it's the biggest roadmap item, so it deserves discussion on its own before coding:
+   boards, columns, cards, WIP limits, ordering/drag-and-drop, who can see what (the
+   `board:*`/`card:*` RBAC already exists and is waiting for this). Don't assume scope here —
+   see [spec-kit spec 001](../../specs/001-board-card-module/spec.md), already drafted.
+2. **Residual coverage/cleanup** — e2e for the create→accept invite flow, fix the raw
+   `throw new Error()` in `CreateAccountController`. Low risk, can be interleaved with the item
+   above; neither generates its own spec (too trivial, see `specs/README.md`).
 
-## Adiado conscientemente
+## Consciously deferred
 
-- **Notificações em tempo real** (WebSocket/SSE) — hoje é só polling em `GET /notifications`.
-  Não é debt, é uma feature nova; vale esperar ter uso real para saber se compensa a
-  complexidade.
-- **Calibrar thresholds do circuit breaker** (`CIRCUIT_BREAKER_*`) contra tráfego real — os
-  valores atuais são conservadores por design, calibrar sem tráfego real seria adivinhação.
+- **Real-time notifications** (WebSocket/SSE) — today it's just polling via
+  `GET /notifications`. Not debt, it's a new feature; worth waiting for real usage to know if
+  the complexity pays off.
+- **Calibrating circuit breaker thresholds** (`CIRCUIT_BREAKER_*`) against real traffic — the
+  current values are conservative by design; calibrating without real traffic would be
+  guesswork.
