@@ -9,24 +9,13 @@ document is the next step: **what to prioritize**, **which flows are still incom
 What exists today is a mature account/workspace/RBAC/notifications infrastructure — JWT+Valkey
 auth, outbox pattern (now covering 100% of publish-after-write, see "Done" below), staged retry
 with dead-letter (idempotent and authenticated), cache-aside with active invalidation, circuit
-breaker. Specs 001–005 (all the small/isolated debt identified in this sweep) implemented,
-tested, and merged — see the "Done" section for what each one closed. What **doesn't exist yet**
-is the product itself: `apps/api/src/modules/` only has `account`, `auth`, `workspace`, and
-`notifications`. There's no `board` or `card` module. The `board:create/edit/delete` and
-`card:create/edit/delete/move/assign` permission keys
-(`src/modules/auth/domain/value-objects/permission-key.ts`) are already in the RBAC registry, but
-protect no real route — it's RBAC ready for a feature that hasn't been built yet. With the small
-debt closed, the item defining the next work cycle is board/card (spec 001 in the spec-kit flow,
-formerly spec 006).
-
-## Priorities
-
-### Missing product
-
-- **The `board`/`card` module doesn't exist.** Without it, `board:*`/`card:*` RBAC is dead code
-  and the product lacks its core function (it's a Kanban with no board). Not a bug to fix — a
-  scope decision to make before starting (see
-  [spec-kit spec 001](../../specs/001-board-card-module/spec.md)).
+breaker — plus, as of this writing, the product's core: a `board` module (boards, columns,
+cards). Specs 001–005 (all the small/isolated debt identified in this sweep) and spec-kit spec
+001 (board/card) are implemented, tested, and merged — see the "Done" section for what each one
+closed. `apps/api/src/modules/` now has `account`, `auth`, `workspace`, `board`, and
+`notifications`. The `board:create/edit/delete` and `card:create/edit/delete/move/assign`
+permission keys (`src/modules/auth/domain/value-objects/permission-key.ts`) that used to be dead
+code now protect real routes.
 
 ## Done
 
@@ -59,6 +48,14 @@ outbox was corrected (all 3 handlers that publish events — `CreateAccountHandl
 `InviteMemberHandler`, `RespondToInviteHandler` — already go through the outbox, no exception
 left).
 
+- **[spec-kit 001](../../specs/001-board-card-module/spec.md) — Board & Card module.** New
+  `src/modules/board/` — `Board`, `Column`, `Card` each their own aggregate/repository, fractional
+  `position` for ordering (no mass renumbering on reorder/move), `board:*`/`card:*` RBAC now
+  enforced on real routes. Board/column delete cascade through the shared `UnitOfWork`. Full
+  design record in `specs/001-board-card-module/` (`plan.md`, `research.md`, `data-model.md`,
+  `contracts/`, `tasks.md`). E2E covers the full create-board→column→card→move happy path,
+  non-member isolation, RBAC permission enforcement, and concurrent-move consistency.
+
 ### Minor debt / coverage still open
 
 - `CreateAccountController`: the `default` branch of the error switch does a raw
@@ -66,17 +63,20 @@ left).
   error exists), but a trap for the next `left` added without updating the controller.
 - The invite flow's e2e coverage today only covers create → **reject** (spec 003). Create →
   **accept** still has no dedicated e2e, only unit specs with in-memory repositories.
+- `docs/api/backend-map.html` was **not** updated for the new `board` module as part of this
+  round — it's a large hand-authored visual document (1300+ lines), out of scope for an
+  automated pass; needs a manual follow-up documenting `board`/`column`/`card` routes and schema.
+- No automatic rebalancing for fractional card/column positions yet — documented, deliberately
+  deferred limitation (see `specs/001-board-card-module/research.md` §2); only matters after many
+  repeated inserts at the same spot, not a v1-scale concern.
 
 ## Suggested next steps
 
-1. **Size and start the `board` module** (via the `new-module` skill already available in the
-   repo) — it's the biggest roadmap item, so it deserves discussion on its own before coding:
-   boards, columns, cards, WIP limits, ordering/drag-and-drop, who can see what (the
-   `board:*`/`card:*` RBAC already exists and is waiting for this). Don't assume scope here —
-   see [spec-kit spec 001](../../specs/001-board-card-module/spec.md), already drafted.
+1. **Update `docs/api/backend-map.html`** for the new `board` module (routes, schema, RBAC) —
+   the one piece of spec 001's acceptance criteria not done automatically.
 2. **Residual coverage/cleanup** — e2e for the create→accept invite flow, fix the raw
-   `throw new Error()` in `CreateAccountController`. Low risk, can be interleaved with the item
-   above; neither generates its own spec (too trivial, see `specs/README.md`).
+   `throw new Error()` in `CreateAccountController`. Low risk; neither generates its own spec
+   (too trivial, see `specs/README.md`).
 
 ## Consciously deferred
 
