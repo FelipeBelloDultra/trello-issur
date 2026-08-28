@@ -56,7 +56,7 @@ export class MoveColumnController implements Controller {
     const dto = MoveColumnDto.parse(req.body);
 
     const result = await this.commandBus.dispatch<Either<OnError, { column: Column }>>(
-      new MoveColumnCommand({ columnId, name: dto.name, position: dto.position }),
+      new MoveColumnCommand({ columnId, name: dto.name, index: dto.index }),
     );
 
     if (result.isLeft()) {

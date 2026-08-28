@@ -39,8 +39,16 @@ export class MoveColumnHandler implements CommandHandler<
       column.rename(ColumnName.create(command.props.name));
     }
 
-    if (command.props.position !== undefined) {
-      column.reposition(Position.create(command.props.position));
+    if (command.props.index !== undefined) {
+      // Server resolves the fractional position from the client-supplied
+      // index (research.md §6), same pattern as MoveCardHandler.
+      const siblings = (
+        await this.columnRepository.findAllByBoardId(column.boardId.toValue())
+      ).filter((sibling) => !sibling.id.equals(column.id));
+      const before = siblings[command.props.index - 1] ?? null;
+      const after = siblings[command.props.index] ?? null;
+
+      column.reposition(Position.between(before?.position ?? null, after?.position ?? null));
     }
 
     await this.columnRepository.save(column);
