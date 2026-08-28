@@ -37,7 +37,11 @@ before any column or card exists.
    with its data.
 2. **Given** an existing board in a workspace, **When** an account that is a member of that
    workspace queries the board, **Then** the board's data is returned.
-3. **Given** an existing board in a workspace, **When** an account that is not a member of that
+3. **Given** a workspace with multiple boards, **When** a member of that workspace lists the
+   workspace's boards, **Then** every board belonging to that workspace is returned.
+4. **Given** an existing board, **When** a member of that board's workspace renames it, **Then**
+   the new name is persisted.
+5. **Given** an existing board in a workspace, **When** an account that is not a member of that
    workspace tries to create, view, edit, or delete that board, **Then** the operation is
    refused and no board data is returned.
 
@@ -45,8 +49,8 @@ before any column or card exists.
 
 ### User Story 2 - Organize columns within a board (Priority: P1)
 
-Within an existing board, create named columns with an explicit ordering position, and reorder
-them.
+Within an existing board, create named columns with an explicit ordering position, and
+reposition a column relative to its siblings.
 
 **Why this priority**: a board with no columns isn't usable as a Kanban board — it's the
 minimum structure that makes creating cards meaningful.
@@ -59,8 +63,10 @@ card existing.
 
 1. **Given** an existing board, **When** an authorized account creates a column with a name,
    **Then** the column is persisted tied to the board, with an ordering position.
-2. **Given** a board with two or more columns, **When** an authorized account reorders the
-   columns, **Then** the new order is persisted and reflected in future queries of the board.
+2. **Given** a board with two or more columns, **When** an authorized account repositions a
+   column, **Then** the new order is persisted and reflected in future queries of the board.
+3. **Given** an existing column, **When** an authorized account deletes it, **Then** the column
+   and any cards it contains no longer appear in the board.
 
 ---
 
@@ -90,6 +96,8 @@ alongside US1/US2, or standalone assuming a board/columns already exist.
 4. **Given** an existing card, **When** an account tries to move that card into a column that
    belongs to a different board, **Then** the operation is refused (v1 does not allow moving a
    card between different boards).
+5. **Given** an existing card, **When** an authorized account deletes it, **Then** the card no
+   longer appears in its column.
 
 ---
 
@@ -181,6 +189,13 @@ confirming a subsequent query no longer returns the board or its contents.
   that the assignee is a member of the board's workspace before persisting the assignment.
 - **FR-010**: System MUST, when a board is deleted, remove (or archive) all its columns and cards
   along with it.
+- **FR-011**: System MUST allow a workspace member to list every board belonging to that
+  workspace.
+- **FR-012**: System MUST allow deleting a column, removing (or archiving) any cards it contains
+  along with it.
+- **FR-013**: System MUST allow deleting a card individually, independent of its board or
+  column being deleted.
+- **FR-014**: System MUST allow a workspace member to rename an existing board.
 
 ### Key Entities *(data involved)*
 

@@ -36,6 +36,17 @@ export const HttpMessages = {
     NotFound: "notification not found",
     AccessDenied: "notification does not belong to your account",
   },
+  Board: {
+    NotFound: "board not found",
+  },
+  Column: {
+    NotFound: "column not found",
+    NotInBoard: "target column does not belong to the card's board",
+  },
+  Card: {
+    NotFound: "card not found",
+    AssigneeNotWorkspaceMember: "assignee is not a member of the board's workspace",
+  },
   Upload: {
     NoFile: "no file uploaded",
   },
