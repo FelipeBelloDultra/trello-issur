@@ -42,7 +42,7 @@ curl -sX POST localhost:3000/columns/<columnAId>/cards \
 # 4. Move the card to the second column
 curl -sX PATCH localhost:3000/cards/<cardId>/move \
   -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" \
-  -d '{"columnId":"<columnBId>","position":1}'
+  -d '{"columnId":"<columnBId>","index":0}'
 # → 200
 
 # 5. View the board — the card must now show under "Done"
