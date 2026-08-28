@@ -91,3 +91,36 @@ it's the reasonable default for a Kanban board view.
 **Alternatives considered**: separate `ListColumns`/`ListColumnCards` queries — not built for v1;
 `GetBoard`'s single nested response covers the only read scenario the spec's user stories
 require (US1 "view a board").
+
+## 6. Who computes the move target position — client or server?
+
+**Decision**: the server computes the fractional position. `MoveCardDto`/`MoveColumnDto` carry
+a zero-based `index: number` (position within the destination list, not a fractional value) —
+`MoveCardHandler`/`MoveColumnHandler` fetch the destination list (via
+`CardRepository.findAllByColumnId`/`ColumnRepository.findAllByBoardId`, both already ordered by
+position), exclude the item being moved from that list, resolve the neighbors at `index - 1`
+and `index`, and call `Position.between(before, after)` themselves.
+
+**Rationale**: confirmed with the user after a process failure — the original DTO shape
+(`{ columnId, position: number }`, client sends the already-computed float) was decided
+unilaterally while writing `/speckit-plan`'s contracts, never surfaced as a decision, and left
+`Position.between()` as dead code (see this section's history below). Revisited properly:
+fractional positioning is a persistence/ordering strategy — domain logic — not something a
+client should have to compute. Sending a raw float leaks that internal representation across
+the API boundary and forces every client (web today, any future consumer) to reimplement the
+midpoint math. `index` matches what drag-and-drop UI libraries already emit on drop (destination
+index in the reordered list), so the client needs no translation either. Computing server-side
+also reads the current neighbor positions at write time, not whatever the client's view was at
+render time — one less source of staleness.
+
+**Alternatives considered**: anchor-based (`afterCardId: string | null`) — more resistant to an
+index shifting under a concurrent insert than a raw index, but requires the client to track a
+specific sibling id rather than a visual position; rejected for v1 as more complexity than the
+scale here needs. Client-computed float (original, undocumented default) — rejected per the
+rationale above.
+
+**History**: this was originally an undisclosed decision baked into the DTO shape during
+`/speckit-plan`, not caught by that command's Constitution Check nor by `/speckit-analyze`.
+Discovered post-implementation when `Position.between()` turned up as an unused, untested public
+method. Reopened as a proper `NEEDS CLARIFICATION` item and resolved here before changing any
+code, instead of rationalizing what was already built.

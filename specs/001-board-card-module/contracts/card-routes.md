@@ -28,7 +28,9 @@ Errors: `401`, `403`, `404` (card not found), `422` (empty title if provided)
 **Permission**: `card:move`
 **Command**: `MoveCardCommand`
 
-Request: `{ columnId: string, position: number }`
+Request: `{ columnId: string, index: number }` (zero-based position within the destination
+column's card list, excluding the card being moved — server computes the fractional position
+via `Position.between()`, see `research.md` §6)
 Response `200`: `{ id, columnId, position, updatedAt }`
 Errors: `401`, `403`, `404` (card or target column not found), `409`
 (`ColumnNotInBoardError` — target column belongs to a different board, FR-007)

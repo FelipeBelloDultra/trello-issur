@@ -65,7 +65,9 @@ Errors: `401`, `403`, `404` (board not found), `422` (empty name)
 **Permission**: `board:edit`
 **Command**: `MoveColumnCommand` (also handles rename — same endpoint, partial body)
 
-Request: `{ name?: string, position?: number }` (at least one present)
+Request: `{ name?: string, index?: number }` (at least one present) — `index` is zero-based
+position within the board's column list, excluding the column being moved; server computes the
+fractional position via `Position.between()` (see `research.md` §6)
 Response `200`: `{ id, name, position, updatedAt }`
 Errors: `401`, `403`, `404` (column not found), `422` (empty name if provided)
 
