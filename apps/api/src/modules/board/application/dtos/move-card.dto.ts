@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const MoveCardDto = z.object({
   columnId: z.uuid(),
-  position: z.number().finite(),
+  index: z.number().int().min(0),
 });
 
 export type MoveCardDtoType = z.infer<typeof MoveCardDto>;

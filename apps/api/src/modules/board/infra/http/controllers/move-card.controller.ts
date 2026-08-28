@@ -58,7 +58,7 @@ export class MoveCardController implements Controller {
     const dto = MoveCardDto.parse(req.body);
 
     const result = await this.commandBus.dispatch<Either<OnError, { card: Card }>>(
-      new MoveCardCommand({ cardId, columnId: dto.columnId, position: dto.position }),
+      new MoveCardCommand({ cardId, columnId: dto.columnId, index: dto.index }),
     );
 
     if (result.isLeft()) {

@@ -45,9 +45,19 @@ export class MoveCardHandler implements CommandHandler<
       return left(new ColumnNotInBoardError());
     }
 
+    // Server resolves the fractional position from the client-supplied
+    // index (research.md §6) — reads the destination list's *current*
+    // neighbors at write time rather than trusting a client-computed
+    // float, and keeps the ordering scheme a domain concern.
+    const siblings = (await this.cardRepository.findAllByColumnId(command.props.columnId)).filter(
+      (sibling) => !sibling.id.equals(card.id),
+    );
+    const before = siblings[command.props.index - 1] ?? null;
+    const after = siblings[command.props.index] ?? null;
+
     card.moveTo(
       UniqueEntityID.create(command.props.columnId),
-      Position.create(command.props.position),
+      Position.between(before?.position ?? null, after?.position ?? null),
     );
 
     // Plain, unconditional row UPDATE — no optimistic lock, no explicit row
