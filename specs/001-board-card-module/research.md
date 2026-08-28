@@ -124,3 +124,54 @@ rationale above.
 Discovered post-implementation when `Position.between()` turned up as an unused, untested public
 method. Reopened as a proper `NEEDS CLARIFICATION` item and resolved here before changing any
 code, instead of rationalizing what was already built.
+
+## 7–9. Retroactively documented decisions
+
+The three items below were the same failure as §6 — a request-shape choice made silently while
+writing `contracts/` during `/speckit-plan`, never surfaced for confirmation — but, unlike §6,
+none left a code defect (no dead method, no unused branch) and each is a widely-used REST idiom
+with a single reasonable default. Registered here after the fact, on request, to close the
+process gap rather than leave them silently undocumented like §6 was. None were re-opened for
+discussion before writing this — if any should have been, that's still open to revisit.
+
+### 7. `PATCH /columns/:columnId` merges rename and reposition into one endpoint
+
+**Decision**: one endpoint, partial body (`{ name?, index? }`, at least one required) handles
+both renaming a column and repositioning it, rather than two separate endpoints/routes.
+
+**Rationale**: both are single-column, single-permission (`board:edit`) operations on the same
+resource; a partial-update `PATCH` accepting either or both fields is the standard REST shape
+for "update this resource's mutable fields" and avoids two near-identical controllers/routes for
+one entity. Matches `UpdateCard`'s same merge (§8) for consistency within the module.
+
+**Alternatives considered**: separate `PATCH /columns/:columnId/rename` and
+`PATCH /columns/:columnId/position` — rejected, no behavioral or authorization difference between
+the two operations that would justify splitting the route.
+
+### 8. `PATCH /cards/:cardId` merges title and description into one endpoint
+
+**Decision**: one endpoint, partial body (`{ title?, description? }`, at least one required),
+same shape as §7.
+
+**Rationale**: same as §7 — both fields belong to the same resource, same permission
+(`card:edit`), no reason to force two round-trips for what's conceptually one "edit this card's
+details" action.
+
+**Alternatives considered**: none seriously — this is the default partial-update shape used by
+every other single-resource `PATCH` in this codebase (e.g. `UpdateWorkspaceAvatarController`
+mirrors the same pattern for its own field).
+
+### 9. `PATCH /cards/:cardId/assign` uses `assigneeAccountId: null` to unassign
+
+**Decision**: one endpoint handles both assigning and unassigning; sending `null` clears the
+assignee instead of a separate `DELETE`-style "unassign" route.
+
+**Rationale**: assign/unassign are the same underlying state transition (set-or-clear one
+nullable field, `Card.assignTo(accountId | null)` already models it that way in the domain
+entity) — a `null`-accepting `PATCH` is the common REST idiom for "set or clear this optional
+relationship" and avoids a second route with near-duplicate authorization/lookup logic for the
+inverse of the same operation.
+
+**Alternatives considered**: separate `DELETE /cards/:cardId/assign` for unassigning — rejected,
+would duplicate `card:assign` permission checks and card lookup across two controllers for what
+is a single field mutation.
