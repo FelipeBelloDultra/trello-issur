@@ -39,4 +39,10 @@
   limit, delete strategy) were resolved inline — see the Clarifications section in spec.md — using
   the existing workspace pattern as precedent (no soft delete, workspace-scoped visibility, no
   plan-tied limit until a billing module exists) rather than left open.
-- All items pass; no spec updates required before `/speckit-plan`.
+- Post-generation review (2026-08-28, before `/speckit-plan`) found 4 CRUD-completeness gaps and
+  fixed them: FR-011 (list a workspace's boards — was create+view only, no listing), FR-012
+  (delete a column), FR-013 (delete a card individually, not just via board cascade), FR-014
+  (rename/edit a board — `board:edit` exists in RBAC but had no positive requirement). All four
+  were reasonable-default additions consistent with the RBAC permission keys already granted
+  (`board:edit`) and with the CRUD completeness implied by the other entities.
+- All items pass; no further spec updates required before `/speckit-plan`.
