@@ -49,8 +49,8 @@ before any column or card exists.
 
 ### User Story 2 - Organize columns within a board (Priority: P1)
 
-Within an existing board, create named columns with an explicit ordering position, and reorder
-them.
+Within an existing board, create named columns with an explicit ordering position, and
+reposition a column relative to its siblings.
 
 **Why this priority**: a board with no columns isn't usable as a Kanban board — it's the
 minimum structure that makes creating cards meaningful.
@@ -63,8 +63,8 @@ card existing.
 
 1. **Given** an existing board, **When** an authorized account creates a column with a name,
    **Then** the column is persisted tied to the board, with an ordering position.
-2. **Given** a board with two or more columns, **When** an authorized account reorders the
-   columns, **Then** the new order is persisted and reflected in future queries of the board.
+2. **Given** a board with two or more columns, **When** an authorized account repositions a
+   column, **Then** the new order is persisted and reflected in future queries of the board.
 3. **Given** an existing column, **When** an authorized account deletes it, **Then** the column
    and any cards it contains no longer appear in the board.
 

@@ -20,7 +20,11 @@ use case plus at least one real-backing `*.e2e.spec.ts`; not optional here.
 - [ ] T002 [P] Add `Repositories`/`Handlers`/`Controllers` injection tokens for `board`/`column`/
       `card` in `src/infra/container/tokens.ts`
 - [ ] T003 Create `src/modules/board/infra/container.ts` with an empty `setupBoardModule()` and
-      register the call in `src/infra/container/index.ts`
+      register the call in `src/infra/container/index.ts` — when T020-T022's repositories are
+      registered here later, they MUST be registered **without** `Lifecycle.Singleton` (repo's
+      documented DI gotcha, `apps/api/README.md` → "DI registration gotcha": a
+      `DrizzleExecutor`-based repository shared as a singleton leaks a transaction-bound instance
+      across tsyringe parent/child containers)
 
 **Checkpoint**: module skeleton exists, wired into the DI bootstrap, no behavior yet.
 
@@ -70,13 +74,15 @@ needs. No user story task starts before this phase is done.
 - [ ] T019 [P] Create `Card`↔row mapper in `src/modules/board/infra/db/mappers/card.mapper.ts`
 - [ ] T020 Implement `DrizzleBoardRepository` in
       `src/modules/board/infra/db/repositories/drizzle-board.repository.ts` (depends on T011,
-      T015, T017)
+      T015, T017) — constructor takes `DrizzleExecutor` (not `DatabaseClient` directly), since
+      `DeleteBoardHandler` (T079) resolves it through the shared `UnitOfWork`
 - [ ] T021 Implement `DrizzleColumnRepository` in
       `src/modules/board/infra/db/repositories/drizzle-column.repository.ts` (depends on T012,
-      T015, T018)
+      T015, T018) — constructor takes `DrizzleExecutor`, same reason as T020 (joins the board
+      delete's transaction via `UnitOfWork`)
 - [ ] T022 Implement `DrizzleCardRepository` in
       `src/modules/board/infra/db/repositories/drizzle-card.repository.ts` (depends on T013,
-      T015, T019)
+      T015, T019) — constructor takes `DrizzleExecutor`, same reason as T020
 - [ ] T023 [P] Create in-memory test doubles `InMemoryBoardRepository`,
       `InMemoryColumnRepository`, `InMemoryCardRepository` in `test/repositories/` (matching
       existing doubles' shape)
@@ -153,7 +159,8 @@ real routes.
 - [ ] T041 [P] [US2] `handler.spec.ts` for `CreateColumnHandler` — covers FR-003
 - [ ] T042 [P] [US2] `handler.spec.ts` for `MoveColumnHandler` — covers FR-004
 - [ ] T043 [P] [US2] `handler.spec.ts` for `DeleteColumnHandler` — covers FR-012
-- [ ] T044 [US2] `*.e2e.spec.ts` covering create → reposition → delete column
+- [ ] T044 [US2] `*.e2e.spec.ts` covering create → reposition → delete column, plus a non-member
+      account getting `403`/`404` on each (FR-002, SC-002)
 
 ### Implementation for User Story 2
 
@@ -189,7 +196,8 @@ concurrency; reject cross-board moves; delete a card individually.
       the `ColumnNotInBoardError` case)
 - [ ] T055 [P] [US3] `handler.spec.ts` for `DeleteCardHandler` — covers FR-013
 - [ ] T056 [US3] `*.e2e.spec.ts` for the full happy path from `quickstart.md` (create board →
-      column → card → move) — covers SC-001
+      column → card → move) — covers SC-001; also assert a non-member account gets `403`/`404` on
+      create/move/delete card (FR-002, SC-002)
 - [ ] T057 [US3] `*.e2e.spec.ts` (or a focused integration test) issuing two concurrent `MoveCard`
       requests for the same card and asserting the final state is single-valued — covers SC-003
       (validates the plain-atomic-update decision in `research.md` §3)
@@ -276,7 +284,8 @@ afterward.
 - [ ] T077 [P] [US6] `handler.spec.ts` for `DeleteBoardHandler` using `InMemoryUnitOfWork` (same
       pattern as `RespondToInviteHandler`'s spec) — covers FR-010
 - [ ] T078 [US6] `*.e2e.spec.ts`: delete a board with columns/cards, confirm `GetBoard` and column
-      queries return not-found afterward
+      queries return not-found afterward; also assert a non-member account gets `403`/`404`
+      attempting to delete the board (FR-002, SC-002)
 
 ### Implementation for User Story 6
 
@@ -300,6 +309,11 @@ afterward.
       new module
 - [ ] T085 Run `quickstart.md`'s manual happy-path and negative-path scenarios against a local
       `docker compose` stack as a final sanity check
+- [ ] T086 `*.e2e.spec.ts` covering SC-004: a workspace member with an account role that lacks
+      the specific `board:*`/`card:*` permission for each write route (e.g. `viewer`) gets `403`
+      on every one — `POST .../boards`, `PATCH /boards/:id`, `DELETE /boards/:id`, `POST
+      .../columns`, `PATCH /columns/:id`, `DELETE /columns/:id`, `POST .../cards`, `PATCH
+      /cards/:id`, `PATCH /cards/:id/move`, `PATCH /cards/:id/assign`, `DELETE /cards/:id`
 
 ---
 
